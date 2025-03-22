@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle, Phone } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
+import { QRCodeSVG } from 'qrcode.react';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -23,6 +24,9 @@ const CandidateDetails = () => {
       </div>
     );
   }
+
+  const phoneNumber = candidate.phone || "05XXXXXXXXX";
+  const phoneUrl = `tel:${phoneNumber.replace(/\s/g, '')}`;
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -49,11 +53,18 @@ const CandidateDetails = () => {
                 <span className="hidden sm:inline">•</span>
                 <span>{candidate.email}</span>
                 <span className="hidden sm:inline">•</span>
-                <span>{candidate.phone}</span>
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-1" />
+                  <a href={phoneUrl} className="hover:text-primary transition-colors">{phoneNumber}</a>
+                </div>
               </div>
             </div>
             
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 flex items-center gap-4">
+              <div className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div className="text-xs text-center text-gray-500 mb-1">Aramak için tara</div>
+                <QRCodeSVG value={phoneUrl} size={80} />
+              </div>
               <StatusBadge status={candidate.status} className="text-base px-4 py-1.5" />
             </div>
           </div>
