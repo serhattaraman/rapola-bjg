@@ -29,7 +29,7 @@ const Candidates = () => {
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Adaylar</h1>
@@ -121,14 +121,14 @@ const Candidates = () => {
           </div>
         </div>
 
-        {/* Candidates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slide-in">
+        {/* Candidates List - Changed from grid to single column */}
+        <div className="flex flex-col gap-4 animate-slide-in">
           {filteredCandidates.length > 0 ? (
             filteredCandidates.map(candidate => (
               <CandidateCard key={candidate.id} candidate={candidate} />
             ))
           ) : (
-            <div className="col-span-3 py-20 text-center">
+            <div className="py-20 text-center">
               <p className="text-gray-500">Aradığınız kriterlere uygun aday bulunamadı.</p>
             </div>
           )}
