@@ -5,6 +5,8 @@ import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, P
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
+import ProcessStageIcon from '@/components/ProcessStageIcon';
+import { Button } from '@/components/ui/button';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -70,18 +72,18 @@ const CandidateDetails = () => {
           </div>
           
           <div className="flex flex-wrap gap-2 mt-6">
-            <button className="btn-secondary inline-flex items-center">
+            <Button variant="outline" className="inline-flex items-center">
               <Edit className="mr-2 h-4 w-4" />
               Düzenle
-            </button>
-            <button className="btn-secondary inline-flex items-center">
+            </Button>
+            <Button variant="outline" className="inline-flex items-center">
               <Download className="mr-2 h-4 w-4" />
               Rapor İndir
-            </button>
-            <button className="btn-secondary inline-flex items-center text-red-600 hover:text-red-700">
+            </Button>
+            <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -110,7 +112,7 @@ const CandidateDetails = () => {
                           <div className="relative flex space-x-3">
                             <div>
                               <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Calendar className="h-4 w-4 text-primary" />
+                                <ProcessStageIcon stage={event.title} className="h-4 w-4 text-primary" />
                               </span>
                             </div>
                             <div className="min-w-0 flex-1 pt-1.5">
@@ -127,10 +129,10 @@ const CandidateDetails = () => {
                   </ul>
                 </div>
                 <div className="mt-4 flex justify-center">
-                  <button className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium">
+                  <Button variant="ghost" className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Yeni Adım Ekle
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -140,9 +142,15 @@ const CandidateDetails = () => {
           <div className="space-y-6">
             {/* Current Stage */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-              <h2 className="text-lg font-semibold mb-4">Mevcut Aşama</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Mevcut Aşama</h2>
+              </div>
               <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                <div className="text-lg font-medium text-gray-900">{candidate.stage}</div>
+                <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
+                  {candidate.stage}
+                </div>
                 <div className="mt-2 text-sm text-gray-600">
                   <p>
                     Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
@@ -150,17 +158,20 @@ const CandidateDetails = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <button className="w-full btn-primary justify-center">
+                <Button className="w-full" variant="default">
                   <Edit className="mr-2 h-4 w-4" />
                   Aşama Güncelle
-                </button>
+                </Button>
               </div>
             </div>
             
             {/* Documents */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Belgeler</h2>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Belgeler</h2>
+                </div>
                 <button className="text-primary hover:text-primary/80 text-sm font-medium">
                   <PlusCircle className="h-4 w-4" />
                 </button>
@@ -186,7 +197,10 @@ const CandidateDetails = () => {
             {/* Notes */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Notlar</h2>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Notlar</h2>
+                </div>
                 <button className="text-primary hover:text-primary/80 text-sm font-medium">
                   <PlusCircle className="h-4 w-4" />
                 </button>
