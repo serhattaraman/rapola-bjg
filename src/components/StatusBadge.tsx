@@ -9,34 +9,60 @@ interface StatusBadgeProps {
   className?: string;
 }
 
+// Bu nesneler .NET MVC'de C# sınıflarına kolaylıkla dönüştürülebilir
+export const statusClasses = {
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200 status-pending',
+  inProgress: 'bg-blue-100 text-blue-800 border-blue-200 status-inProgress',
+  completed: 'bg-green-100 text-green-800 border-green-200 status-completed',
+  rejected: 'bg-red-100 text-red-800 border-red-200 status-rejected',
+  default: 'bg-gray-100 text-gray-800 border-gray-200 status-default',
+};
+
+export const statusButtonClasses = {
+  pending: 'bg-yellow-500 text-white status-pending-button',
+  inProgress: 'bg-blue-500 text-white status-inProgress-button',
+  completed: 'bg-green-500 text-white status-completed-button',
+  rejected: 'bg-red-500 text-white status-rejected-button',
+  default: 'bg-gray-500 text-white status-default-button',
+};
+
+// .NET MVC'de kullanılabilecek statü etiketleri
+export const statusLocalizedLabels = {
+  pending: 'Beklet',
+  inProgress: 'İşlemde',
+  completed: 'Onayla',
+  rejected: 'Reddet',
+  default: 'Durum',
+};
+
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
   const getStatusStyles = () => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return statusClasses.pending;
       case 'inProgress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return statusClasses.inProgress;
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return statusClasses.completed;
       case 'rejected':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return statusClasses.rejected;
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return statusClasses.default;
     }
   };
   
   const getButtonStyles = () => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-500 text-white';
+        return statusButtonClasses.pending;
       case 'inProgress':
-        return 'bg-blue-500 text-white';
+        return statusButtonClasses.inProgress;
       case 'completed':
-        return 'bg-green-500 text-white';
+        return statusButtonClasses.completed;
       case 'rejected':
-        return 'bg-red-500 text-white';
+        return statusButtonClasses.rejected;
       default:
-        return 'bg-gray-500 text-white';
+        return statusButtonClasses.default;
     }
   };
 
@@ -45,12 +71,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
     return (
       <span 
         className={cn(
-          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium',
+          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium status-badge status-badge-rejected',
           getButtonStyles(),
           className
         )}
       >
-        Reddet
+        {statusLocalizedLabels.rejected}
       </span>
     );
   }
@@ -59,12 +85,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
     return (
       <span 
         className={cn(
-          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium',
+          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium status-badge status-badge-completed',
           getButtonStyles(),
           className
         )}
       >
-        Onayla
+        {statusLocalizedLabels.completed}
       </span>
     );
   }
@@ -73,12 +99,12 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
     return (
       <span 
         className={cn(
-          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium',
+          'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium status-badge status-badge-pending',
           getButtonStyles(),
           className
         )}
       >
-        Beklet
+        {statusLocalizedLabels.pending}
       </span>
     );
   }
@@ -87,7 +113,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
   return (
     <span 
       className={cn(
-        'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium border',
+        'inline-flex items-center px-4 py-1 rounded-full text-sm font-medium border status-badge status-badge-default',
         getStatusStyles(),
         className
       )}

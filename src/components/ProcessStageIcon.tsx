@@ -21,6 +21,19 @@ interface ProcessStageIconProps {
   className?: string;
 }
 
+// Bu nesne, .NET MVC'de C# sınıfına kolaylıkla dönüştürülebilir
+export const stageIconMapping = {
+  "Başvuru Alındı": "FileCheck",
+  "Telefon Görüşmesi": "PhoneCall",
+  "İK Görüşmesi": "UserCheck",
+  "Evrak Toplama": "ClipboardList",
+  "Sisteme Evrak Girişi": "Database",
+  "Sınıf Yerleştirme": "Users",
+  "Denklik Süreci": "BookOpen",
+  "Vize Süreci": "FileText",
+  "Sertifika Süreci": "Award",
+};
+
 const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({ 
   stage, 
   size = 18, 
@@ -55,7 +68,7 @@ const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({
 
   const Icon = getIcon();
   
-  return <Icon size={size} className={className} />;
+  return <Icon size={size} className={`process-stage-icon ${className}`} />;
 };
 
 export default ProcessStageIcon;
