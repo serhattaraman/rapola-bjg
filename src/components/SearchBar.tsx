@@ -26,10 +26,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
     onSearch('');
   };
 
-  // .NET MVC için örnek Razor kodu:
   /*
+  .NET MVC kullanımı için HTML/Razor örneği:
+
   <form method="get" action="@Url.Action("Search", "Candidate")" class="search-bar @ViewBag.SearchBarClass">
-    <i class="search-icon"></i>
+    <div class="search-icon-wrapper">
+      <i class="search-icon"></i>
+    </div>
     <input 
       type="text" 
       name="query" 
@@ -37,11 +40,20 @@ const SearchBar: React.FC<SearchBarProps> = ({
       placeholder="@ViewBag.SearchPlaceholder" 
       class="search-input" />
     @if (!string.IsNullOrEmpty(ViewBag.SearchQuery)) {
-      <button type="button" class="clear-button" onclick="this.form.query.value=''; this.form.submit();">
+      <button type="button" class="clear-button" onclick="clearSearch(this)">
         <i class="clear-icon"></i>
       </button>
     }
   </form>
+
+  <script>
+  function clearSearch(button) {
+    var form = button.closest('form');
+    var input = form.querySelector('input[name="query"]');
+    input.value = '';
+    form.submit();
+  }
+  </script>
   */
 
   return (

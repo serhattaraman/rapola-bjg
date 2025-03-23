@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { CandidateStatus } from '@/lib/mock-data';
@@ -33,6 +34,49 @@ export const statusLocalizedLabels = {
   rejected: 'Reddet',
   default: 'Durum',
 };
+
+/* 
+.NET MVC için Razor View parçası örneği:
+
+@model StatusBadgeViewModel
+
+<span class="status-badge @Model.CssClass">@Model.Label</span>
+
+@* Veya post işlemi yapacak formlu versiyon: *@
+@if (Model.AllowPostback)
+{
+    <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
+        <input type="hidden" name="candidateId" value="@Model.CandidateId" />
+        <input type="hidden" name="newStatus" value="@Model.StatusKey" />
+        <button type="submit" class="status-badge @Model.ButtonCssClass">@Model.Label</button>
+    </form>
+}
+
+@* ViewModel örneği: *@
+public class StatusBadgeViewModel
+{
+    public string StatusKey { get; set; }
+    public int CandidateId { get; set; }
+    public bool AllowPostback { get; set; }
+    
+    public string Label => GetStatusLabel(StatusKey);
+    public string CssClass => GetStatusCssClass(StatusKey);
+    public string ButtonCssClass => GetStatusButtonCssClass(StatusKey);
+    
+    private string GetStatusLabel(string status)
+    {
+        // statusLocalizedLabels sözlüğünün C# implementasyonu
+        switch(status)
+        {
+            case "pending": return "Beklet";
+            // ... diğer case'ler
+            default: return "Durum";
+        }
+    }
+    
+    // GetStatusCssClass ve GetStatusButtonCssClass metodları da benzer şekilde
+}
+*/
 
 // StatusBadge component - .NET MVC'de Partial View olarak kullanılabilir
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
@@ -77,7 +121,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
         )}
       >
         {statusLocalizedLabels.rejected}
-        {/* .NET MVC'de: <span class="status-badge status-badge-rejected @Model.StatusClassName">@Model.StatusLabel</span> */}
       </span>
     );
   }
@@ -92,13 +135,6 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
         )}
       >
         {statusLocalizedLabels.completed}
-        {/* .NET MVC'de form-post için button olarak kullanılabilir:
-          <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
-            <input type="hidden" name="candidateId" value="@Model.Id" />
-            <input type="hidden" name="newStatus" value="completed" />
-            <button type="submit" class="status-badge status-badge-completed">@StatusLocalizer.Completed</button>
-          </form>
-        */}
       </span>
     );
   }

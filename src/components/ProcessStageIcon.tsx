@@ -8,7 +8,7 @@ import {
   ClipboardList, 
   Database, 
   Users, 
-  FileText, // Replaced Passport with FileText
+  FileText, 
   Award, 
   LucideIcon 
 } from 'lucide-react';
@@ -47,11 +47,34 @@ export const stageCssClasses = {
   "Sertifika Süreci": "stage-certificate",
 };
 
-// .NET MVC'de kullanılabilecek HTML yapısı örneği:
 /*
-<div class="process-stage-icon @Model.StageCssClass">
-  <i class="icon-@Model.StageIcon"></i>
+.NET MVC uygulaması için Razor şablonu örneği:
+
+@model StageIconViewModel
+
+<div class="process-stage-icon @Model.CssClass">
+  <i class="stage-icon-@Model.StageKey"></i>
 </div>
+
+@* C# Model Sınıfı *@
+public class StageIconViewModel
+{
+    public string Stage { get; set; }
+    public string StageKey => Stage.Replace(" ", "").ToLowerInvariant();
+    public string CssClass => GetStageCssClass(Stage);
+    
+    private string GetStageCssClass(string stage)
+    {
+        // Burada stageCssClasses benzeri bir sözlük kullanılabilir
+        switch(stage)
+        {
+            case "Başvuru Alındı": return "stage-application";
+            case "Telefon Görüşmesi": return "stage-phone";
+            // ... diğer case'ler
+            default: return "stage-default";
+        }
+    }
+}
 */
 
 const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({ 
@@ -78,7 +101,7 @@ const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({
       case "Denklik Süreci":
         return BookOpen;
       case "Vize Süreci":
-        return FileText; // Changed from Passport to FileText
+        return FileText;
       case "Sertifika Süreci":
         return Award;
       default:

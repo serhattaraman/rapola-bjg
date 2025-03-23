@@ -13,22 +13,49 @@ interface StatCardProps {
   className?: string;
 }
 
-// .NET MVC örnek model sınıfı:
 /*
+.NET MVC için ViewModel sınıfları:
+
 public class StatViewModel
 {
     public string Title { get; set; }
     public string Value { get; set; }
-    public string IconClass { get; set; }
+    public string IconCssClass { get; set; }
     public StatChangeViewModel Change { get; set; }
-    public string CssClass { get; set; }
+    public string AdditionalCssClass { get; set; }
 }
 
 public class StatChangeViewModel
 {
     public int Value { get; set; }
     public bool IsPositive { get; set; }
+    public string FormattedValue => (IsPositive ? "+" : "") + Value + "%";
+    public string CssClass => IsPositive ? "positive" : "negative";
 }
+
+// Razor View Örneği:
+@model StatViewModel
+
+<div class="stat-card @Model.AdditionalCssClass">
+  <div class="stat-card-inner">
+    <div class="stat-content">
+      <p class="stat-title">@Model.Title</p>
+      <h3 class="stat-value">@Model.Value</h3>
+      
+      @if (Model.Change != null)
+      {
+        <div class="stat-change">
+          <span class="stat-change-value @Model.Change.CssClass">
+            @Model.Change.FormattedValue
+          </span>
+          <span class="stat-change-label">son haftaya göre</span>
+        </div>
+      }
+    </div>
+    
+    <div class="stat-icon @Model.IconCssClass"></div>
+  </div>
+</div>
 */
 
 const StatCard: React.FC<StatCardProps> = ({ 
@@ -68,31 +95,5 @@ const StatCard: React.FC<StatCardProps> = ({
     </div>
   );
 };
-
-// .NET MVC'de Razor Partial View olarak kullanılabilir:
-/*
-@model StatViewModel
-
-<div class="stat-card @Model.CssClass">
-  <div class="stat-card-inner">
-    <div class="stat-content">
-      <p class="stat-title">@Model.Title</p>
-      <h3 class="stat-value">@Model.Value</h3>
-      
-      @if (Model.Change != null)
-      {
-        <div class="stat-change">
-          <span class="stat-change-value @(Model.Change.IsPositive ? "positive" : "negative")">
-            @(Model.Change.IsPositive ? "+" : "")@Model.Change.Value%
-          </span>
-          <span class="stat-change-label">son haftaya göre</span>
-        </div>
-      }
-    </div>
-    
-    <div class="stat-icon @Model.IconClass"></div>
-  </div>
-</div>
-*/
 
 export default StatCard;

@@ -31,8 +31,63 @@ export const calculateProgress = (currentStage: string): number => {
   return Math.max(0, Math.min(100, ((currentStageIndex + 1) / progressStages.length) * 100));
 };
 
-// .NET MVC'de kullanılabilecek model sınıfı:
 /*
+.NET MVC için Razor view ve model sınıfları:
+
+@model CandidateCardViewModel
+
+<a href="@Url.Action("Details", "Candidate", new { id = Model.Id })" class="candidate-card">
+  <div class="candidate-card-inner">
+    <div class="candidate-card-header">
+      <div class="candidate-info">
+        <h3 class="candidate-name">
+          <i class="candidate-icon icon-user"></i>
+          @Model.FirstName @Model.LastName
+        </h3>
+        <p class="candidate-details">
+          <span class="candidate-position">@Model.Position</span>
+          <span class="separator">•</span>
+          <i class="phone-icon icon-phone"></i>
+          <span class="candidate-phone">@(string.IsNullOrEmpty(Model.Phone) ? "05XXXXXXXXX" : Model.Phone)</span>
+        </p>
+      </div>
+      <partial name="_StatusBadge" model="new StatusBadgeViewModel { StatusKey = Model.Status, CandidateId = Model.Id }" />
+    </div>
+    
+    <div class="candidate-progress">
+      <div class="progress-header">
+        <div class="responsible-person">Sorumlu: <span>İK Uzmanı</span></div>
+        <div class="current-stage">
+          <i class="stage-icon-@Model.StageKey"></i>
+          <span class="current-stage-text">@Model.Stage</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-value" style="width: @Model.ProgressPercentage%"></div>
+      </div>
+      
+      <div class="progress-stages">
+        @for (int i = 0; i < Model.AllStages.Count(); i++)
+        {
+          var stage = Model.AllStages.ElementAt(i);
+          var stageKey = stage.Replace(" ", "").ToLowerInvariant();
+          var isCompleted = i <= Model.CurrentStageIndex;
+          var isCurrent = i == Model.CurrentStageIndex;
+          var stateClass = isCurrent ? "current" : (isCompleted ? "completed" : "pending");
+          
+          <div class="stage-item stage-@(i+1) @stateClass">
+            <div class="stage-icon @stateClass">
+              <i class="icon-@stageKey"></i>
+            </div>
+            <span class="stage-label @stateClass">@stage</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</a>
+
+
 public class CandidateCardViewModel
 {
     public int Id { get; set; }
@@ -42,9 +97,20 @@ public class CandidateCardViewModel
     public string Phone { get; set; }
     public string Status { get; set; }
     public string Stage { get; set; }
-    public int ProgressPercentage { get; set; }
-    public int CurrentStageIndex { get; set; }
-    public IEnumerable<string> AllStages { get; set; }
+    public string StageKey => Stage.Replace(" ", "").ToLowerInvariant();
+    public int ProgressPercentage => CalculateProgress(Stage);
+    public int CurrentStageIndex => Array.FindIndex(AllStages.ToArray(), s => s == Stage);
+    public IEnumerable<string> AllStages { get; set; } = new List<string> {
+        "Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", 
+        "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", 
+        "Vize Süreci", "Sertifika Süreci"
+    };
+    
+    private int CalculateProgress(string currentStage)
+    {
+        int currentStageIndex = Array.FindIndex(AllStages.ToArray(), s => s == currentStage);
+        return Math.Max(0, Math.Min(100, ((currentStageIndex + 1) / (double)AllStages.Count()) * 100));
+    }
 }
 */
 
@@ -110,58 +176,5 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
     </Link>
   );
 };
-
-// .NET MVC'de Razor Partial View olarak kullanılabilir:
-/*
-@model CandidateCardViewModel
-
-<a href="@Url.Action("Details", "Candidate", new { id = Model.Id })" class="candidate-card">
-  <div class="candidate-card-inner">
-    <div class="candidate-card-header">
-      <div class="candidate-info">
-        <h3 class="candidate-name">
-          <i class="candidate-icon user-icon"></i>
-          @Model.FirstName @Model.LastName
-        </h3>
-        <p class="candidate-details">
-          <span class="candidate-position">@Model.Position</span>
-          <span class="separator">•</span>
-          <i class="phone-icon"></i>
-          <span class="candidate-phone">@(string.IsNullOrEmpty(Model.Phone) ? "05XXXXXXXXX" : Model.Phone)</span>
-        </p>
-      </div>
-      <partial name="_StatusBadge" model="Model.Status" />
-    </div>
-    
-    <div class="candidate-progress">
-      <div class="progress-header">
-        <div class="responsible-person">Sorumlu: <span>İK Uzmanı</span></div>
-        <div class="current-stage">
-          <i class="stage-icon stage-@Model.Stage.Replace(" ", "-").ToLower()"></i>
-          <span class="current-stage-text">@Model.Stage</span>
-        </div>
-      </div>
-      <div class="progress-bar" style="--progress: @Model.ProgressPercentage%"></div>
-      
-      <div class="progress-stages">
-        @for (int i = 0; i < Model.AllStages.Count(); i++)
-        {
-          var stage = Model.AllStages.ElementAt(i);
-          var isCompleted = i <= Model.CurrentStageIndex;
-          var isCurrent = i == Model.CurrentStageIndex;
-          var stateClass = isCurrent ? "current" : (isCompleted ? "completed" : "pending");
-          
-          <div class="stage-item stage-@(i+1) @stateClass">
-            <div class="stage-icon @stateClass">
-              <i class="icon-@stage.Replace(" ", "-").ToLower()"></i>
-            </div>
-            <span class="stage-label @stateClass">@stage</span>
-          </div>
-        }
-      </div>
-    </div>
-  </div>
-</a>
-*/
 
 export default CandidateCard;

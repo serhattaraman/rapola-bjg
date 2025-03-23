@@ -1,0 +1,253 @@
+
+<!-- .NET MVC için Aday Ekleme Sayfası HTML şablonu -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aday Ekle - Rapola</title>
+    <link rel="stylesheet" href="~/Content/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar partial view ile eklenebilir -->
+    @Html.Partial("_Navbar")
+
+    <div class="dashboard-page pt-20">
+        <div class="dashboard-container px-4 sm:px-6 lg:px-8">
+            <!-- Başlık -->
+            <div class="dashboard-header mb-8">
+                <div class="dashboard-title">
+                    <h1 class="text-2xl font-bold">Yeni Aday Ekle</h1>
+                    <p class="text-gray-500 mt-1">Yeni bir aday oluşturmak için aşağıdaki formu doldurun.</p>
+                </div>
+            </div>
+            
+            <!-- Aday ekleme formu -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 max-w-3xl mx-auto">
+                <form method="post" action="@Url.Action("Create", "Candidate")" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- Kişisel Bilgiler -->
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b">Kişisel Bilgiler</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">Ad <span class="text-red-500">*</span></label>
+                                <input type="text" id="firstName" name="FirstName" required 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                                @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-red-500 text-sm mt-1" })
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Soyad <span class="text-red-500">*</span></label>
+                                <input type="text" id="lastName" name="LastName" required 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                                @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-red-500 text-sm mt-1" })
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-posta <span class="text-red-500">*</span></label>
+                                <input type="email" id="email" name="Email" required 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-red-500 text-sm mt-1" })
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefon <span class="text-red-500">*</span></label>
+                                <input type="tel" id="phone" name="Phone" required 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                                @Html.ValidationMessageFor(m => m.Phone, "", new { @class = "text-red-500 text-sm mt-1" })
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="birthDate" class="block text-sm font-medium text-gray-700 mb-1">Doğum Tarihi</label>
+                                <input type="date" id="birthDate" name="BirthDate" 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="nationality" class="block text-sm font-medium text-gray-700 mb-1">Uyruk</label>
+                                <input type="text" id="nationality" name="Nationality" 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Başvuru Bilgileri -->
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b">Başvuru Bilgileri</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="position" class="block text-sm font-medium text-gray-700 mb-1">Pozisyon <span class="text-red-500">*</span></label>
+                                <input type="text" id="position" name="Position" required 
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                                @Html.ValidationMessageFor(m => m.Position, "", new { @class = "text-red-500 text-sm mt-1" })
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="applicationDate" class="block text-sm font-medium text-gray-700 mb-1">Başvuru Tarihi <span class="text-red-500">*</span></label>
+                                <input type="date" id="applicationDate" name="ApplicationDate" required 
+                                       value="@DateTime.Now.ToString("yyyy-MM-dd")"
+                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="stage" class="block text-sm font-medium text-gray-700 mb-1">Aşama <span class="text-red-500">*</span></label>
+                                <select id="stage" name="Stage" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                                    <option value="Başvuru Alındı" selected>Başvuru Alındı</option>
+                                    <option value="Telefon Görüşmesi">Telefon Görüşmesi</option>
+                                    <option value="İK Görüşmesi">İK Görüşmesi</option>
+                                    <option value="Evrak Toplama">Evrak Toplama</option>
+                                    <option value="Sisteme Evrak Girişi">Sisteme Evrak Girişi</option>
+                                    <option value="Sınıf Yerleştirme">Sınıf Yerleştirme</option>
+                                    <option value="Denklik Süreci">Denklik Süreci</option>
+                                    <option value="Vize Süreci">Vize Süreci</option>
+                                    <option value="Sertifika Süreci">Sertifika Süreci</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Durum <span class="text-red-500">*</span></label>
+                                <select id="status" name="Status" required
+                                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                                    <option value="pending" selected>Beklemede</option>
+                                    <option value="inProgress">İşlemde</option>
+                                    <option value="completed">Tamamlandı</option>
+                                    <option value="rejected">Reddedildi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dökümanlar -->
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b">Dökümanlar</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="form-group">
+                                <label for="cvFile" class="block text-sm font-medium text-gray-700 mb-1">CV</label>
+                                <input type="file" id="cvFile" name="CvFile" accept=".pdf,.doc,.docx"
+                                       class="w-full text-sm text-gray-500
+                                              file:mr-4 file:py-2 file:px-4
+                                              file:rounded-md file:border-0
+                                              file:text-sm file:font-medium
+                                              file:bg-primary file:text-white
+                                              hover:file:bg-primary-dark" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="idFile" class="block text-sm font-medium text-gray-700 mb-1">Kimlik</label>
+                                <input type="file" id="idFile" name="IdFile" accept=".pdf,.jpg,.jpeg,.png"
+                                       class="w-full text-sm text-gray-500
+                                              file:mr-4 file:py-2 file:px-4
+                                              file:rounded-md file:border-0
+                                              file:text-sm file:font-medium
+                                              file:bg-primary file:text-white
+                                              hover:file:bg-primary-dark" />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="diplomaFile" class="block text-sm font-medium text-gray-700 mb-1">Diploma</label>
+                                <input type="file" id="diplomaFile" name="DiplomaFile" accept=".pdf,.jpg,.jpeg,.png"
+                                       class="w-full text-sm text-gray-500
+                                              file:mr-4 file:py-2 file:px-4
+                                              file:rounded-md file:border-0
+                                              file:text-sm file:font-medium
+                                              file:bg-primary file:text-white
+                                              hover:file:bg-primary-dark" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Not -->
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold mb-4 pb-2 border-b">Not Ekle</h2>
+                        
+                        <div class="form-group">
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Not</label>
+                            <textarea id="notes" name="Notes" rows="4"
+                                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                                      placeholder="Aday hakkında notlar..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Butonlar -->
+                    <div class="flex space-x-4 mt-8">
+                        <button type="submit" class="flex-1 btn-primary py-3">
+                            <i class="fas fa-save mr-2"></i> Kaydet
+                        </button>
+                        
+                        <a href="@Url.Action("Index", "Candidate")" class="flex-1 btn-secondary py-3 text-center">
+                            <i class="fas fa-times mr-2"></i> İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-6 bg-gray-100 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 text-sm">
+                &copy; @DateTime.Now.Year Rapola Aday Yönetim Sistemi. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form doğrulama
+            var form = document.querySelector('form');
+            form.addEventListener('submit', function(event) {
+                var requiredInputs = form.querySelectorAll('[required]');
+                var isValid = true;
+                
+                requiredInputs.forEach(function(input) {
+                    if (!input.value.trim()) {
+                        isValid = false;
+                        input.classList.add('border-red-500');
+                        
+                        // Hata mesajı göster
+                        var errorElement = document.createElement('p');
+                        errorElement.className = 'text-red-500 text-sm mt-1';
+                        errorElement.textContent = 'Bu alan zorunludur';
+                        
+                        var existingError = input.parentNode.querySelector('.text-red-500');
+                        if (!existingError) {
+                            input.parentNode.appendChild(errorElement);
+                        }
+                    } else {
+                        input.classList.remove('border-red-500');
+                        var existingError = input.parentNode.querySelector('.text-red-500');
+                        if (existingError) {
+                            existingError.remove();
+                        }
+                    }
+                });
+                
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+            
+            // Input hata stillerini temizle
+            var allInputs = form.querySelectorAll('input, select, textarea');
+            allInputs.forEach(function(input) {
+                input.addEventListener('focus', function() {
+                    this.classList.remove('border-red-500');
+                    var existingError = this.parentNode.querySelector('.text-red-500');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

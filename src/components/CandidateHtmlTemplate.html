@@ -1,0 +1,358 @@
+
+<!-- .NET MVC için HTML şablonu -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aday Yönetim Sistemi</title>
+    <link rel="stylesheet" href="~/Content/css/main.css">
+    <!-- Font Awesome veya başka bir ikon kütüphanesi eklenebilir -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="main-navbar">
+        <div class="navbar-container">
+            <div class="navbar-inner">
+                <div class="navbar-logo">
+                    <a href="@Url.Action("Index", "Home")" class="brand-name">Rapola</a>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="desktop-nav">
+                    <a href="@Url.Action("Index", "Home")" class="nav-item nav-home @(ViewBag.ActiveMenu == "Home" ? "active" : "")">
+                        <i class="fas fa-home"></i>
+                        <span class="nav-text">Genel Bakış</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Candidate")" class="nav-item nav-candidates @(ViewBag.ActiveMenu == "Candidate" ? "active" : "")">
+                        <i class="fas fa-users"></i>
+                        <span class="nav-text">Adaylar</span>
+                    </a>
+                    <a href="@Url.Action("Create", "Candidate")" class="nav-item nav-add @(ViewBag.ActiveMenu == "CandidateCreate" ? "active" : "")">
+                        <i class="fas fa-plus-circle"></i>
+                        <span class="nav-text">Aday Ekle</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Report")" class="nav-item nav-reports @(ViewBag.ActiveMenu == "Report" ? "active" : "")">
+                        <i class="fas fa-chart-bar"></i>
+                        <span class="nav-text">Raporlar</span>
+                    </a>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="mobile-menu-button">
+                    <button
+                        onclick="toggleMobileMenu()"
+                        class="mobile-toggle-button"
+                        aria-expanded="false">
+                        <span class="sr-only">Menüyü aç</span>
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav-container hidden">
+            <div class="mobile-nav-inner">
+                <a href="@Url.Action("Index", "Home")" class="nav-item-mobile nav-home @(ViewBag.ActiveMenu == "Home" ? "active" : "")">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">Genel Bakış</span>
+                </a>
+                <a href="@Url.Action("Index", "Candidate")" class="nav-item-mobile nav-candidates @(ViewBag.ActiveMenu == "Candidate" ? "active" : "")">
+                    <i class="fas fa-users"></i>
+                    <span class="nav-text">Adaylar</span>
+                </a>
+                <a href="@Url.Action("Create", "Candidate")" class="nav-item-mobile nav-add @(ViewBag.ActiveMenu == "CandidateCreate" ? "active" : "")">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="nav-text">Aday Ekle</span>
+                </a>
+                <a href="@Url.Action("Index", "Report")" class="nav-item-mobile nav-reports @(ViewBag.ActiveMenu == "Report" ? "active" : "")">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="nav-text">Raporlar</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Ana içerik -->
+    <div class="dashboard-page">
+        <div class="dashboard-container px-4 sm:px-6 lg:px-8">
+            <!-- Dashboard header -->
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <h1>@ViewBag.Title</h1>
+                </div>
+                
+                <div class="dashboard-actions">
+                    <!-- Arama çubuğu -->
+                    <form method="get" action="@Url.Action("Search", "Candidate")" class="search-bar">
+                        <div class="search-icon-wrapper">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            name="query" 
+                            value="@ViewBag.SearchQuery" 
+                            placeholder="Ara..." 
+                            class="search-input" />
+                        @if (!string.IsNullOrEmpty(ViewBag.SearchQuery))
+                        {
+                            <button type="button" class="clear-button" onclick="this.form.query.value=''; this.form.submit();">
+                                <i class="fas fa-times clear-icon"></i>
+                            </button>
+                        }
+                    </form>
+                </div>
+            </div>
+            
+            <!-- İstatistik kartları -->
+            <div class="stats-container">
+                <!-- İstatistik Kartı 1 -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Toplam Aday</p>
+                            <h3 class="stat-value">@Model.TotalCandidates</h3>
+                            
+                            @if (Model.CandidateChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.CandidateChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.CandidateChange.IsPositive ? "+" : "")@Model.CandidateChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">son haftaya göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- İstatistik Kartı 2 -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">İşlemde</p>
+                            <h3 class="stat-value">@Model.InProgressCandidates</h3>
+                            
+                            @if (Model.InProgressChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.InProgressChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.InProgressChange.IsPositive ? "+" : "")@Model.InProgressChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">son haftaya göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- İstatistik Kartı 3 -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Onaylanan</p>
+                            <h3 class="stat-value">@Model.CompletedCandidates</h3>
+                            
+                            @if (Model.CompletedChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.CompletedChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.CompletedChange.IsPositive ? "+" : "")@Model.CompletedChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">son haftaya göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- İstatistik Kartı 4 -->
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Reddedilen</p>
+                            <h3 class="stat-value">@Model.RejectedCandidates</h3>
+                            
+                            @if (Model.RejectedChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.RejectedChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.RejectedChange.IsPositive ? "+" : "")@Model.RejectedChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">son haftaya göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Adaylar listesi -->
+            <div class="candidates-grid grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                @foreach (var candidate in Model.Candidates)
+                {
+                    <a href="@Url.Action("Details", "Candidate", new { id = candidate.Id })" class="candidate-card">
+                        <div class="candidate-card-inner">
+                            <div class="candidate-card-header">
+                                <div class="candidate-info">
+                                    <h3 class="candidate-name">
+                                        <i class="fas fa-user candidate-icon"></i>
+                                        @candidate.FirstName @candidate.LastName
+                                    </h3>
+                                    <p class="candidate-details">
+                                        <span class="candidate-position">@candidate.Position</span>
+                                        <span class="separator">•</span>
+                                        <i class="fas fa-phone phone-icon"></i>
+                                        <span class="candidate-phone">@(string.IsNullOrEmpty(candidate.Phone) ? "05XXXXXXXXX" : candidate.Phone)</span>
+                                    </p>
+                                </div>
+                                <span class="status-badge status-badge-@candidate.Status.ToLowerInvariant()">
+                                    @GetStatusLabel(candidate.Status)
+                                </span>
+                            </div>
+                            
+                            <div class="candidate-progress">
+                                <div class="progress-header">
+                                    <div class="responsible-person">Sorumlu: <span>İK Uzmanı</span></div>
+                                    <div class="current-stage">
+                                        <i class="fas fa-@GetStageIcon(candidate.Stage) stage-icon"></i>
+                                        <span class="current-stage-text">@candidate.Stage</span>
+                                    </div>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-value" style="width: @candidate.ProgressPercentage%"></div>
+                                </div>
+                                
+                                <div class="progress-stages">
+                                    @{ var currentStageIndex = Array.FindIndex(ProgressStages, s => s == candidate.Stage); }
+                                    @for (int i = 0; i < ProgressStages.Length; i++)
+                                    {
+                                        var stage = ProgressStages[i];
+                                        var isCompleted = i <= currentStageIndex;
+                                        var isCurrent = i == currentStageIndex;
+                                        var stateClass = isCurrent ? "current" : (isCompleted ? "completed" : "pending");
+                                        
+                                        <div class="stage-item stage-@(i+1) @stateClass">
+                                            <div class="stage-icon @stateClass">
+                                                <i class="fas fa-@GetStageIcon(stage)"></i>
+                                            </div>
+                                            <span class="stage-label @stateClass">@stage</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+            
+            <!-- Sayfalama -->
+            <div class="pagination mt-8 flex justify-center">
+                <ul class="flex space-x-2">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", "Candidate", new { page = Model.CurrentPage - 1, query = ViewBag.SearchQuery })" class="pagination-link prev">
+                                <i class="fas fa-chevron-left"></i> Önceki
+                            </a>
+                        </li>
+                    }
+                    
+                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", "Candidate", new { page = i, query = ViewBag.SearchQuery })" 
+                                class="pagination-link @(i == Model.CurrentPage ? "active" : "")">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li>
+                            <a href="@Url.Action("Index", "Candidate", new { page = Model.CurrentPage + 1, query = ViewBag.SearchQuery })" class="pagination-link next">
+                                Sonraki <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-6 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 text-sm">
+                &copy; @DateTime.Now.Year Rapola Aday Yönetim Sistemi. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        function toggleMobileMenu() {
+            var mobileNav = document.querySelector('.mobile-nav-container');
+            mobileNav.classList.toggle('hidden');
+            
+            var menuButton = document.querySelector('.mobile-toggle-button');
+            var isExpanded = menuButton.getAttribute('aria-expanded') === 'true';
+            menuButton.setAttribute('aria-expanded', !isExpanded);
+            
+            var menuIcon = menuButton.querySelector('i');
+            if (menuIcon.classList.contains('fa-bars')) {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-times');
+            } else {
+                menuIcon.classList.remove('fa-times');
+                menuIcon.classList.add('fa-bars');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scroll olayını dinle
+            function handleScroll() {
+                var navbar = document.querySelector('.main-navbar');
+                if (window.scrollY > 10) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            }
+
+            window.addEventListener('scroll', handleScroll);
+            handleScroll(); // Sayfa yüklendiğinde de kontrol et
+            
+            // Form temizleme butonları için olay dinleyicileri
+            var clearButtons = document.querySelectorAll('.clear-button');
+            clearButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var form = this.closest('form');
+                    var input = form.querySelector('input[name="query"]');
+                    input.value = '';
+                    form.submit();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

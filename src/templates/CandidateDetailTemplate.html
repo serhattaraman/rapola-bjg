@@ -1,0 +1,331 @@
+
+<!-- .NET MVC için Aday Detay Sayfası HTML şablonu -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aday Detayı - @Model.FirstName @Model.LastName</title>
+    <link rel="stylesheet" href="~/Content/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar partial view ile eklenebilir -->
+    @Html.Partial("_Navbar")
+
+    <div class="dashboard-page pt-20">
+        <div class="dashboard-container px-4 sm:px-6 lg:px-8">
+            <!-- Geri butonu ve başlık -->
+            <div class="mb-6 flex items-center">
+                <a href="@Url.Action("Index", "Candidate")" class="text-gray-600 hover:text-primary transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i> Adaylara Dön
+                </a>
+            </div>
+            
+            <div class="dashboard-header mb-6">
+                <div class="dashboard-title flex items-center">
+                    <h1 class="text-2xl font-bold">@Model.FirstName @Model.LastName</h1>
+                    <span class="status-badge status-badge-@Model.Status.ToLowerInvariant() ml-4">
+                        @GetStatusLabel(Model.Status)
+                    </span>
+                </div>
+                
+                <div class="dashboard-actions">
+                    <div class="flex space-x-3">
+                        <!-- Durum güncelleme butonları -->
+                        @if (Model.Status != "completed")
+                        {
+                            <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
+                                <input type="hidden" name="candidateId" value="@Model.Id" />
+                                <input type="hidden" name="newStatus" value="completed" />
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-check mr-2"></i> Onayla
+                                </button>
+                            </form>
+                        }
+                        
+                        @if (Model.Status != "rejected")
+                        {
+                            <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
+                                <input type="hidden" name="candidateId" value="@Model.Id" />
+                                <input type="hidden" name="newStatus" value="rejected" />
+                                <button type="submit" class="btn-secondary">
+                                    <i class="fas fa-times mr-2"></i> Reddet
+                                </button>
+                            </form>
+                        }
+                        
+                        <!-- Düzenleme butonu -->
+                        <a href="@Url.Action("Edit", "Candidate", new { id = Model.Id })" class="btn-secondary">
+                            <i class="fas fa-edit mr-2"></i> Düzenle
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aday bilgileri -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Sol kolon - Kişisel bilgiler -->
+                <div class="col-span-1">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <h2 class="text-lg font-semibold mb-4">Kişisel Bilgiler</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">İsim</div>
+                                <div class="font-medium">@Model.FirstName @Model.LastName</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Pozisyon</div>
+                                <div class="font-medium">@Model.Position</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Telefon</div>
+                                <div class="font-medium">@Model.Phone</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">E-posta</div>
+                                <div class="font-medium">@Model.Email</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Başvuru Tarihi</div>
+                                <div class="font-medium">@Model.ApplicationDate.ToString("dd.MM.yyyy")</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Doğum Tarihi</div>
+                                <div class="font-medium">@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("dd.MM.yyyy") : "-")</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Uyruk</div>
+                                <div class="font-medium">@Model.Nationality</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Orta kolon - Süreç bilgileri -->
+                <div class="col-span-1">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <h2 class="text-lg font-semibold mb-4">Süreç Bilgileri</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Mevcut Aşama</div>
+                                <div class="font-medium text-primary flex items-center">
+                                    <i class="fas fa-@GetStageIcon(Model.Stage) mr-2"></i>
+                                    @Model.Stage
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">İlerleme</div>
+                                <div class="mt-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                                        <div class="bg-primary h-2 rounded-full" style="width: @Model.ProgressPercentage%"></div>
+                                    </div>
+                                    <div class="text-xs text-gray-500">%@Model.ProgressPercentage tamamlandı</div>
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Sorumlu</div>
+                                <div class="font-medium">@Model.ResponsiblePerson</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">En Son Güncelleme</div>
+                                <div class="font-medium">@Model.LastUpdated.ToString("dd.MM.yyyy HH:mm")</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="text-sm text-gray-500">Tahmini Tamamlanma</div>
+                                <div class="font-medium">@(Model.EstimatedCompletionDate.HasValue ? Model.EstimatedCompletionDate.Value.ToString("dd.MM.yyyy") : "-")</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Aşama güncelleme -->
+                        <div class="mt-6">
+                            <form method="post" action="@Url.Action("UpdateStage", "Candidate")">
+                                <input type="hidden" name="candidateId" value="@Model.Id" />
+                                <div class="form-group">
+                                    <label for="stageSelect" class="text-sm font-medium text-gray-700">Aşamayı Güncelle</label>
+                                    <select id="stageSelect" name="newStage" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md">
+                                        @foreach (var stage in Model.AllStages)
+                                        {
+                                            <option value="@stage" @(stage == Model.Stage ? "selected" : "")>@stage</option>
+                                        }
+                                    </select>
+                                </div>
+                                <button type="submit" class="mt-3 w-full btn-primary">
+                                    <i class="fas fa-save mr-2"></i> Aşamayı Güncelle
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sağ kolon - Notlar ve dökümanlar -->
+                <div class="col-span-1">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+                        <h2 class="text-lg font-semibold mb-4">Notlar</h2>
+                        
+                        <div class="space-y-4">
+                            @if (Model.Notes != null && Model.Notes.Any())
+                            {
+                                foreach (var note in Model.Notes)
+                                {
+                                    <div class="note-item p-3 bg-gray-50 rounded-lg">
+                                        <div class="text-sm font-medium">@note.CreatedBy</div>
+                                        <div class="text-xs text-gray-500 mb-1">@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                                        <div class="text-sm">@note.Content</div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-gray-500 text-sm">Henüz not eklenmemiş</div>
+                            }
+                        </div>
+                        
+                        <!-- Not ekleme formu -->
+                        <form method="post" action="@Url.Action("AddNote", "Candidate")" class="mt-4">
+                            <input type="hidden" name="candidateId" value="@Model.Id" />
+                            <div class="form-group">
+                                <label for="noteContent" class="text-sm font-medium text-gray-700">Yeni Not Ekle</label>
+                                <textarea id="noteContent" name="content" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" placeholder="Not yazın..."></textarea>
+                            </div>
+                            <button type="submit" class="mt-3 w-full btn-primary">
+                                <i class="fas fa-plus mr-2"></i> Not Ekle
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                        <h2 class="text-lg font-semibold mb-4">Dökümanlar</h2>
+                        
+                        <div class="space-y-4">
+                            @if (Model.Documents != null && Model.Documents.Any())
+                            {
+                                foreach (var doc in Model.Documents)
+                                {
+                                    <div class="document-item flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-file-@GetDocumentIcon(doc.Type) text-primary mr-2"></i>
+                                            <div>
+                                                <div class="text-sm font-medium">@doc.Name</div>
+                                                <div class="text-xs text-gray-500">@doc.UploadDate.ToString("dd.MM.yyyy") - @FormatFileSize(doc.Size)</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <a href="@Url.Action("DownloadDocument", "Candidate", new { id = doc.Id })" class="text-primary hover:text-primary-dark">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button type="button" onclick="deleteDocument(@doc.Id)" class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-gray-500 text-sm">Henüz döküman yüklenmemiş</div>
+                            }
+                        </div>
+                        
+                        <!-- Döküman yükleme formu -->
+                        <form method="post" action="@Url.Action("UploadDocument", "Candidate")" enctype="multipart/form-data" class="mt-4">
+                            <input type="hidden" name="candidateId" value="@Model.Id" />
+                            <div class="form-group">
+                                <label for="documentFile" class="text-sm font-medium text-gray-700">Döküman Yükle</label>
+                                <input type="file" id="documentFile" name="file" class="mt-1 block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-md file:border-0
+                                    file:text-sm file:font-medium
+                                    file:bg-primary file:text-white
+                                    hover:file:bg-primary-dark" />
+                            </div>
+                            <div class="form-group mt-3">
+                                <label for="documentType" class="text-sm font-medium text-gray-700">Döküman Türü</label>
+                                <select id="documentType" name="documentType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md">
+                                    <option value="Kimlik">Kimlik</option>
+                                    <option value="Diploma">Diploma</option>
+                                    <option value="CV">CV</option>
+                                    <option value="Sertifika">Sertifika</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="mt-3 w-full btn-primary">
+                                <i class="fas fa-upload mr-2"></i> Döküman Yükle
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aşama geçiş zaman çizelgesi -->
+            <div class="mt-8">
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-6">Süreç Zaman Çizelgesi</h2>
+                    
+                    <div class="timeline">
+                        @if (Model.StageTransitions != null && Model.StageTransitions.Any())
+                        {
+                            foreach (var transition in Model.StageTransitions.OrderByDescending(t => t.TransitionDate))
+                            {
+                                <div class="timeline-item flex mb-6">
+                                    <div class="timeline-marker w-12 flex-shrink-0 flex flex-col items-center">
+                                        <div class="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+                                            <i class="fas fa-@GetStageIcon(transition.ToStage)"></i>
+                                        </div>
+                                        <div class="timeline-line h-full w-px bg-gray-200 my-2"></div>
+                                    </div>
+                                    <div class="timeline-content ml-4">
+                                        <div class="text-sm font-medium">@transition.ToStage</div>
+                                        <div class="text-xs text-gray-500 mb-1">@transition.TransitionDate.ToString("dd.MM.yyyy HH:mm")</div>
+                                        <div class="text-sm">@transition.UpdatedBy tarafından aşama güncellendi</div>
+                                        @if (!string.IsNullOrEmpty(transition.Notes))
+                                        {
+                                            <div class="mt-2 p-2 bg-gray-50 rounded text-sm">@transition.Notes</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-gray-500 text-sm">Aşama geçiş bilgisi bulunamadı</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-6 bg-gray-100 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 text-sm">
+                &copy; @DateTime.Now.Year Rapola Aday Yönetim Sistemi. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        function deleteDocument(docId) {
+            if (confirm('Bu dökümanı silmek istediğinizden emin misiniz?')) {
+                window.location.href = '@Url.Action("DeleteDocument", "Candidate")?id=' + docId + '&candidateId=@Model.Id';
+            }
+        }
+        
+        // Diğer sayfa fonksiyonları...
+    </script>
+</body>
+</html>

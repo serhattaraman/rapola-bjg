@@ -1,0 +1,417 @@
+
+<!-- .NET MVC için Raporlar Sayfası HTML şablonu -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raporlar - Rapola</title>
+    <link rel="stylesheet" href="~/Content/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js ekle (benzeri C# Chart kütüphanelerinin yerini alabilir) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navbar partial view ile eklenebilir -->
+    @Html.Partial("_Navbar")
+
+    <div class="dashboard-page pt-20">
+        <div class="dashboard-container px-4 sm:px-6 lg:px-8">
+            <!-- Başlık -->
+            <div class="dashboard-header mb-6">
+                <div class="dashboard-title">
+                    <h1 class="text-2xl font-bold">Raporlar</h1>
+                    <p class="text-gray-500 mt-1">Aday süreçleri ve performans raporları</p>
+                </div>
+                
+                <div class="dashboard-actions">
+                    <!-- Tarih filtresi -->
+                    <form method="get" action="@Url.Action("Index", "Report")" class="flex space-x-3">
+                        <div class="form-group">
+                            <select name="period" 
+                                    onchange="this.form.submit()"
+                                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary rounded-md">
+                                <option value="week" @(ViewBag.Period == "week" ? "selected" : "")>Son Hafta</option>
+                                <option value="month" @(ViewBag.Period == "month" ? "selected" : "")>Son Ay</option>
+                                <option value="quarter" @(ViewBag.Period == "quarter" ? "selected" : "")>Son 3 Ay</option>
+                                <option value="year" @(ViewBag.Period == "year" ? "selected" : "")>Son Yıl</option>
+                                <option value="all" @(ViewBag.Period == "all" ? "selected" : "")>Tümü</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" onclick="window.print()" class="btn-secondary">
+                            <i class="fas fa-print mr-2"></i> Yazdır
+                        </button>
+                        
+                        <button type="button" onclick="exportToExcel()" class="btn-secondary">
+                            <i class="fas fa-file-excel mr-2"></i> Excel'e Aktar
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- İstatistik Kartları -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Toplam Aday</p>
+                            <h3 class="stat-value">@Model.TotalCandidates</h3>
+                            
+                            @if (Model.CandidateChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.CandidateChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.CandidateChange.IsPositive ? "+" : "")@Model.CandidateChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">önceki döneme göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Ortalama İşlem Süresi</p>
+                            <h3 class="stat-value">@Model.AverageProcessDays gün</h3>
+                            
+                            @if (Model.ProcessDaysChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.ProcessDaysChange.IsPositive ? "negative" : "positive")">
+                                        @(Model.ProcessDaysChange.IsPositive ? "+" : "")@Model.ProcessDaysChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">önceki döneme göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Başarılı Adaylar</p>
+                            <h3 class="stat-value">@Model.CompletedCandidatesCount</h3>
+                            
+                            @if (Model.CompletedChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.CompletedChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.CompletedChange.IsPositive ? "+" : "")@Model.CompletedChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">önceki döneme göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-inner">
+                        <div class="stat-content">
+                            <p class="stat-title">Başarı Oranı</p>
+                            <h3 class="stat-value">@Model.SuccessRate%</h3>
+                            
+                            @if (Model.SuccessRateChange != null)
+                            {
+                                <div class="stat-change">
+                                    <span class="stat-change-value @(Model.SuccessRateChange.IsPositive ? "positive" : "negative")">
+                                        @(Model.SuccessRateChange.IsPositive ? "+" : "")@Model.SuccessRateChange.Value%
+                                    </span>
+                                    <span class="stat-change-label">önceki döneme göre</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grafikler -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Aday Durumu Dağılımı (Pasta Grafik) -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-4">Aday Durumu Dağılımı</h2>
+                    <div class="aspect-square sm:aspect-video">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Aşama Dağılımı (Çubuk Grafik) -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-4">Aşama Dağılımı</h2>
+                    <div class="aspect-square sm:aspect-video">
+                        <canvas id="stageChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Zaman İçinde Aday Sayısı (Çizgi Grafik) -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-4">Zaman İçinde Aday Sayısı</h2>
+                    <div class="aspect-square sm:aspect-video">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Aşama Başına Ortalama Süre (Yatay Çubuk Grafik) -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-semibold mb-4">Aşama Başına Ortalama Süre (Gün)</h2>
+                    <div class="aspect-square sm:aspect-video">
+                        <canvas id="stageDurationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ayrıntılı Veriler -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8">
+                <h2 class="text-lg font-semibold mb-4">En Son Tamamlanan Süreçler</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aday</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pozisyon</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Başlangıç</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bitiş</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Süre (Gün)</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @if (Model.RecentCompletions != null && Model.RecentCompletions.Any())
+                            {
+                                foreach (var candidate in Model.RecentCompletions)
+                                {
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="@Url.Action("Details", "Candidate", new { id = candidate.Id })" class="text-primary hover:underline">
+                                                @candidate.FirstName @candidate.LastName
+                                            </a>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@candidate.Position</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@candidate.StartDate.ToString("dd.MM.yyyy")</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@candidate.EndDate.ToString("dd.MM.yyyy")</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@candidate.ProcessDays</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-badge-@candidate.Status.ToLowerInvariant()">
+                                                @GetStatusLabel(candidate.Status)
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Henüz tamamlanan süreç bulunmamaktadır</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Sorumlu Kişi Bazında Performans -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-lg font-semibold mb-4">Sorumlu Kişi Bazında Performans</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sorumlu</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aday Sayısı</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamamlanan</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Başarı Oranı</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ort. Süre (Gün)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @if (Model.ResponsiblePerformance != null && Model.ResponsiblePerformance.Any())
+                            {
+                                foreach (var responsible in Model.ResponsiblePerformance)
+                                {
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium">@responsible.Name</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@responsible.TotalCandidates</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@responsible.CompletedCount</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <span class="@(responsible.SuccessRate >= 75 ? "text-green-600" : (responsible.SuccessRate >= 50 ? "text-yellow-600" : "text-red-600"))">
+                                                    @responsible.SuccessRate%
+                                                </span>
+                                                <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                                                    <div class="@(responsible.SuccessRate >= 75 ? "bg-green-600" : (responsible.SuccessRate >= 50 ? "bg-yellow-600" : "bg-red-600")) h-2 rounded-full" style="width: @responsible.SuccessRate%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">@responsible.AverageProcessDays</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">Henüz performans verisi bulunmamaktadır</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-6 bg-gray-100 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 text-sm">
+                &copy; @DateTime.Now.Year Rapola Aday Yönetim Sistemi. Tüm hakları saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Aday durumu dağılımı grafiği
+        var statusCtx = document.getElementById('statusChart').getContext('2d');
+        var statusChart = new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Beklemede', 'İşlemde', 'Tamamlandı', 'Reddedildi'],
+                datasets: [{
+                    data: [@Model.PendingCount, @Model.InProgressCount, @Model.CompletedCount, @Model.RejectedCount],
+                    backgroundColor: [
+                        '#fef08a', // yellow-200
+                        '#bfdbfe', // blue-200
+                        '#bbf7d0', // green-200
+                        '#fecaca'  // red-200
+                    ],
+                    borderColor: [
+                        '#eab308', // yellow-500
+                        '#3b82f6', // blue-500
+                        '#22c55e', // green-500
+                        '#ef4444'  // red-500
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // Aşama dağılımı grafiği
+        var stageCtx = document.getElementById('stageChart').getContext('2d');
+        var stageChart = new Chart(stageCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.StageLabels)),
+                datasets: [{
+                    label: 'Aday Sayısı',
+                    data: @Html.Raw(Json.Encode(Model.StageCounts)),
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)', // blue-500 with opacity
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Zaman içinde aday sayısı grafiği
+        var timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        var timelineChart = new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.TimelineLabels)),
+                datasets: [{
+                    label: 'Aday Sayısı',
+                    data: @Html.Raw(Json.Encode(Model.TimelineCounts)),
+                    fill: false,
+                    borderColor: 'rgb(59, 130, 246)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Aşama başına ortalama süre grafiği
+        var stageDurationCtx = document.getElementById('stageDurationChart').getContext('2d');
+        var stageDurationChart = new Chart(stageDurationCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Encode(Model.StageLabels)),
+                datasets: [{
+                    label: 'Ortalama Süre (Gün)',
+                    data: @Html.Raw(Json.Encode(Model.StageDurations)),
+                    backgroundColor: 'rgba(20, 184, 166, 0.5)', // teal-500 with opacity
+                    borderColor: 'rgb(20, 184, 166)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Excel'e aktarma fonksiyonu
+        function exportToExcel() {
+            window.location.href = '@Url.Action("ExportToExcel", "Report")?period=@ViewBag.Period';
+        }
+    </script>
+</body>
+</html>
