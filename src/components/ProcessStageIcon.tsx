@@ -8,7 +8,7 @@ import {
   ClipboardList, 
   Database, 
   Users, 
-  Passport, 
+  FileText, // Replaced Passport with FileText
   Award, 
   LucideIcon 
 } from 'lucide-react';
@@ -45,7 +45,7 @@ const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({
       case "Denklik Süreci":
         return BookOpen;
       case "Vize Süreci":
-        return Passport;
+        return FileText; // Changed from Passport to FileText
       case "Sertifika Süreci":
         return Award;
       default:
