@@ -34,6 +34,26 @@ export const stageIconMapping = {
   "Sertifika Süreci": "Award",
 };
 
+// .NET MVC'de C# olarak kullanmak için CSS sınıfları
+export const stageCssClasses = {
+  "Başvuru Alındı": "stage-application",
+  "Telefon Görüşmesi": "stage-phone",
+  "İK Görüşmesi": "stage-hr",
+  "Evrak Toplama": "stage-documents",
+  "Sisteme Evrak Girişi": "stage-system",
+  "Sınıf Yerleştirme": "stage-class",
+  "Denklik Süreci": "stage-equivalence",
+  "Vize Süreci": "stage-visa",
+  "Sertifika Süreci": "stage-certificate",
+};
+
+// .NET MVC'de kullanılabilecek HTML yapısı örneği:
+/*
+<div class="process-stage-icon @Model.StageCssClass">
+  <i class="icon-@Model.StageIcon"></i>
+</div>
+*/
+
 const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({ 
   stage, 
   size = 18, 
@@ -67,8 +87,9 @@ const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({
   };
 
   const Icon = getIcon();
+  const cssClass = stageCssClasses[stage as keyof typeof stageCssClasses] || "stage-default";
   
-  return <Icon size={size} className={`process-stage-icon ${className}`} />;
+  return <Icon size={size} className={`process-stage-icon ${cssClass} ${className}`} />;
 };
 
 export default ProcessStageIcon;

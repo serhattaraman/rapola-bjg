@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserPlus, CheckCircle, XCircle, Clock } from 'lucide-react';
@@ -9,6 +8,7 @@ import { Link } from 'react-router-dom';
 
 const COLORS = ['#3498db', '#f1c40f', '#2ecc71', '#e74c3c'];
 
+// .NET MVC'de bu sayfa Home/Index.cshtml olarak dönüştürülebilir
 const Index = () => {
   const statusCounts = getStatusCount();
   const recentApplications = getRecentApplications();
@@ -16,54 +16,81 @@ const Index = () => {
   const stageDistribution = getStageDistribution();
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <div>
+    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in dashboard-page">
+      <div className="max-w-7xl mx-auto dashboard-container">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 dashboard-header">
+          <div className="dashboard-title">
             <h1 className="text-3xl font-bold">Genel Bakış</h1>
             <p className="text-gray-500 mt-1">Aday takip sistemi istatistikleri ve son başvurular</p>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 dashboard-actions">
             <Link 
               to="/add-candidate" 
-              className="inline-flex items-center btn-primary"
+              className="inline-flex items-center btn-primary add-candidate-btn"
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Yeni Aday Ekle
+              {/* .NET MVC'de:
+                <a href="@Url.Action("Create", "Candidate")" class="btn-primary add-candidate-btn">
+                  <i class="icon-user-plus"></i>
+                  Yeni Aday Ekle
+                </a>
+              */}
             </Link>
           </div>
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-slide-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-slide-in stats-container">
           <StatCard 
             title="Toplam Aday" 
             value={statusCounts.total}
             icon={<Users className="h-6 w-6" />}
             change={{ value: 12, isPositive: true }}
+            className="stat-total"
           />
           <StatCard 
             title="Bekleyen Adaylar" 
             value={statusCounts.pending}
             icon={<Clock className="h-6 w-6" />}
             change={{ value: 5, isPositive: true }}
+            className="stat-pending"
           />
           <StatCard 
             title="İşlemdeki Adaylar" 
             value={statusCounts.inProgress}
             icon={<UserPlus className="h-6 w-6" />}
             change={{ value: 8, isPositive: true }}
+            className="stat-inProgress"
           />
           <StatCard 
             title="Tamamlanan Adaylar" 
             value={statusCounts.completed}
             icon={<CheckCircle className="h-6 w-6" />}
             change={{ value: 3, isPositive: true }}
+            className="stat-completed"
           />
+          {/* .NET MVC'de:
+            @foreach (var stat in Model.Stats) {
+              <div class="stat-card @stat.CssClass">
+                <div class="stat-card-content">
+                  <p class="stat-title">@stat.Title</p>
+                  <h3 class="stat-value">@stat.Value</h3>
+                  @if (stat.Change != null) {
+                    <div class="stat-change @(stat.Change.IsPositive ? "positive" : "negative")">
+                      <span>@(stat.Change.IsPositive ? "+" : "")@stat.Change.Value%</span>
+                      <span>son haftaya göre</span>
+                    </div>
+                  }
+                </div>
+                <div class="stat-icon @stat.IconClass"></div>
+              </div>
+            }
+          */}
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 charts-container">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
             <h2 className="text-lg font-semibold mb-4">Son 7 Gün Başvuru Trendi</h2>
             <div className="h-64">
@@ -134,17 +161,25 @@ const Index = () => {
         </div>
 
         {/* Recent Applications */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in recent-applications">
+          <div className="flex justify-between items-center mb-6 recent-applications-header">
             <h2 className="text-lg font-semibold">Son Başvurular</h2>
-            <Link to="/candidates" className="text-primary hover:text-primary/80 text-sm font-medium">
+            <Link to="/candidates" className="text-primary hover:text-primary/80 text-sm font-medium view-all-link">
               Tümünü Gör →
+              {/* .NET MVC'de:
+                <a href="@Url.Action("Index", "Candidate")" class="view-all-link">Tümünü Gör →</a>
+              */}
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 recent-applications-grid">
             {recentApplications.map(candidate => (
               <CandidateCard key={candidate.id} candidate={candidate} />
             ))}
+            {/* .NET MVC'de:
+              @foreach (var candidate in Model.RecentApplications) {
+                <partial name="_CandidateCard" model="candidate" />
+              }
+            */}
           </div>
         </div>
       </div>

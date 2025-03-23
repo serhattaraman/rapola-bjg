@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { CandidateStatus } from '@/lib/mock-data';
@@ -35,6 +34,7 @@ export const statusLocalizedLabels = {
   default: 'Durum',
 };
 
+// StatusBadge component - .NET MVC'de Partial View olarak kullanılabilir
 const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
   const getStatusStyles = () => {
     switch (status) {
@@ -65,7 +65,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
         return statusButtonClasses.default;
     }
   };
-
+  
   // For the detailed design, let's apply different styles based on status
   if (status === 'rejected') {
     return (
@@ -77,6 +77,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
         )}
       >
         {statusLocalizedLabels.rejected}
+        {/* .NET MVC'de: <span class="status-badge status-badge-rejected @Model.StatusClassName">@Model.StatusLabel</span> */}
       </span>
     );
   }
@@ -91,6 +92,13 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
         )}
       >
         {statusLocalizedLabels.completed}
+        {/* .NET MVC'de form-post için button olarak kullanılabilir:
+          <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
+            <input type="hidden" name="candidateId" value="@Model.Id" />
+            <input type="hidden" name="newStatus" value="completed" />
+            <button type="submit" class="status-badge status-badge-completed">@StatusLocalizer.Completed</button>
+          </form>
+        */}
       </span>
     );
   }
