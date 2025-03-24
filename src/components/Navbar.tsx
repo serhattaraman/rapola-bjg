@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, PlusCircle, BarChart, Menu, X } from 'lucide-react';
+import { Home, Users, PlusCircle, BarChart, Menu, X, FileText } from 'lucide-react';
 
 /*
 .NET MVC için Navbar örneği:
@@ -125,6 +124,7 @@ export const Navbar = () => {
     { name: 'Adaylar', path: '/candidates', icon: <Users className="w-5 h-5" />, cssClass: 'nav-candidates', controller: 'Candidate', action: 'Index' },
     { name: 'Aday Ekle', path: '/add-candidate', icon: <PlusCircle className="w-5 h-5" />, cssClass: 'nav-add', controller: 'Candidate', action: 'Create' },
     { name: 'Raporlar', path: '/reports', icon: <BarChart className="w-5 h-5" />, cssClass: 'nav-reports', controller: 'Report', action: 'Index' },
+    { name: 'Form', path: '/form', icon: <FileText className="w-5 h-5" />, cssClass: 'nav-form', controller: 'Form', action: 'Index' },
   ];
 
   useEffect(() => {

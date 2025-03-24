@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Candidates from "./pages/Candidates";
 import CandidateDetails from "./pages/CandidateDetails";
 import AddCandidate from "./pages/AddCandidate";
+import Form from "./pages/Form";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/candidates" element={<Candidates />} />
           <Route path="/candidate/:id" element={<CandidateDetails />} />
           <Route path="/add-candidate" element={<AddCandidate />} />
+          <Route path="/form" element={<Form />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
