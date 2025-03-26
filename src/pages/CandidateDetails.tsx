@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle, Phone } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
@@ -7,12 +7,16 @@ import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
 import { Button } from '@/components/ui/button';
+import UpdateStageDialog from '@/components/UpdateStageDialog';
+import { toast } from '@/components/ui/use-toast';
 
 const CandidateDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const candidate = mockCandidates.find(c => c.id === id);
+  const [candidate, setCandidate] = useState(() => 
+    mockCandidates.find(c => c.id === id) || null
+  );
+  const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
   
   if (!candidate) {
     return (
@@ -29,6 +33,36 @@ const CandidateDetails = () => {
 
   const phoneNumber = candidate.phone || "05XXXXXXXXX";
   const phoneUrl = `tel:${phoneNumber.replace(/\s/g, '')}`;
+
+  const handleUpdateStage = (newStage: string) => {
+    // In a real app, this would update the API
+    // For now, we'll update the local state
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      // Add a new timeline entry for the stage change
+      const updatedTimeline = [
+        {
+          id: `timeline-${Date.now()}`,
+          title: newStage,
+          date: new Date().toISOString(),
+          description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`
+        },
+        ...prev.timeline
+      ];
+      
+      return {
+        ...prev,
+        stage: newStage,
+        timeline: updatedTimeline
+      };
+    });
+    
+    toast({
+      title: "Aşama güncellendi",
+      description: `Aday aşaması "${newStage}" olarak güncellendi.`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -158,7 +192,11 @@ const CandidateDetails = () => {
                 </div>
               </div>
               <div className="mt-4">
-                <Button className="w-full" variant="default">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => setIsUpdateStageDialogOpen(true)}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Aşama Güncelle
                 </Button>
@@ -219,6 +257,15 @@ const CandidateDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Update Stage Dialog */}
+      <UpdateStageDialog
+        isOpen={isUpdateStageDialogOpen}
+        onClose={() => setIsUpdateStageDialogOpen(false)}
+        currentStage={candidate.stage}
+        candidateId={candidate.id}
+        onUpdateStage={handleUpdateStage}
+      />
     </div>
   );
 };
