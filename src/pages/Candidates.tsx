@@ -7,13 +7,26 @@ import SearchBar from '@/components/SearchBar';
 import StatusBadge from '@/components/StatusBadge';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
 
+// Define all possible process stages for filtering
+const allProcessStages = [
+  "Başvuru Alındı",
+  "Telefon Görüşmesi",
+  "İK Görüşmesi",
+  "Evrak Toplama",
+  "Sisteme Evrak Girişi",
+  "Sınıf Yerleştirme",
+  "Denklik Süreci",
+  "Vize Süreci",
+  "Sertifika Süreci"
+];
+
 const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Extract unique stages for filtering
+  // Get unique stages that exist in the current candidate data
   const uniqueStages = useMemo(() => {
     const stages = new Set<string>();
     mockCandidates.forEach(candidate => {
@@ -21,6 +34,13 @@ const Candidates = () => {
     });
     return Array.from(stages);
   }, []);
+
+  // Combine predefined stages with any unique stages from the data
+  const allStages = useMemo(() => {
+    const combinedStages = new Set([...allProcessStages]);
+    uniqueStages.forEach(stage => combinedStages.add(stage));
+    return Array.from(combinedStages);
+  }, [uniqueStages]);
 
   const filteredCandidates = useMemo(() => {
     return mockCandidates.filter(candidate => {
@@ -72,7 +92,7 @@ const Candidates = () => {
             {showFilters && (
               <div className="flex flex-col gap-4 w-full">
                 {/* Status Filters */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                <div className="flex flex-wrap items-center gap-2 pb-2">
                   <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
                     <Filter className="w-4 h-4 inline-block mr-1" />
                     Durum:
@@ -130,7 +150,7 @@ const Candidates = () => {
                 </div>
                 
                 {/* Stage Filters */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                <div className="flex flex-wrap items-center gap-2 pb-2">
                   <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
                     <Filter className="w-4 h-4 inline-block mr-1" />
                     Süreç:
@@ -145,7 +165,7 @@ const Candidates = () => {
                   >
                     Tüm Süreçler
                   </button>
-                  {uniqueStages.map((stage) => (
+                  {allStages.map((stage) => (
                     <button
                       key={stage}
                       onClick={() => setStageFilter(stage)}
@@ -170,7 +190,7 @@ const Candidates = () => {
           </div>
         </div>
 
-        {/* Candidates List - Changed from grid to single column */}
+        {/* Candidates List - Single column layout */}
         <div className="flex flex-col gap-4 animate-slide-in">
           {filteredCandidates.length > 0 ? (
             filteredCandidates.map(candidate => (

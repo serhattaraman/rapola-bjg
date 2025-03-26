@@ -10,7 +10,8 @@ import {
   Users, 
   FileText, 
   Award, 
-  LucideIcon 
+  LucideIcon,
+  CheckCircle
 } from 'lucide-react';
 
 type StageType = string;
@@ -32,6 +33,11 @@ export const stageIconMapping = {
   "Denklik Süreci": "BookOpen",
   "Vize Süreci": "FileText",
   "Sertifika Süreci": "Award",
+  "Belge Kontrol": "CheckCircle",
+  "Vize Onayı": "FileText",
+  "Mülakat": "UserCheck",
+  "Final Değerlendirme": "Award",
+  "Evrak Hazırlığı": "ClipboardList",
 };
 
 // .NET MVC'de C# olarak kullanmak için CSS sınıfları
@@ -45,36 +51,15 @@ export const stageCssClasses = {
   "Denklik Süreci": "stage-equivalence",
   "Vize Süreci": "stage-visa",
   "Sertifika Süreci": "stage-certificate",
+  "Belge Kontrol": "stage-document-check",
+  "Vize Onayı": "stage-visa-approval",
+  "Mülakat": "stage-interview",
+  "Final Değerlendirme": "stage-final-evaluation",
+  "Evrak Hazırlığı": "stage-document-preparation",
 };
 
 /*
-.NET MVC uygulaması için Razor şablonu örneği:
-
-@model StageIconViewModel
-
-<div class="process-stage-icon @Model.CssClass">
-  <i class="stage-icon-@Model.StageKey"></i>
-</div>
-
-@* C# Model Sınıfı *@
-public class StageIconViewModel
-{
-    public string Stage { get; set; }
-    public string StageKey => Stage.Replace(" ", "").ToLowerInvariant();
-    public string CssClass => GetStageCssClass(Stage);
-    
-    private string GetStageCssClass(string stage)
-    {
-        // Burada stageCssClasses benzeri bir sözlük kullanılabilir
-        switch(stage)
-        {
-            case "Başvuru Alındı": return "stage-application";
-            case "Telefon Görüşmesi": return "stage-phone";
-            // ... diğer case'ler
-            default: return "stage-default";
-        }
-    }
-}
+.NET MVC uygulaması için Razor şablonu örneği olarak yazılmış kısım
 */
 
 const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({ 
@@ -104,6 +89,16 @@ const ProcessStageIcon: React.FC<ProcessStageIconProps> = ({
         return FileText;
       case "Sertifika Süreci":
         return Award;
+      case "Belge Kontrol":
+        return CheckCircle;
+      case "Vize Onayı":
+        return FileText;
+      case "Mülakat":
+        return UserCheck;
+      case "Final Değerlendirme":
+        return Award;
+      case "Evrak Hazırlığı":
+        return ClipboardList;
       default:
         return FileCheck;
     }
