@@ -5,11 +5,22 @@ import { mockCandidates, CandidateStatus } from '@/lib/mock-data';
 import CandidateCard from '@/components/CandidateCard';
 import SearchBar from '@/components/SearchBar';
 import StatusBadge from '@/components/StatusBadge';
+import ProcessStageIcon from '@/components/ProcessStageIcon';
 
 const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
+  const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Extract unique stages for filtering
+  const uniqueStages = useMemo(() => {
+    const stages = new Set<string>();
+    mockCandidates.forEach(candidate => {
+      stages.add(candidate.stage);
+    });
+    return Array.from(stages);
+  }, []);
 
   const filteredCandidates = useMemo(() => {
     return mockCandidates.filter(candidate => {
@@ -23,9 +34,12 @@ const Candidates = () => {
       // Filter by status
       const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
       
-      return matchesSearch && matchesStatus;
+      // Filter by stage
+      const matchesStage = stageFilter === 'all' || candidate.stage === stageFilter;
+      
+      return matchesSearch && matchesStatus && matchesStage;
     });
-  }, [searchQuery, statusFilter]);
+  }, [searchQuery, statusFilter, stageFilter]);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -56,61 +70,96 @@ const Candidates = () => {
             />
             
             {showFilters && (
-              <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
-                  <Filter className="w-4 h-4 inline-block mr-1" />
-                  Durum:
-                </span>
-                <button
-                  onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    statusFilter === 'all' 
-                      ? 'bg-primary text-white' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  Tümü
-                </button>
-                <button
-                  onClick={() => setStatusFilter('pending')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    statusFilter === 'pending' 
-                      ? 'bg-yellow-500 text-white' 
-                      : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                  }`}
-                >
-                  Beklemede
-                </button>
-                <button
-                  onClick={() => setStatusFilter('inProgress')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    statusFilter === 'inProgress' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                  }`}
-                >
-                  İşlemde
-                </button>
-                <button
-                  onClick={() => setStatusFilter('completed')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    statusFilter === 'completed' 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-green-100 text-green-800 hover:bg-green-200'
-                  }`}
-                >
-                  Tamamlandı
-                </button>
-                <button
-                  onClick={() => setStatusFilter('rejected')}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                    statusFilter === 'rejected' 
-                      ? 'bg-red-500 text-white' 
-                      : 'bg-red-100 text-red-800 hover:bg-red-200'
-                  }`}
-                >
-                  Reddedildi
-                </button>
+              <div className="flex flex-col gap-4 w-full">
+                {/* Status Filters */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                  <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                    <Filter className="w-4 h-4 inline-block mr-1" />
+                    Durum:
+                  </span>
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      statusFilter === 'all' 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Tümü
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('pending')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      statusFilter === 'pending' 
+                        ? 'bg-yellow-500 text-white' 
+                        : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                    }`}
+                  >
+                    Beklemede
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('inProgress')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      statusFilter === 'inProgress' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                    }`}
+                  >
+                    İşlemde
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('completed')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      statusFilter === 'completed' 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                    }`}
+                  >
+                    Tamamlandı
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('rejected')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      statusFilter === 'rejected' 
+                        ? 'bg-red-500 text-white' 
+                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                    }`}
+                  >
+                    Reddedildi
+                  </button>
+                </div>
+                
+                {/* Stage Filters */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                  <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                    <Filter className="w-4 h-4 inline-block mr-1" />
+                    Süreç:
+                  </span>
+                  <button
+                    onClick={() => setStageFilter('all')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      stageFilter === 'all' 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Tüm Süreçler
+                  </button>
+                  {uniqueStages.map((stage) => (
+                    <button
+                      key={stage}
+                      onClick={() => setStageFilter(stage)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center ${
+                        stageFilter === stage 
+                          ? 'bg-primary text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      <ProcessStageIcon stage={stage} size={14} className="mr-1" />
+                      {stage}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
