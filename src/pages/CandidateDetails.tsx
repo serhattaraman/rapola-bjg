@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle, Phone } from 'lucide-react';
@@ -8,6 +9,8 @@ import ProcessStageIcon from '@/components/ProcessStageIcon';
 import { Button } from '@/components/ui/button';
 import UpdateStageDialog from '@/components/UpdateStageDialog';
 import { toast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -16,6 +19,8 @@ const CandidateDetails = () => {
     mockCandidates.find(c => c.id === id) || null
   );
   const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
+  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [newNote, setNewNote] = useState('');
   
   if (!candidate) {
     return (
@@ -52,6 +57,37 @@ const CandidateDetails = () => {
         stage: newStage,
         timeline: [newTimelineEntry, ...prev.timeline]
       };
+    });
+  };
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) {
+      toast({
+        title: "Not eklenemedi",
+        description: "Lütfen bir not giriniz",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // In a real app, this would update the API
+    // For now, we'll update the local state
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      return {
+        ...prev,
+        notes: [newNote, ...prev.notes]
+      };
+    });
+
+    // Reset form and close dialog
+    setNewNote('');
+    setIsAddNoteDialogOpen(false);
+    
+    toast({
+      title: "Not eklendi",
+      description: "Not başarıyla eklendi",
     });
   };
 
@@ -230,19 +266,28 @@ const CandidateDetails = () => {
                   <MessageSquare className="h-5 w-5 text-primary" />
                   <h2 className="text-lg font-semibold">Notlar</h2>
                 </div>
-                <button className="text-primary hover:text-primary/80 text-sm font-medium">
-                  <PlusCircle className="h-4 w-4" />
-                </button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsAddNoteDialogOpen(true)}
+                  className="text-primary hover:text-primary/80 h-8 w-8"
+                >
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
               </div>
               <div className="space-y-3">
-                {candidate.notes.map((note, index) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-start">
-                      <MessageSquare className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                      <div className="text-sm">{note}</div>
+                {candidate.notes && candidate.notes.length > 0 ? (
+                  candidate.notes.map((note, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-start">
+                        <MessageSquare className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        <div className="text-sm">{note}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-sm p-3 text-center">Henüz not eklenmemiş</div>
+                )}
               </div>
             </div>
           </div>
@@ -257,6 +302,31 @@ const CandidateDetails = () => {
         candidateId={candidate.id}
         onUpdateStage={handleUpdateStage}
       />
+
+      {/* Add Note Dialog */}
+      <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Not Ekle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Textarea 
+              placeholder="Not yazın..." 
+              className="min-h-32"
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button variant="outline" onClick={() => setIsAddNoteDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button type="button" onClick={handleAddNote}>
+              Not Ekle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
