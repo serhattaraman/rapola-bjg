@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle, Phone } from 'lucide-react';
@@ -41,26 +40,18 @@ const CandidateDetails = () => {
       if (!prev) return null;
       
       // Add a new timeline entry for the stage change
-      const updatedTimeline = [
-        {
-          id: `timeline-${Date.now()}`,
-          title: newStage,
-          date: new Date().toISOString(),
-          description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`
-        },
-        ...prev.timeline
-      ];
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: newStage,
+        description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`
+      };
       
       return {
         ...prev,
         stage: newStage,
-        timeline: updatedTimeline
+        timeline: [newTimelineEntry, ...prev.timeline]
       };
-    });
-    
-    toast({
-      title: "Aşama güncellendi",
-      description: `Aday aşaması "${newStage}" olarak güncellendi.`,
     });
   };
 

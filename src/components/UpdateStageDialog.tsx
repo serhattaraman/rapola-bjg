@@ -39,8 +39,28 @@ const UpdateStageDialog: React.FC<UpdateStageDialogProps> = ({
     onClose();
   };
 
-  // Get all available stages from the stageIconMapping
-  const availableStages = Object.keys(stageIconMapping);
+  // Define the correct order of stages
+  const orderedStages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Mülakat",
+    "Evrak Toplama",
+    "Evrak Hazırlığı",
+    "Belge Kontrol",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Sertifika Süreci",
+    "Vize Süreci",
+    "Vize Onayı",
+    "Final Değerlendirme"
+  ];
+
+  // Filter to ensure we only include stages that have icons defined
+  const availableStages = orderedStages.filter(stage => 
+    Object.keys(stageIconMapping).includes(stage)
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
