@@ -89,7 +89,7 @@ export const Navbar = () => {
           <div className="flex-shrink-0 flex items-center navbar-logo">
             <Link to="/" className="flex items-center">
               <img 
-                src="/lovable-uploads/41acc4e0-70a6-430b-a359-c854d8715006.png" 
+                src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
                 alt="Rapola Logo" 
                 className="h-10" 
               />
