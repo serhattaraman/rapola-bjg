@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield } from 'lucide-react';
@@ -21,11 +22,6 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, currentUser, logout } = useAuth();
   const { toast } = useToast();
-
-  // Hide navbar on login page
-  if (location.pathname === '/login') {
-    return null;
-  }
 
   // Bu nesne .NET MVC'de C# model sınıfına dönüştürülebilir
   const navItems = [
