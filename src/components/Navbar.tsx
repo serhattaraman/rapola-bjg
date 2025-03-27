@@ -88,7 +88,11 @@ export const Navbar = () => {
         <div className="flex justify-between h-16 navbar-inner">
           <div className="flex-shrink-0 flex items-center navbar-logo">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-semibold text-primary brand-name">Rapola</span>
+              <img 
+                src="/lovable-uploads/41acc4e0-70a6-430b-a359-c854d8715006.png" 
+                alt="Rapola Logo" 
+                className="h-10" 
+              />
             </Link>
           </div>
           
