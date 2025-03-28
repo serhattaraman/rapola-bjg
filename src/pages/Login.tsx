@@ -51,7 +51,14 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 flex items-center justify-center">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1 flex flex-col items-center">
+          <div className="mb-6">
+            <img 
+              src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
+              alt="Rapola Logo" 
+              className="h-16" 
+            />
+          </div>
           <CardTitle className="text-2xl font-bold">Giriş</CardTitle>
           <CardDescription>
             Sisteme erişmek için giriş yapın

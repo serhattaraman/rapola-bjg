@@ -23,6 +23,9 @@ export const Navbar = () => {
   const { isAuthenticated, currentUser, logout } = useAuth();
   const { toast } = useToast();
 
+  // Check if current page is login page - important: moved outside any conditional rendering
+  const isLoginPage = location.pathname === '/login';
+
   // Bu nesne .NET MVC'de C# model sınıfına dönüştürülebilir
   const navItems = [
     { name: 'Genel Bakış', path: '/', icon: <Home className="w-5 h-5" />, cssClass: 'nav-home', controller: 'Home', action: 'Index', roles: ['admin', 'manager', 'staff'] },
@@ -32,9 +35,15 @@ export const Navbar = () => {
     { name: 'Form', path: '/form', icon: <FileText className="w-5 h-5" />, cssClass: 'nav-form', controller: 'Form', action: 'Index', roles: ['admin', 'manager', 'staff'] },
   ];
 
-  // Add user management menu item for admins
+  // Add user management menu item for admins - moved outside conditional rendering
+  const filteredNavItems = navItems.filter(item => {
+    if (!currentUser) return false;
+    return item.roles.includes(currentUser.role);
+  });
+
+  // Add admin-only menu item if applicable
   if (currentUser && currentUser.role === 'admin') {
-    navItems.push({ 
+    const adminMenuItem = { 
       name: 'Kullanıcı Yönetimi', 
       path: '/users', 
       icon: <UserPlus className="w-5 h-5" />, 
@@ -42,7 +51,12 @@ export const Navbar = () => {
       controller: 'User', 
       action: 'Index',
       roles: ['admin']
-    });
+    };
+    
+    // Check if it's not already there before adding
+    if (!filteredNavItems.some(item => item.path === '/users')) {
+      filteredNavItems.push(adminMenuItem);
+    }
   }
 
   useEffect(() => {
@@ -72,11 +86,10 @@ export const Navbar = () => {
     navigate('/login');
   };
 
-  // Filter nav items based on user role
-  const filteredNavItems = navItems.filter(item => {
-    if (!currentUser) return false;
-    return item.roles.includes(currentUser.role);
-  });
+  // If on login page, don't render the navbar
+  if (isLoginPage) {
+    return null;
+  }
 
   return (
     <nav 
