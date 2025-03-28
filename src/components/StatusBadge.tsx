@@ -1,13 +1,21 @@
 
 import React from 'react';
-import { CandidateStatus } from '@/lib/mock-data';
+import { CandidateStatus, getDaysRemaining } from '@/lib/mock-data';
+import { Clock } from 'lucide-react';
 
 interface StatusBadgeProps {
   status: CandidateStatus;
   className?: string;
+  returnDate?: Date;
+  showRemainingDays?: boolean;
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
+const StatusBadge: React.FC<StatusBadgeProps> = ({ 
+  status, 
+  className, 
+  returnDate,
+  showRemainingDays = false
+}) => {
   let badgeText: string;
   let badgeClass: string;
 
@@ -36,6 +44,25 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
       badgeText = 'Bilinmiyor';
       badgeClass = 'bg-gray-100 text-gray-800';
       break;
+  }
+
+  // If in waiting mode and we should show remaining days
+  if (status === 'waiting' && showRemainingDays && returnDate) {
+    const daysRemaining = getDaysRemaining(returnDate);
+    
+    return (
+      <div className="flex flex-col">
+        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeClass} ${className}`}>
+          {badgeText}
+        </span>
+        <span className="flex items-center text-xs mt-1 text-amber-700">
+          <Clock className="h-3 w-3 mr-1" />
+          {daysRemaining > 0 
+            ? `${daysRemaining} gün kaldı` 
+            : "Dönüş zamanı geldi"}
+        </span>
+      </div>
+    );
   }
 
   return (

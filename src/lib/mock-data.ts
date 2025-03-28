@@ -10,6 +10,7 @@ export type Candidate = {
   appliedAt: Date;
   status: CandidateStatus;
   stage: string;
+  returnDate?: Date; // Optional return date for waiting status
   notes: string[];
   documents: {
     id: string;
@@ -264,11 +265,13 @@ export const mockCandidates: Candidate[] = [
     phone: '+90 536 345 6789',
     position: 'DevOps Engineer',
     appliedAt: new Date('2023-09-01'),
-    status: 'inProgress',
+    status: 'waiting',
     stage: 'Evrak Hazırlığı',
+    returnDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from today
     notes: [
       'Teknik becerileri çok iyi',
-      'Vize süreci için evrakları hazırlanıyor'
+      'Vize süreci için evrakları hazırlanıyor',
+      'Adayın belgeleri tamamlaması bekleniyor'
     ],
     documents: [
       {
@@ -289,31 +292,43 @@ export const mockCandidates: Candidate[] = [
         id: 't18',
         date: new Date('2023-09-01'),
         title: 'Başvuru alındı',
-        description: 'Online başvuru formu dolduruldu'
+        description: 'Online başvuru formu dolduruldu',
+        staff: 'Ayşe Kaya'
       },
       {
         id: 't19',
         date: new Date('2023-09-05'),
         title: 'CV değerlendirmesi',
-        description: 'CV değerlendirmesi olumlu sonuçlandı'
+        description: 'CV değerlendirmesi olumlu sonuçlandı',
+        staff: 'Mehmet Demir'
       },
       {
         id: 't20',
         date: new Date('2023-09-10'),
         title: 'Teknik mülakat',
-        description: 'Teknik mülakat başarıyla tamamlandı'
+        description: 'Teknik mülakat başarıyla tamamlandı',
+        staff: 'Ali Yıldız'
       },
       {
         id: 't21',
         date: new Date('2023-09-15'),
         title: 'İş teklifi',
-        description: 'İş teklifi yapıldı ve kabul edildi'
+        description: 'İş teklifi yapıldı ve kabul edildi',
+        staff: 'Zeynep Çelik'
       },
       {
         id: 't22',
         date: new Date('2023-09-20'),
         title: 'Evrak hazırlığı',
-        description: 'Vize için gerekli evraklar hazırlanıyor'
+        description: 'Vize için gerekli evraklar hazırlanıyor',
+        staff: 'Hakan Demir'
+      },
+      {
+        id: 't23',
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        title: 'Bekleme moduna alındı',
+        description: 'Adayın belgeleri tamamlaması için süreç beklemeye alındı',
+        staff: 'Hakan Demir'
       }
     ]
   }
@@ -393,4 +408,20 @@ export const getStatusLabel = (status: CandidateStatus) => {
     default:
       return 'Bilinmiyor';
   }
+};
+
+// Calculate days remaining until return date
+export const getDaysRemaining = (returnDate: Date | undefined): number => {
+  if (!returnDate) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const returnDay = new Date(returnDate);
+  returnDay.setHours(0, 0, 0, 0);
+  
+  const diffTime = returnDay.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays > 0 ? diffDays : 0;
 };

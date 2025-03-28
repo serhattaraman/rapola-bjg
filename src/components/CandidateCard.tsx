@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Candidate } from '@/lib/mock-data';
 import StatusBadge from './StatusBadge';
 import { formatDate } from '@/lib/mock-data';
-import { Phone, User } from 'lucide-react';
+import { Phone, User, Calendar } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ProcessStageIcon from './ProcessStageIcon';
 
@@ -136,8 +136,20 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               <Phone className="w-3 h-3 mr-1 phone-icon" />
               <span className="candidate-phone">{candidate.phone || "05XXXXXXXXX"}</span>
             </p>
+            
+            {/* Display return date if in waiting mode */}
+            {candidate.status === 'waiting' && candidate.returnDate && (
+              <p className="flex items-center text-xs text-amber-700 mt-1">
+                <Calendar className="w-3 h-3 mr-1" />
+                <span>Dönüş Tarihi: {formatDate(candidate.returnDate)}</span>
+              </p>
+            )}
           </div>
-          <StatusBadge status={candidate.status} />
+          <StatusBadge 
+            status={candidate.status} 
+            returnDate={candidate.returnDate}
+            showRemainingDays={true}
+          />
         </div>
         
         <div className="mt-5 candidate-progress">

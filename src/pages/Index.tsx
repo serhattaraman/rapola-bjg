@@ -3,7 +3,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { Users, UserPlus, CheckCircle, XCircle, Clock } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
-import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution } from '@/lib/mock-data';
+import WaitingCandidatesSection from '@/components/WaitingCandidatesSection';
+import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 
 const COLORS = ['#3498db', '#f1c40f', '#2ecc71', '#e74c3c'];
@@ -41,7 +42,7 @@ const Index = () => {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-slide-in stats-container">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 animate-slide-in stats-container">
           <StatCard 
             title="Toplam Aday" 
             value={statusCounts.total}
@@ -70,23 +71,18 @@ const Index = () => {
             change={{ value: 3, isPositive: true }}
             className="stat-completed"
           />
-          {/* .NET MVC'de:
-            @foreach (var stat in Model.Stats) {
-              <div class="stat-card @stat.CssClass">
-                <div class="stat-card-content">
-                  <p class="stat-title">@stat.Title</p>
-                  <h3 class="stat-value">@stat.Value</h3>
-                  @if (stat.Change != null) {
-                    <div class="stat-change @(stat.Change.IsPositive ? "positive" : "negative")">
-                      <span>@(stat.Change.IsPositive ? "+" : "")@stat.Change.Value%</span>
-                      <span>son haftaya göre</span>
-                    </div>
-                  }
-                </div>
-                <div class="stat-icon @stat.IconClass"></div>
-              </div>
-            }
-          */}
+          <StatCard 
+            title="Bekleme Modundaki Adaylar" 
+            value={statusCounts.waiting}
+            icon={<Clock className="h-6 w-6 text-amber-500" />}
+            change={{ value: 1, isPositive: true }}
+            className="bg-amber-50 border-amber-200"
+          />
+        </div>
+
+        {/* Waiting Candidates Section */}
+        <div className="mb-8 animate-fade-in">
+          <WaitingCandidatesSection candidates={mockCandidates} />
         </div>
 
         {/* Charts Row */}
