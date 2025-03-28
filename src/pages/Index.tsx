@@ -3,7 +3,6 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { Users, UserPlus, CheckCircle, XCircle, Clock } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
-import WaitingCandidatesSection from '@/components/WaitingCandidatesSection';
 import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 
@@ -78,11 +77,6 @@ const Index = () => {
             change={{ value: 1, isPositive: true }}
             className="bg-amber-50 border-amber-200"
           />
-        </div>
-
-        {/* Waiting Candidates Section */}
-        <div className="mb-8 animate-fade-in">
-          <WaitingCandidatesSection candidates={mockCandidates} />
         </div>
 
         {/* Charts Row */}
