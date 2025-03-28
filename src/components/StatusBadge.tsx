@@ -1,7 +1,9 @@
+
 import React from 'react';
+import { CandidateStatus } from '@/lib/mock-data';
 
 interface StatusBadgeProps {
-  status: 'pending' | 'inProgress' | 'completed' | 'rejected';
+  status: CandidateStatus;
   className?: string;
 }
 
@@ -25,6 +27,10 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
     case 'rejected':
       badgeText = 'Reddedildi';
       badgeClass = 'bg-red-100 text-red-800';
+      break;
+    case 'waiting':
+      badgeText = 'Bekleme Modu';
+      badgeClass = 'bg-amber-100 text-amber-800';
       break;
     default:
       badgeText = 'Bilinmiyor';
