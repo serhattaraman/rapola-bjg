@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
@@ -92,6 +92,34 @@ const CandidateDetails = () => {
     });
   };
 
+  const toggleWaitingMode = () => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      const newStatus = prev.status === 'waiting' ? 'inProgress' : 'waiting';
+      
+      // Add a new timeline entry for the status change
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Durum Değişikliği',
+        description: `Durum "${getStatusLabel(prev.status)}" konumundan "${getStatusLabel(newStatus)}" konumuna güncellendi.`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
+      };
+      
+      toast({
+        title: "Durum güncellendi",
+        description: `Aday durumu ${getStatusLabel(newStatus)} olarak güncellendi.`,
+      });
+      
+      return {
+        ...prev,
+        status: newStatus,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-7xl mx-auto">
@@ -137,6 +165,14 @@ const CandidateDetails = () => {
             <Button variant="outline" className="inline-flex items-center">
               <Edit className="mr-2 h-4 w-4" />
               Düzenle
+            </Button>
+            <Button 
+              variant="outline" 
+              className={`inline-flex items-center ${candidate.status === 'waiting' ? 'text-amber-600 hover:text-amber-700' : 'text-blue-600 hover:text-blue-700'}`}
+              onClick={toggleWaitingMode}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              {candidate.status === 'waiting' ? 'Bekleme Modundan Çıkar' : 'Bekleme Moduna Al'}
             </Button>
             <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -210,7 +246,20 @@ const CandidateDetails = () => {
                 <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold">Mevcut Aşama</h2>
               </div>
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+              
+              {candidate.status === 'waiting' && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <Clock className="h-5 w-5" />
+                    <p className="text-sm font-medium">Bu aday şu anda bekleme modunda</p>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-600">
+                    Bekleme modundaki adaylar aktif işleme tabi tutulmaz. İşleme devam etmek için bekleme modundan çıkarın.
+                  </p>
+                </div>
+              )}
+              
+              <div className={`bg-primary/5 p-4 rounded-lg border border-primary/20 ${candidate.status === 'waiting' ? 'opacity-50' : ''}`}>
                 <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
                   <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
                   {candidate.stage}
@@ -221,15 +270,22 @@ const CandidateDetails = () => {
                   </p>
                 </div>
               </div>
+              
               <div className="mt-4">
                 <Button 
                   className="w-full" 
                   variant="default"
                   onClick={() => setIsUpdateStageDialogOpen(true)}
+                  disabled={candidate.status === 'waiting'}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Aşama Güncelle
                 </Button>
+                {candidate.status === 'waiting' && (
+                  <p className="mt-2 text-xs text-center text-gray-500">
+                    Aşama güncellemek için önce bekleme modundan çıkarın
+                  </p>
+                )}
               </div>
             </div>
             

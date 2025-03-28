@@ -1,4 +1,4 @@
-export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected';
+export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected' | 'waiting';
 
 export type Candidate = {
   id: string;
@@ -325,6 +325,7 @@ export const getStatusCount = () => {
     inProgress: 0,
     completed: 0,
     rejected: 0,
+    waiting: 0,
     total: mockCandidates.length
   };
 
@@ -387,6 +388,8 @@ export const getStatusLabel = (status: CandidateStatus) => {
       return 'Tamamlandı';
     case 'rejected':
       return 'Reddedildi';
+    case 'waiting':
+      return 'Bekleme Modu';
     default:
       return 'Bilinmiyor';
   }
