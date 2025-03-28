@@ -1,12 +1,22 @@
+
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, UserPlus, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
 import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 
 const COLORS = ['#3498db', '#f1c40f', '#2ecc71', '#e74c3c'];
+
+// Professions data - would normally come from a real API
+const professionStats = [
+  { name: 'Yazılım Geliştirici', value: 24 },
+  { name: 'Grafik Tasarımcı', value: 18 },
+  { name: 'Muhasebeci', value: 15 },
+  { name: 'Pazarlama Uzmanı', value: 12 },
+  { name: 'İnsan Kaynakları', value: 9 }
+];
 
 // .NET MVC'de bu sayfa Home/Index.cshtml olarak dönüştürülebilir
 const Index = () => {
@@ -150,6 +160,78 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Profession Statistics */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in mb-8">
+          <div className="flex items-center mb-4">
+            <Briefcase className="h-6 w-6 text-primary mr-2" />
+            <h2 className="text-lg font-semibold">Mesleğe Göre Aday İstatistiği</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={professionStats} 
+                  layout="vertical" 
+                  margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                >
+                  <XAxis type="number" />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={80}
+                  />
+                  <Tooltip
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }} 
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    name="Aday Sayısı" 
+                    fill="#9b87f5" 
+                    radius={[0, 4, 4, 0]} 
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={professionStats}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {professionStats.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={`hsl(${(index * 70) % 360}, 70%, 60%)`} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                    }} 
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
         {/* Recent Applications */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in recent-applications">
           <div className="flex justify-between items-center mb-6 recent-applications-header">
@@ -170,6 +252,16 @@ const Index = () => {
                 <partial name="_CandidateCard" model="candidate" />
               }
             */}
+          </div>
+        </div>
+
+        {/* About Section */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in mt-8">
+          <h2 className="text-lg font-semibold mb-4">Hakkında</h2>
+          <div className="text-gray-600">
+            <p className="mb-2">Bu aday takip sistemi Serhat Taraman tarafından geliştirilmiştir.</p>
+            <p className="mb-2">Sistem, aday yönetimi, süreç takibi ve detaylı raporlama özellikleri sunarak insan kaynakları süreçlerini kolaylaştırmayı amaçlamaktadır.</p>
+            <p>Sürüm: 1.0.0 | Son Güncelleme: {new Date().toLocaleDateString('tr-TR')}</p>
           </div>
         </div>
       </div>
