@@ -1,4 +1,3 @@
-
 export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected';
 
 export type Candidate = {
@@ -23,6 +22,7 @@ export type Candidate = {
     date: Date;
     title: string;
     description: string;
+    staff?: string; // Added staff field
   }[];
 };
 
@@ -60,19 +60,22 @@ export const mockCandidates: Candidate[] = [
         id: 't1',
         date: new Date('2023-09-15'),
         title: 'Başvuru alındı',
-        description: 'Online başvuru formu dolduruldu'
+        description: 'Online başvuru formu dolduruldu',
+        staff: 'Ayşe Kara'
       },
       {
         id: 't2',
         date: new Date('2023-09-20'),
         title: 'İlk değerlendirme',
-        description: 'CV değerlendirmesi olumlu sonuçlandı'
+        description: 'CV değerlendirmesi olumlu sonuçlandı',
+        staff: 'Mehmet Demir'
       },
       {
         id: 't3',
         date: new Date('2023-09-25'),
         title: 'Teknik mülakat',
-        description: 'Teknik mülakat başarıyla tamamlandı'
+        description: 'Teknik mülakat başarıyla tamamlandı',
+        staff: 'Selin Yıldız'
       }
     ]
   },

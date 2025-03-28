@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Edit, Trash2, Calendar, FileText, MessageSquare, PlusCircle, Phone } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
@@ -49,7 +49,8 @@ const CandidateDetails = () => {
         id: `timeline-${Date.now()}`,
         date: new Date(),
         title: newStage,
-        description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`
+        description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
       };
       
       return {
@@ -137,10 +138,6 @@ const CandidateDetails = () => {
               <Edit className="mr-2 h-4 w-4" />
               Düzenle
             </Button>
-            <Button variant="outline" className="inline-flex items-center">
-              <Download className="mr-2 h-4 w-4" />
-              Rapor İndir
-            </Button>
             <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
@@ -182,6 +179,12 @@ const CandidateDetails = () => {
                                 <p className="text-xs text-gray-500">{formatDate(event.date)}</p>
                               </div>
                               <p className="mt-1 text-sm text-gray-600">{event.description}</p>
+                              {event.staff && (
+                                <div className="mt-1 flex items-center text-xs text-gray-500">
+                                  <User className="h-3 w-3 mr-1" />
+                                  <span>Sorumlu: {event.staff}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -227,35 +230,6 @@ const CandidateDetails = () => {
                   <Edit className="mr-2 h-4 w-4" />
                   Aşama Güncelle
                 </Button>
-              </div>
-            </div>
-            
-            {/* Documents */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Belgeler</h2>
-                </div>
-                <button className="text-primary hover:text-primary/80 text-sm font-medium">
-                  <PlusCircle className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="space-y-3">
-                {candidate.documents.map(doc => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                      <div>
-                        <div className="text-sm font-medium">{doc.name}</div>
-                        <div className="text-xs text-gray-500">{formatDate(doc.dateUploaded)}</div>
-                      </div>
-                    </div>
-                    <button className="text-gray-500 hover:text-primary">
-                      <Download className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
               </div>
             </div>
             
