@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase } from 'lucide-react';
@@ -232,7 +231,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Recent Applications */}
+        {/* Recent Applications - Improved layout */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in recent-applications">
           <div className="flex justify-between items-center mb-6 recent-applications-header">
             <h2 className="text-lg font-semibold">Son Başvurular</h2>
@@ -243,12 +242,14 @@ const Index = () => {
               */}
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 recent-applications-grid">
-            {recentApplications.map(candidate => (
+          
+          {/* Updated layout with maximum 3 cards and more spacing */}
+          <div className="grid grid-cols-1 gap-6 recent-applications-grid">
+            {recentApplications.slice(0, 3).map(candidate => (
               <CandidateCard key={candidate.id} candidate={candidate} />
             ))}
             {/* .NET MVC'de:
-              @foreach (var candidate in Model.RecentApplications) {
+              @foreach (var candidate in Model.RecentApplications.Take(3)) {
                 <partial name="_CandidateCard" model="candidate" />
               }
             */}

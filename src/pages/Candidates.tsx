@@ -6,6 +6,14 @@ import CandidateCard from '@/components/CandidateCard';
 import SearchBar from '@/components/SearchBar';
 import StatusBadge from '@/components/StatusBadge';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 // Define all possible process stages for filtering
 const allProcessStages = [
@@ -20,11 +28,15 @@ const allProcessStages = [
   "Sertifika Süreci"
 ];
 
+// Number of candidates to show per page
+const CANDIDATES_PER_PAGE = 20;
+
 const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Get unique stages that exist in the current candidate data
   const uniqueStages = useMemo(() => {
@@ -60,6 +72,31 @@ const Candidates = () => {
       return matchesSearch && matchesStatus && matchesStage;
     });
   }, [searchQuery, statusFilter, stageFilter]);
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
+  
+  // Get paginated candidates
+  const paginatedCandidates = useMemo(() => {
+    const startIndex = (currentPage - 1) * CANDIDATES_PER_PAGE;
+    return filteredCandidates.slice(startIndex, startIndex + CANDIDATES_PER_PAGE);
+  }, [filteredCandidates, currentPage]);
+
+  // Generate array of page numbers for pagination
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [totalPages]);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top when changing page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -186,14 +223,14 @@ const Candidates = () => {
 
           {/* Results count */}
           <div className="mt-4 text-sm text-gray-500">
-            {filteredCandidates.length} aday bulundu
+            {filteredCandidates.length} aday bulundu (Sayfa {currentPage}/{totalPages || 1})
           </div>
         </div>
 
-        {/* Candidates List - Single column layout */}
-        <div className="flex flex-col gap-4 animate-slide-in">
-          {filteredCandidates.length > 0 ? (
-            filteredCandidates.map(candidate => (
+        {/* Candidates List */}
+        <div className="flex flex-col gap-6 animate-slide-in">
+          {paginatedCandidates.length > 0 ? (
+            paginatedCandidates.map(candidate => (
               <CandidateCard key={candidate.id} candidate={candidate} />
             ))
           ) : (
@@ -202,6 +239,43 @@ const Candidates = () => {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-8">
+            <Pagination>
+              <PaginationContent>
+                {/* Previous page button */}
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {/* Page numbers */}
+                {pageNumbers.map(page => (
+                  <PaginationItem key={page}>
+                    <PaginationLink 
+                      isActive={page === currentPage}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                {/* Next page button */}
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </div>
   );
