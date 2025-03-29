@@ -232,7 +232,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Recent Applications */}
+        {/* Recent Applications - Improved spacing */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in recent-applications">
           <div className="flex justify-between items-center mb-6 recent-applications-header">
             <h2 className="text-lg font-semibold">Son Başvurular</h2>
@@ -243,8 +243,9 @@ const Index = () => {
               */}
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 recent-applications-grid">
-            {recentApplications.map(candidate => (
+          {/* Changed grid to have fewer columns and more spacing */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 recent-applications-grid">
+            {recentApplications.slice(0, 4).map(candidate => (
               <CandidateCard key={candidate.id} candidate={candidate} />
             ))}
             {/* .NET MVC'de:
