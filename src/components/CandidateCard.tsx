@@ -31,7 +31,7 @@ export const calculateProgress = (currentStage: string): number => {
   // If stage is not found in our predefined list, return 0
   if (currentStageIndex === -1) return 0;
   // Calculate percentage based on current stage index (adding 1 because arrays are 0-indexed)
-  return Math.max(0, Math.min(100, ((currentStageIndex + 1) / progressStages.length) * 100));
+  return Math.round(Math.max(0, Math.min(100, ((currentStageIndex + 1) / progressStages.length) * 100)));
 };
 
 /*
@@ -165,7 +165,16 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               <span className="current-stage-text">{candidate.stage}</span>
             </div>
           </div>
-          <Progress value={progressPercentage} className="h-2 candidate-progress-bar" />
+          
+          {/* Progress bar for .NET MVC - Sample code */}
+          {/* 
+          <div class="progress-bar">
+            <div class="progress-value" style="width: @Model.ProgressPercentage%"></div>
+          </div>
+          */}
+          
+          {/* React version of the progress bar */}
+          <Progress value={progressPercentage} className="h-2 mb-2 candidate-progress-bar" />
           
           <div className="grid grid-cols-9 gap-1 mt-3 progress-stages">
             {progressStages.map((stage, index) => {
