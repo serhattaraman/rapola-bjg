@@ -28,6 +28,9 @@ export const progressStages = [
 // Calculate progress - Helper function made standalone for easier portability
 export const calculateProgress = (currentStage: string): number => {
   const currentStageIndex = progressStages.findIndex(stage => stage === currentStage);
+  // If stage is not found in our predefined list, return 0
+  if (currentStageIndex === -1) return 0;
+  // Calculate percentage based on current stage index (adding 1 because arrays are 0-indexed)
   return Math.max(0, Math.min(100, ((currentStageIndex + 1) / progressStages.length) * 100));
 };
 
@@ -115,7 +118,9 @@ public class CandidateCardViewModel
 */
 
 const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
+  // Calculate progress percentage based on current stage
   const progressPercentage = calculateProgress(candidate.stage);
+  // Find index of current stage in the progress stages array
   const currentStageIndex = progressStages.findIndex(stage => stage === candidate.stage);
   
   return (
@@ -164,7 +169,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
           
           <div className="grid grid-cols-9 gap-1 mt-3 progress-stages">
             {progressStages.map((stage, index) => {
+              // A stage is completed if its index is less than or equal to the current stage index
               const isCompleted = index <= currentStageIndex;
+              // A stage is current if its index matches the current stage index
               const isCurrent = index === currentStageIndex;
               return (
                 <div key={index} className={`flex flex-col items-center stage-item stage-${index + 1} ${
