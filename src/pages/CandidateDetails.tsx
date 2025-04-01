@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
@@ -11,6 +11,10 @@ import UpdateStageDialog from '@/components/UpdateStageDialog';
 import { toast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -20,7 +24,15 @@ const CandidateDetails = () => {
   );
   const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
+  const [isClassConfirmDialogOpen, setIsClassConfirmDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const [waitingDate, setWaitingDate] = useState<Date | undefined>(
+    candidate?.returnDate ? new Date(candidate.returnDate) : undefined
+  );
+  const [classConfirmation, setClassConfirmation] = useState<'pending' | 'confirmed'>(
+    candidate?.classConfirmation || 'pending'
+  );
   
   if (!candidate) {
     return (
@@ -53,9 +65,13 @@ const CandidateDetails = () => {
         staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
       };
       
+      // If new stage is "Sınıf Yerleştirme", set class confirmation to pending
+      const updatedClassConfirmation = newStage === "Sınıf Yerleştirme" ? 'pending' : prev.classConfirmation;
+      
       return {
         ...prev,
         stage: newStage,
+        classConfirmation: updatedClassConfirmation,
         timeline: [newTimelineEntry, ...prev.timeline]
       };
     });
@@ -93,32 +109,82 @@ const CandidateDetails = () => {
   };
 
   const toggleWaitingMode = () => {
+    if (candidate.status !== 'waiting') {
+      // If not in waiting mode, open the dialog to set return date
+      setWaitingDate(new Date());
+      setIsWaitingDialogOpen(true);
+    } else {
+      // If already in waiting mode, remove from waiting
+      updateWaitingStatus(false, undefined);
+    }
+  };
+
+  const updateWaitingStatus = (isWaiting: boolean, returnDate?: Date) => {
     setCandidate(prev => {
       if (!prev) return null;
       
-      const newStatus = prev.status === 'waiting' ? 'inProgress' : 'waiting';
+      const newStatus = isWaiting ? 'waiting' : 'inProgress';
       
       // Add a new timeline entry for the status change
       const newTimelineEntry = {
         id: `timeline-${Date.now()}`,
         date: new Date(),
         title: 'Durum Değişikliği',
-        description: `Durum "${getStatusLabel(prev.status)}" konumundan "${getStatusLabel(newStatus)}" konumuna güncellendi.`,
+        description: `Durum "${getStatusLabel(prev.status)}" konumundan "${getStatusLabel(newStatus)}" konumuna güncellendi.${isWaiting ? ' Dönüş tarihi: ' + formatDate(returnDate) : ''}`,
         staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
       };
       
       toast({
         title: "Durum güncellendi",
-        description: `Aday durumu ${getStatusLabel(newStatus)} olarak güncellendi.`,
+        description: `Aday durumu ${getStatusLabel(newStatus)} olarak güncellendi.${isWaiting ? ' Dönüş tarihi: ' + formatDate(returnDate) : ''}`,
       });
       
       return {
         ...prev,
         status: newStatus,
+        returnDate: isWaiting ? returnDate : undefined,
         timeline: [newTimelineEntry, ...prev.timeline]
       };
     });
+    
+    setIsWaitingDialogOpen(false);
   };
+
+  const toggleClassConfirmation = () => {
+    setIsClassConfirmDialogOpen(true);
+  };
+
+  const updateClassConfirmation = (confirmed: boolean) => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      const newConfirmation = confirmed ? 'confirmed' : 'pending';
+      
+      // Add a new timeline entry for the confirmation change
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Sınıf Onayı',
+        description: `Sınıf yerleştirme ${confirmed ? 'onaylandı' : 'beklemede'}.`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
+      };
+      
+      toast({
+        title: "Sınıf onayı güncellendi",
+        description: `Sınıf yerleştirme ${confirmed ? 'onaylandı' : 'beklemede'}.`,
+      });
+      
+      return {
+        ...prev,
+        classConfirmation: newConfirmation,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+    
+    setIsClassConfirmDialogOpen(false);
+  };
+
+  const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -174,6 +240,25 @@ const CandidateDetails = () => {
               <Clock className="mr-2 h-4 w-4" />
               {candidate.status === 'waiting' ? 'Bekleme Modundan Çıkar' : 'Bekleme Moduna Al'}
             </Button>
+            {isInClassPlacementStage && (
+              <Button 
+                variant="outline" 
+                className={`inline-flex items-center ${candidate.classConfirmation === 'confirmed' ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                onClick={toggleClassConfirmation}
+              >
+                {candidate.classConfirmation === 'confirmed' ? (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Sınıf Onaylandı
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Sınıf Onayı Bekliyor
+                  </>
+                )}
+              </Button>
+            )}
             <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
@@ -255,6 +340,36 @@ const CandidateDetails = () => {
                   </div>
                   <p className="mt-1 text-xs text-amber-600">
                     Bekleme modundaki adaylar aktif işleme tabi tutulmaz. İşleme devam etmek için bekleme modundan çıkarın.
+                  </p>
+                  {candidate.returnDate && (
+                    <div className="mt-2 flex items-center text-amber-700 text-sm">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>Dönüş tarihi: {formatDate(candidate.returnDate)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {isInClassPlacementStage && candidate.classConfirmation === 'pending' && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <AlertCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Sınıf yerleştirme onayı bekleniyor</p>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-600">
+                    Adayın sınıf yerleştirmesi henüz onaylanmadı. İşleme devam etmek için sınıf onayını tamamlayın.
+                  </p>
+                </div>
+              )}
+              
+              {isInClassPlacementStage && candidate.classConfirmation === 'confirmed' && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Sınıf yerleştirme onaylandı</p>
+                  </div>
+                  <p className="mt-1 text-xs text-green-600">
+                    Adayın sınıf yerleştirmesi onaylandı ve bir sonraki aşamaya geçilebilir.
                   </p>
                 </div>
               )}
@@ -353,6 +468,96 @@ const CandidateDetails = () => {
             </Button>
             <Button type="button" onClick={handleAddNote}>
               Not Ekle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Waiting Mode Dialog with Date Picker */}
+      <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bekleme Moduna Al</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Dönüş Tarihi Seçin</label>
+              <div className="flex flex-col items-center">
+                <CalendarComponent
+                  mode="single"
+                  selected={waitingDate}
+                  onSelect={setWaitingDate}
+                  className="border rounded-md"
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </div>
+            </div>
+            <div className="text-sm text-center text-gray-500">
+              {waitingDate ? (
+                <span>Seçilen dönüş tarihi: {format(waitingDate, "dd.MM.yyyy")}</span>
+              ) : (
+                <span>Lütfen bir dönüş tarihi seçin</span>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => updateWaitingStatus(true, waitingDate)}
+              disabled={!waitingDate}
+            >
+              Bekleme Moduna Al
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Class Confirmation Dialog */}
+      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Aday: {candidate.firstName} {candidate.lastName}</span>
+                  <span className="text-xs text-gray-500">Aşama: {candidate.stage}</span>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
+                <p className="text-sm">
+                  Sınıf yerleştirme onaylandığında, aday bir sonraki aşamaya geçebilir. Bu işlem daha sonra geri alınabilir.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button 
+              type="button" 
+              variant={candidate.classConfirmation === 'confirmed' ? 'destructive' : 'default'}
+              onClick={() => updateClassConfirmation(candidate.classConfirmation !== 'confirmed')}
+            >
+              {candidate.classConfirmation === 'confirmed' ? (
+                <>
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Onayı Kaldır
+                </>
+              ) : (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Sınıf Yerleştirmeyi Onayla
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

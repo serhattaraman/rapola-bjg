@@ -1,4 +1,3 @@
-
 <!-- .NET MVC için Aday Detay Sayfası HTML şablonu -->
 <!DOCTYPE html>
 <html lang="tr">
@@ -32,7 +31,7 @@
                 
                 <div class="dashboard-actions">
                     <div class="flex space-x-3">
-                        <!-- Durum güncelleme butonları -->
+                        <!-- Durum ve aşama güncelleme butonları -->
                         @if (Model.Status != "completed")
                         {
                             <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
@@ -44,13 +43,40 @@
                             </form>
                         }
                         
-                        @if (Model.Status != "rejected")
+                        <!-- Bekleme modu butonu -->
+                        <form method="post" action="@Url.Action("ToggleWaitingMode", "Candidate")">
+                            <input type="hidden" name="candidateId" value="@Model.Id" />
+                            <button type="button" class="btn-secondary" onclick="showWaitingDatePicker(this.form)">
+                                <i class="fas fa-clock mr-2"></i> 
+                                @(Model.Status == "waiting" ? "Beklemeden Çıkar" : "Bekleme Moduna Al")
+                            </button>
+                            
+                            <!-- Gizli tarih seçici -->
+                            <div id="waitingDatePicker" class="waiting-date-picker hidden">
+                                <div class="date-picker-container">
+                                    <div class="date-picker-header">
+                                        <span>Dönüş Tarihi Seçin</span>
+                                        <button type="button" class="close-btn" onclick="hideWaitingDatePicker()">×</button>
+                                    </div>
+                                    <div class="date-picker-body">
+                                        <input type="date" name="returnDate" id="returnDate" class="form-control" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    </div>
+                                    <div class="date-picker-footer">
+                                        <button type="button" class="btn-secondary" onclick="hideWaitingDatePicker()">İptal</button>
+                                        <button type="submit" class="btn-primary">Kaydet</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Sınıf onayı butonu (sadece Sınıf Yerleştirme aşamasındaysa) -->
+                        @if (Model.Stage == "Sınıf Yerleştirme")
                         {
-                            <form method="post" action="@Url.Action("ChangeStatus", "Candidate")">
+                            <form method="post" action="@Url.Action("ToggleClassConfirmation", "Candidate")">
                                 <input type="hidden" name="candidateId" value="@Model.Id" />
-                                <input type="hidden" name="newStatus" value="rejected" />
-                                <button type="submit" class="btn-secondary">
-                                    <i class="fas fa-times mr-2"></i> Reddet
+                                <button type="submit" class="btn-@(Model.ClassConfirmation == "confirmed" ? "success" : "warning")">
+                                    <i class="fas fa-@(Model.ClassConfirmation == "confirmed" ? "check-circle" : "exclamation-circle") mr-2"></i>
+                                    @(Model.ClassConfirmation == "confirmed" ? "Sınıf Onaylandı" : "Sınıf Onayı Bekliyor")
                                 </button>
                             </form>
                         }
@@ -122,6 +148,36 @@
                                     @Model.Stage
                                 </div>
                             </div>
+                            
+                            <!-- Bekleme modu bilgisi -->
+                            @if (Model.Status == "waiting")
+                            {
+                                <div class="info-item p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <div class="flex items-center text-amber-700">
+                                        <i class="fas fa-clock mr-2"></i>
+                                        <span class="font-medium">Bekleme Modunda</span>
+                                    </div>
+                                    
+                                    @if (Model.ReturnDate.HasValue)
+                                    {
+                                        <div class="mt-1 text-sm text-amber-700">
+                                            <i class="fas fa-calendar mr-1"></i>
+                                            Dönüş tarihi: @Model.ReturnDate.Value.ToString("dd.MM.yyyy")
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            
+                            <!-- Sınıf onayı durumu -->
+                            @if (Model.Stage == "Sınıf Yerleştirme")
+                            {
+                                <div class="info-item p-3 @(Model.ClassConfirmation == "confirmed" ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200") border rounded-lg">
+                                    <div class="flex items-center @(Model.ClassConfirmation == "confirmed" ? "text-green-700" : "text-amber-700")">
+                                        <i class="fas fa-@(Model.ClassConfirmation == "confirmed" ? "check-circle" : "exclamation-circle") mr-2"></i>
+                                        <span class="font-medium">@(Model.ClassConfirmation == "confirmed" ? "Sınıf Onaylandı" : "Sınıf Onayı Bekliyor")</span>
+                                    </div>
+                                </div>
+                            }
                             
                             <div class="info-item">
                                 <div class="text-sm text-gray-500">İlerleme</div>
@@ -327,5 +383,88 @@
         
         // Diğer sayfa fonksiyonları...
     </script>
+
+    <!-- Tarih seçici için JavaScript -->
+    <script>
+        function showWaitingDatePicker(form) {
+            const status = '@Model.Status';
+            
+            // Eğer zaten bekleme modundaysa, direkt formı gönder
+            if (status === 'waiting') {
+                form.submit();
+                return;
+            }
+            
+            // Değilse, tarih seçiciyi göster
+            document.getElementById('waitingDatePicker').classList.remove('hidden');
+        }
+        
+        function hideWaitingDatePicker() {
+            document.getElementById('waitingDatePicker').classList.add('hidden');
+        }
+        
+        // Tarih seçici dışında bir yere tıklandığında kapat
+        window.addEventListener('click', function(e) {
+            const datePicker = document.getElementById('waitingDatePicker');
+            if (!datePicker.contains(e.target) && !e.target.closest('button[onclick="showWaitingDatePicker"]')) {
+                hideWaitingDatePicker();
+            }
+        });
+        
+        // Diğer sayfa fonksiyonları...
+    </script>
+
+    <style>
+        .waiting-date-picker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .date-picker-container {
+            background-color: white;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 400px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .date-picker-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        .date-picker-body {
+            padding: 1.5rem;
+        }
+        
+        .date-picker-footer {
+            padding: 1rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+    </style>
 </body>
 </html>

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Candidate } from '@/lib/mock-data';
 import StatusBadge from './StatusBadge';
 import { formatDate } from '@/lib/mock-data';
-import { Phone, User, Calendar } from 'lucide-react';
+import { Phone, User, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ProcessStageIcon from './ProcessStageIcon';
 
@@ -123,6 +123,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
   // Find index of current stage in the progress stages array
   const currentStageIndex = progressStages.findIndex(stage => stage === candidate.stage);
   
+  // Check if candidate is in class placement stage
+  const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
+  
   return (
     <Link 
       to={`/candidate/${candidate.id}`}
@@ -147,6 +150,23 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               <p className="flex items-center text-xs text-amber-700 mt-1">
                 <Calendar className="w-3 h-3 mr-1" />
                 <span>Dönüş Tarihi: {formatDate(candidate.returnDate)}</span>
+              </p>
+            )}
+            
+            {/* Display class confirmation status if in class placement stage */}
+            {isInClassPlacementStage && (
+              <p className="flex items-center text-xs mt-1">
+                {candidate.classConfirmation === 'confirmed' ? (
+                  <span className="flex items-center text-green-600">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Sınıf Onaylandı
+                  </span>
+                ) : (
+                  <span className="flex items-center text-amber-600">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    Sınıf Onayı Bekliyor
+                  </span>
+                )}
               </p>
             )}
           </div>
