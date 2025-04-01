@@ -6,7 +6,7 @@ import { Clock } from 'lucide-react';
 interface StatusBadgeProps {
   status: CandidateStatus;
   className?: string;
-  returnDate?: Date;
+  returnDate?: Date | string;
   showRemainingDays?: boolean;
 }
 

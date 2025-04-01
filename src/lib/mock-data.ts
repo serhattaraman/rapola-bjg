@@ -1,5 +1,7 @@
+
 import { faker } from '@faker-js/faker';
 
+// Define the types
 export interface TimelineEvent {
   id: string;
   date: Date;
@@ -17,12 +19,14 @@ export interface Candidate {
   position: string;
   appliedAt: Date | string;
   stage: string;
-  status: 'pending' | 'inProgress' | 'waiting' | 'completed' | 'rejected';
+  status: CandidateStatus;
   timeline: TimelineEvent[];
   notes: string[];
   returnDate?: Date | string;
   classConfirmation?: 'pending' | 'confirmed';
 }
+
+export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'completed' | 'rejected';
 
 export const formatDate = (date: Date | string): string => {
   const d = new Date(date);
@@ -41,7 +45,7 @@ export const getDaysRemaining = (returnDate: Date | string | undefined): number 
   return Math.ceil(timeDiff / (1000 * 3600 * 24));
 };
 
-export const getStatusLabel = (status: Candidate['status']): string => {
+export const getStatusLabel = (status: CandidateStatus): string => {
   switch (status) {
     case 'pending':
       return 'Beklemede';
@@ -58,6 +62,59 @@ export const getStatusLabel = (status: Candidate['status']): string => {
   }
 };
 
+// Define the helper functions referenced in Index.tsx
+export const getStatusCount = () => {
+  const total = mockCandidates.length;
+  const pending = mockCandidates.filter(c => c.status === 'pending').length;
+  const inProgress = mockCandidates.filter(c => c.status === 'inProgress').length;
+  const waiting = mockCandidates.filter(c => c.status === 'waiting').length;
+  const completed = mockCandidates.filter(c => c.status === 'completed').length;
+  const rejected = mockCandidates.filter(c => c.status === 'rejected').length;
+  
+  return { total, pending, inProgress, waiting, completed, rejected };
+};
+
+export const getRecentApplications = () => {
+  return [...mockCandidates]
+    .sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime())
+    .slice(0, 5);
+};
+
+export const getApplicationTrend = () => {
+  // Generate last 7 days application trend
+  const result = [];
+  const now = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric' });
+    
+    // Random count between 1-10 for demo purposes
+    const count = Math.floor(Math.random() * 10) + 1;
+    
+    result.push({
+      date: dateStr,
+      count: count
+    });
+  }
+  
+  return result;
+};
+
+export const getStageDistribution = () => {
+  const stages = {};
+  
+  mockCandidates.forEach(candidate => {
+    if (!stages[candidate.stage]) {
+      stages[candidate.stage] = 0;
+    }
+    stages[candidate.stage]++;
+  });
+  
+  return Object.entries(stages).map(([name, value]) => ({ name, value }));
+};
+
 const generateTimeline = (): TimelineEvent[] => {
   const timeline: TimelineEvent[] = [
     {
@@ -65,21 +122,21 @@ const generateTimeline = (): TimelineEvent[] => {
       date: faker.date.past(),
       title: 'Başvuru Alındı',
       description: 'Adayın başvurusu başarıyla alındı.',
-      staff: faker.name.fullName(),
+      staff: faker.person.fullName(),
     },
     {
       id: `timeline-${Date.now()}-2`,
       date: faker.date.past(),
       title: 'Telefon Görüşmesi',
       description: 'Aday ile telefon görüşmesi yapıldı.',
-      staff: faker.name.fullName(),
+      staff: faker.person.fullName(),
     },
     {
       id: `timeline-${Date.now()}-3`,
       date: faker.date.recent(),
       title: 'İK Görüşmesi',
       description: 'Aday ile İK görüşmesi yapıldı.',
-      staff: faker.name.fullName(),
+      staff: faker.person.fullName(),
     },
   ];
   return timeline;
@@ -88,11 +145,11 @@ const generateTimeline = (): TimelineEvent[] => {
 export const mockCandidates: Candidate[] = [
   {
     id: "candidate-1",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Sınıf Yerleştirme",
     status: 'inProgress',
@@ -102,11 +159,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-2",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "İK Görüşmesi",
     status: 'inProgress',
@@ -115,11 +172,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-3",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Evrak Toplama",
     status: 'waiting',
@@ -129,11 +186,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-4",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Vize Süreci",
     status: 'completed',
@@ -142,11 +199,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-5",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Başvuru Alındı",
     status: 'rejected',
@@ -155,11 +212,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-6",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Sertifika Süreci",
     status: 'inProgress',
@@ -168,11 +225,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-7",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Denklik Süreci",
     status: 'inProgress',
@@ -181,11 +238,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-8",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Sınıf Yerleştirme",
     status: 'inProgress',
@@ -195,11 +252,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-9",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Telefon Görüşmesi",
     status: 'inProgress',
@@ -208,11 +265,11 @@ export const mockCandidates: Candidate[] = [
   },
   {
     id: "candidate-10",
-    firstName: faker.name.firstName(),
-    lastName: faker.name.lastName(),
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
     email: faker.internet.email(),
     phone: faker.phone.number(),
-    position: faker.name.jobTitle(),
+    position: faker.person.jobTitle(),
     appliedAt: faker.date.past(),
     stage: "Evrak Toplama",
     status: 'waiting',
