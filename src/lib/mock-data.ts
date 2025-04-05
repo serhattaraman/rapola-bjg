@@ -116,12 +116,27 @@ export const getStageDistribution = () => {
   return Object.entries(stages).map(([name, value]) => ({ name, value }));
 };
 
-// Yeni fonksiyon: Meslek dağılımını al
+// Combine existing getProfessionDistribution with age breakdown
 export const getProfessionDistribution = () => {
   const professions = {
-    "nursing": { name: "Hemşirelik", count: 0, under42: 0, over42: 0 },
-    "mechatronics": { name: "Mekatronik", count: 0, under42: 0, over42: 0 },
-    "automotive": { name: "Otomotiv", count: 0, under42: 0, over42: 0 }
+    "nursing": { 
+      name: "Hemşirelik", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    },
+    "mechatronics": { 
+      name: "Mekatronik", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    },
+    "automotive": { 
+      name: "Otomotiv", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    }
   };
   
   mockCandidates.forEach(candidate => {
@@ -186,6 +201,7 @@ const professionLabels = {
   "other": "Diğer"
 };
 
+// Modify mockCandidates to include profession and age
 export const mockCandidates: Candidate[] = [
   {
     id: "candidate-1",
@@ -194,7 +210,7 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
-    profession: "nursing", // Hemşirelik
+    profession: "nursing",
     age: 38,
     appliedAt: faker.date.past(),
     stage: "Sınıf Yerleştirme",
@@ -210,7 +226,7 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
-    profession: "mechatronics", // Mekatronik
+    profession: "mechatronics",
     age: 44,
     appliedAt: faker.date.past(),
     stage: "İK Görüşmesi",
@@ -225,7 +241,7 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
-    profession: "automotive", // Otomotiv
+    profession: "automotive",
     age: 35,
     appliedAt: faker.date.past(),
     stage: "Evrak Toplama",

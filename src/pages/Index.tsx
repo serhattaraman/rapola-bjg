@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase, GraduationCap, Stethoscope, Wrench, Car } from 'lucide-react';
@@ -6,7 +5,7 @@ import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
 import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates, getProfessionDistribution, getAgeDistribution } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
-import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
 const COLORS = ['#3498db', '#f1c40f', '#2ecc71', '#e74c3c'];
 const PROFESSION_COLORS = ['#3498db', '#9b59b6', '#e74c3c'];
