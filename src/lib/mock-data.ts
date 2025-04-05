@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 // Define the types
@@ -17,6 +16,8 @@ export interface Candidate {
   email: string;
   phone: string;
   position: string;
+  profession: "nursing" | "mechatronics" | "automotive" | "other"; // Eklenen alan
+  age: number; // Eklenen alan
   appliedAt: Date | string;
   stage: string;
   status: CandidateStatus;
@@ -115,6 +116,40 @@ export const getStageDistribution = () => {
   return Object.entries(stages).map(([name, value]) => ({ name, value }));
 };
 
+// Yeni fonksiyon: Meslek dağılımını al
+export const getProfessionDistribution = () => {
+  const professions = {
+    "nursing": { name: "Hemşirelik", count: 0, under42: 0, over42: 0 },
+    "mechatronics": { name: "Mekatronik", count: 0, under42: 0, over42: 0 },
+    "automotive": { name: "Otomotiv", count: 0, under42: 0, over42: 0 }
+  };
+  
+  mockCandidates.forEach(candidate => {
+    if (professions[candidate.profession]) {
+      professions[candidate.profession].count++;
+      
+      if (candidate.age < 42) {
+        professions[candidate.profession].under42++;
+      } else {
+        professions[candidate.profession].over42++;
+      }
+    }
+  });
+  
+  return Object.values(professions);
+};
+
+// Yeni fonksiyon: Yaş dağılımını al
+export const getAgeDistribution = () => {
+  const under42 = mockCandidates.filter(c => c.age < 42).length;
+  const over42 = mockCandidates.filter(c => c.age >= 42).length;
+  
+  return [
+    { name: "42 yaş altı", value: under42 },
+    { name: "42 yaş ve üstü", value: over42 }
+  ];
+};
+
 const generateTimeline = (): TimelineEvent[] => {
   const timeline: TimelineEvent[] = [
     {
@@ -142,6 +177,15 @@ const generateTimeline = (): TimelineEvent[] => {
   return timeline;
 };
 
+// Meslek seçenekleri
+const professionOptions = ["nursing", "mechatronics", "automotive", "other"];
+const professionLabels = {
+  "nursing": "Hemşirelik",
+  "mechatronics": "Mekatronik", 
+  "automotive": "Otomotiv",
+  "other": "Diğer"
+};
+
 export const mockCandidates: Candidate[] = [
   {
     id: "candidate-1",
@@ -150,6 +194,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "nursing", // Hemşirelik
+    age: 38,
     appliedAt: faker.date.past(),
     stage: "Sınıf Yerleştirme",
     status: 'inProgress',
@@ -164,6 +210,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "mechatronics", // Mekatronik
+    age: 44,
     appliedAt: faker.date.past(),
     stage: "İK Görüşmesi",
     status: 'inProgress',
@@ -177,6 +225,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "automotive", // Otomotiv
+    age: 35,
     appliedAt: faker.date.past(),
     stage: "Evrak Toplama",
     status: 'waiting',
@@ -191,6 +241,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 51,
     appliedAt: faker.date.past(),
     stage: "Vize Süreci",
     status: 'completed',
@@ -204,6 +256,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "mechatronics",
+    age: 31,
     appliedAt: faker.date.past(),
     stage: "Başvuru Alındı",
     status: 'rejected',
@@ -217,6 +271,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "automotive",
+    age: 47,
     appliedAt: faker.date.past(),
     stage: "Sertifika Süreci",
     status: 'inProgress',
@@ -230,6 +286,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 33,
     appliedAt: faker.date.past(),
     stage: "Denklik Süreci",
     status: 'inProgress',
@@ -243,6 +301,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "mechatronics",
+    age: 40,
     appliedAt: faker.date.past(),
     stage: "Sınıf Yerleştirme",
     status: 'inProgress',
@@ -257,6 +317,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "automotive",
+    age: 29,
     appliedAt: faker.date.past(),
     stage: "Telefon Görüşmesi",
     status: 'inProgress',
@@ -270,6 +332,8 @@ export const mockCandidates: Candidate[] = [
     email: faker.internet.email(),
     phone: faker.phone.number(),
     position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 46,
     appliedAt: faker.date.past(),
     stage: "Evrak Toplama",
     status: 'waiting',
@@ -278,3 +342,7 @@ export const mockCandidates: Candidate[] = [
     returnDate: faker.date.future(),
   },
 ];
+
+// Profesyonları ve Türkçe karşılıklarını dışa aktar
+export const professions = professionOptions;
+export const professionNames = professionLabels;
