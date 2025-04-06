@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield } from 'lucide-react';
+import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [notifications, setNotifications] = useState<{ id: string; message: string; read: boolean }[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, currentUser, logout } = useAuth();
@@ -77,6 +85,32 @@ export const Navbar = () => {
     setIsOpen(false);
   }, [location]);
 
+  // Mock notifications based on user role - in a real app, this would come from an API
+  useEffect(() => {
+    if (currentUser) {
+      // Simulate fetching notifications
+      let mockNotifications = [];
+      if (currentUser.role === 'admin') {
+        mockNotifications = [
+          { id: '1', message: 'Yeni bir aday eklendi: Ali Yılmaz', read: false },
+          { id: '2', message: 'Evrak süreci tamamlanmayı bekliyor', read: false },
+          { id: '3', message: 'Sistem güncellemesi yapıldı', read: true }
+        ];
+      } else if (currentUser.role === 'staff') {
+        mockNotifications = [
+          { id: '1', message: 'Mehmet Aydın adlı aday evrak sürecinde', read: false },
+          { id: '2', message: 'Zeynep Kaya adlı aday evrak sürecinde', read: false }
+        ];
+      } else {
+        mockNotifications = [
+          { id: '1', message: '3 aday işlem bekliyor', read: false }
+        ];
+      }
+      setNotifications(mockNotifications);
+      setNotificationCount(mockNotifications.filter(n => !n.read).length);
+    }
+  }, [currentUser]);
+
   const handleLogout = () => {
     logout();
     toast({
@@ -84,6 +118,22 @@ export const Navbar = () => {
       description: "Başarıyla çıkış yaptınız",
     });
     navigate('/login');
+  };
+
+  const markAsRead = (id: string) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id ? { ...notification, read: true } : notification
+      )
+    );
+    setNotificationCount(prev => Math.max(0, prev - 1));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+    setNotificationCount(0);
   };
 
   // If on login page, don't render the navbar
@@ -127,6 +177,62 @@ export const Navbar = () => {
                     <span className="ml-2 nav-text">{item.name}</span>
                   </Link>
                 ))}
+                
+                {/* Notification button */}
+                <div className="flex items-center">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon" className="relative">
+                        <Bell className="h-5 w-5" />
+                        {notificationCount > 0 && (
+                          <Badge className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center bg-red-500 text-white text-xs rounded-full px-1">
+                            {notificationCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0" align="end">
+                      <div className="p-4 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-medium">Bildirimler</h3>
+                          {notificationCount > 0 && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-xs text-primary hover:text-primary/80"
+                              onClick={markAllAsRead}
+                            >
+                              Tümünü Okundu İşaretle
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.length > 0 ? (
+                          notifications.map(notification => (
+                            <div 
+                              key={notification.id} 
+                              className={`p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
+                                !notification.read ? 'bg-primary/5' : ''
+                              }`}
+                              onClick={() => markAsRead(notification.id)}
+                            >
+                              <p className="text-sm">{notification.message}</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {notification.read ? 'Okundu' : 'Okunmadı'}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500 text-sm">
+                            Bildirim bulunmuyor
+                          </div>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
                 <div className="ml-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -201,6 +307,29 @@ export const Navbar = () => {
                   {currentUser?.role === 'staff' && 'Personel'}
                 </div>
               </div>
+
+              {/* Mobile Notifications */}
+              <button
+                className="flex w-full items-center justify-between px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary hover:bg-primary/5"
+                onClick={() => {
+                  // In a real app, this would open a mobile-friendly notification drawer
+                  toast({
+                    title: "Bildirimler",
+                    description: `${notificationCount} okunmamış bildiriminiz var.`,
+                  });
+                }}
+              >
+                <div className="flex items-center">
+                  <Bell className="w-5 h-5 mr-2" />
+                  <span>Bildirimler</span>
+                </div>
+                {notificationCount > 0 && (
+                  <Badge className="bg-red-500 text-white">
+                    {notificationCount}
+                  </Badge>
+                )}
+              </button>
+              
               {filteredNavItems.map((item) => (
                 <Link
                   key={item.path}
