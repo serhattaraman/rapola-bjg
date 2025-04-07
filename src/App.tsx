@@ -42,8 +42,8 @@ const App = () => (
             {/* Admin and Manager only routes */}
             <Route element={<RouteGuard allowedRoles={['admin', 'manager']} />}>
               <Route path="/add-candidate" element={<AddCandidate />} />
-              <Route path="/reports" element={<Index />} /> {/* Placeholder for reports */}
               <Route path="/user-reports" element={<UserReports />} />
+              <Route path="/reports" element={<Index />} /> {/* Placeholder for reports */}
             </Route>
             
             {/* Admin only routes */}
