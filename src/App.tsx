@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
+import UserReports from "./pages/UserReports";
 import RouteGuard from "./components/RouteGuard";
 
 const queryClient = new QueryClient();
@@ -41,7 +42,7 @@ const App = () => (
             {/* Admin and Manager only routes */}
             <Route element={<RouteGuard allowedRoles={['admin', 'manager']} />}>
               <Route path="/add-candidate" element={<AddCandidate />} />
-              <Route path="/reports" element={<Index />} /> {/* Placeholder for reports */}
+              <Route path="/reports" element={<UserReports />} /> {/* Kullanıcı Raporları sayfası */}
             </Route>
             
             {/* Admin only routes */}

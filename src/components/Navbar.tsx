@@ -39,7 +39,7 @@ export const Navbar = () => {
     { name: 'Genel Bakış', path: '/', icon: <Home className="w-5 h-5" />, cssClass: 'nav-home', controller: 'Home', action: 'Index', roles: ['admin', 'manager', 'staff'] },
     { name: 'Adaylar', path: '/candidates', icon: <Users className="w-5 h-5" />, cssClass: 'nav-candidates', controller: 'Candidate', action: 'Index', roles: ['admin', 'manager', 'staff'] },
     { name: 'Aday Ekle', path: '/add-candidate', icon: <PlusCircle className="w-5 h-5" />, cssClass: 'nav-add', controller: 'Candidate', action: 'Create', roles: ['admin', 'manager'] },
-    { name: 'Raporlar', path: '/reports', icon: <BarChart className="w-5 h-5" />, cssClass: 'nav-reports', controller: 'Report', action: 'Index', roles: ['admin', 'manager'] },
+    { name: 'Kullanıcı Raporları', path: '/reports', icon: <BarChart className="w-5 h-5" />, cssClass: 'nav-reports', controller: 'Report', action: 'Index', roles: ['admin', 'manager'] },
     { name: 'Form', path: '/form', icon: <FileText className="w-5 h-5" />, cssClass: 'nav-form', controller: 'Form', action: 'Index', roles: ['admin', 'manager', 'staff'] },
   ];
 
