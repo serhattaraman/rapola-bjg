@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield, Bell, BarChart2 } from 'lucide-react';
+import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,6 @@ export const Navbar = () => {
     { name: 'Adaylar', path: '/candidates', icon: <Users className="w-5 h-5" />, cssClass: 'nav-candidates', controller: 'Candidate', action: 'Index', roles: ['admin', 'manager', 'staff'] },
     { name: 'Aday Ekle', path: '/add-candidate', icon: <PlusCircle className="w-5 h-5" />, cssClass: 'nav-add', controller: 'Candidate', action: 'Create', roles: ['admin', 'manager'] },
     { name: 'Raporlar', path: '/reports', icon: <BarChart className="w-5 h-5" />, cssClass: 'nav-reports', controller: 'Report', action: 'Index', roles: ['admin', 'manager'] },
-    { name: 'Kullanıcı Raporları', path: '/user-reports', icon: <BarChart2 className="w-5 h-5" />, cssClass: 'nav-user-reports', controller: 'UserReport', action: 'Index', roles: ['admin', 'manager'] },
     { name: 'Form', path: '/form', icon: <FileText className="w-5 h-5" />, cssClass: 'nav-form', controller: 'Form', action: 'Index', roles: ['admin', 'manager', 'staff'] },
   ];
 
