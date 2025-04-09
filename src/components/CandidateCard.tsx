@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Candidate, formatDate, calculateDurationInDays, formatDuration } from '@/lib/mock-data';
@@ -131,6 +132,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
   // Check if candidate is in class placement stage
   const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
   
+  // Determine if the candidate is rejected
+  const isRejected = candidate.status === 'rejected';
+  
   return (
     <Link 
       to={`/candidate/${candidate.id}`}
@@ -155,6 +159,14 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               <p className="flex items-center text-xs text-amber-700 mt-1">
                 <Calendar className="w-3 h-3 mr-1" />
                 <span>Dönüş Tarihi: {formatDate(candidate.returnDate)}</span>
+              </p>
+            )}
+            
+            {/* Display rejection reason if candidate is rejected */}
+            {isRejected && candidate.rejectionReason && (
+              <p className="flex items-center text-xs text-red-700 mt-1">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                <span>Red Nedeni: {candidate.rejectionReason}</span>
               </p>
             )}
             
@@ -184,7 +196,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
         
         <div className="mt-5 candidate-progress">
           <div className="flex justify-between items-center mb-2 progress-header">
-            <div className="text-sm font-medium responsible-person">Sorumlu: <span className="text-primary">İK Uzmanı</span></div>
+            <div className="text-sm font-medium responsible-person">Sorumlu: <span className="text-primary">{candidate.responsiblePerson || "İK Uzmanı"}</span></div>
             <div className="text-sm text-primary flex items-center current-stage">
               <ProcessStageIcon stage={candidate.stage} className="mr-1 text-primary" size={14} />
               <span className="current-stage-text">{candidate.stage}</span>
