@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
@@ -15,6 +15,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -26,6 +29,7 @@ const CandidateDetails = () => {
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
   const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
   const [isClassConfirmDialogOpen, setIsClassConfirmDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [waitingDate, setWaitingDate] = useState<Date | undefined>(
     candidate?.returnDate ? new Date(candidate.returnDate) : undefined
@@ -33,6 +37,8 @@ const CandidateDetails = () => {
   const [classConfirmation, setClassConfirmation] = useState<'pending' | 'confirmed'>(
     candidate?.classConfirmation || 'pending'
   );
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectionNote, setRejectionNote] = useState<string>('');
   
   if (!candidate) {
     return (
@@ -184,6 +190,51 @@ const CandidateDetails = () => {
     setIsClassConfirmDialogOpen(false);
   };
 
+  const openRejectDialog = () => {
+    setRejectionReason('');
+    setRejectionNote('');
+    setIsRejectDialogOpen(true);
+  };
+
+  const handleRejectCandidate = () => {
+    if (!rejectionReason) {
+      toast({
+        title: "Red işlemi gerçekleştirilemedi",
+        description: "Lütfen bir red nedeni seçiniz",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCandidate(prev => {
+      if (!prev) return null;
+
+      // Add a new timeline entry for rejection
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Aday Reddedildi',
+        description: `Red nedeni: ${rejectionReason}${rejectionNote ? ' - Not: ' + rejectionNote : ''}`,
+        staff: 'Mevcut Kullanıcı'
+      };
+      
+      toast({
+        title: "Aday reddedildi",
+        description: `Aday başarıyla reddedildi. Neden: ${rejectionReason}`,
+      });
+      
+      return {
+        ...prev,
+        status: 'rejected',
+        rejectionReason,
+        rejectionNote: rejectionNote || '',
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+    
+    setIsRejectDialogOpen(false);
+  };
+
   const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
 
   return (
@@ -259,11 +310,33 @@ const CandidateDetails = () => {
                 )}
               </Button>
             )}
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center text-red-600 hover:text-red-700"
+              onClick={openRejectDialog}
+              disabled={candidate.status === 'rejected'}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              {candidate.status === 'rejected' ? 'Reddedildi' : 'Reddet'}
+            </Button>
             <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
             </Button>
           </div>
+          
+          {/* Rejection reason display */}
+          {candidate.status === 'rejected' && candidate.rejectionReason && (
+            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center text-red-700 font-medium">
+                <XCircle className="h-4 w-4 mr-2" />
+                Red Nedeni: {candidate.rejectionReason}
+              </div>
+              {candidate.rejectionNote && (
+                <div className="mt-1 text-sm text-red-600">{candidate.rejectionNote}</div>
+              )}
+            </div>
+          )}
         </div>
         
         {/* Two Column Layout */}
@@ -350,6 +423,18 @@ const CandidateDetails = () => {
                 </div>
               )}
               
+              {candidate.status === 'rejected' && (
+                <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <XCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Bu aday reddedildi</p>
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    Reddedilmiş adaylar için işlem yapılamaz. İşleme devam etmek için adayın durumunu değiştirin.
+                  </p>
+                </div>
+              )}
+              
               {isInClassPlacementStage && candidate.classConfirmation === 'pending' && (
                 <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-center gap-2 text-amber-700">
@@ -374,7 +459,7 @@ const CandidateDetails = () => {
                 </div>
               )}
               
-              <div className={`bg-primary/5 p-4 rounded-lg border border-primary/20 ${candidate.status === 'waiting' ? 'opacity-50' : ''}`}>
+              <div className={`bg-primary/5 p-4 rounded-lg border border-primary/20 ${candidate.status === 'waiting' || candidate.status === 'rejected' ? 'opacity-50' : ''}`}>
                 <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
                   <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
                   {candidate.stage}
@@ -382,6 +467,10 @@ const CandidateDetails = () => {
                 <div className="mt-2 text-sm text-gray-600">
                   <p>
                     Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
+                  </p>
+                  <p className="mt-2 flex items-center gap-1">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <span>Sorumlu: <strong className="text-primary">{candidate.responsiblePerson || 'İK Uzmanı'}</strong></span>
                   </p>
                 </div>
               </div>
@@ -391,7 +480,7 @@ const CandidateDetails = () => {
                   className="w-full" 
                   variant="default"
                   onClick={() => setIsUpdateStageDialogOpen(true)}
-                  disabled={candidate.status === 'waiting'}
+                  disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Aşama Güncelle
@@ -399,6 +488,11 @@ const CandidateDetails = () => {
                 {candidate.status === 'waiting' && (
                   <p className="mt-2 text-xs text-center text-gray-500">
                     Aşama güncellemek için önce bekleme modundan çıkarın
+                  </p>
+                )}
+                {candidate.status === 'rejected' && (
+                  <p className="mt-2 text-xs text-center text-gray-500">
+                    Reddedilmiş adayların aşaması güncellenemez
                   </p>
                 )}
               </div>
@@ -562,6 +656,70 @@ const CandidateDetails = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reject Candidate Dialog */}
+      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu aday neden reddediliyor? Bu işlem sonradan geri alınabilir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="py-4">
+            <div className="mb-4">
+              <Label htmlFor="rejectionReason" className="text-sm font-medium mb-2 block">Red nedeni</Label>
+              <RadioGroup value={rejectionReason} onValueChange={setRejectionReason}>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Başvuru Kriterleri Uyumsuzluğu" id="reason-1" />
+                    <Label htmlFor="reason-1">Başvuru Kriterleri Uyumsuzluğu</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="İletişim Eksikliği" id="reason-2" />
+                    <Label htmlFor="reason-2">İletişim Eksikliği</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Yeterli Deneyim Yok" id="reason-3" />
+                    <Label htmlFor="reason-3">Yeterli Deneyim Yok</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Belge Eksikliği" id="reason-4" />
+                    <Label htmlFor="reason-4">Belge Eksikliği</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Dil Yeterliliği Yetersiz" id="reason-5" />
+                    <Label htmlFor="reason-5">Dil Yeterliliği Yetersiz</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Diğer" id="reason-6" />
+                    <Label htmlFor="reason-6">Diğer</Label>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="mb-2">
+              <Label htmlFor="rejectionNote" className="text-sm font-medium mb-2 block">Ek not (opsiyonel)</Label>
+              <Textarea 
+                id="rejectionNote"
+                placeholder="Reddetme hakkında ek açıklama girin..." 
+                value={rejectionNote}
+                onChange={(e) => setRejectionNote(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRejectCandidate} className="bg-red-600 hover:bg-red-700">
+              Adayı Reddet
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
