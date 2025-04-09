@@ -9,6 +9,12 @@ export interface TimelineEvent {
   staff?: string;
 }
 
+export interface StageTimeline {
+  stage: string;
+  date: Date;
+  completedOn?: Date;
+}
+
 export interface Candidate {
   id: string;
   firstName: string;
@@ -16,8 +22,8 @@ export interface Candidate {
   email: string;
   phone: string;
   position: string;
-  profession: "nursing" | "mechatronics" | "automotive" | "other"; // Eklenen alan
-  age: number; // Eklenen alan
+  profession: "nursing" | "mechatronics" | "automotive" | "other";
+  age: number;
   appliedAt: Date | string;
   stage: string;
   status: CandidateStatus;
@@ -25,6 +31,7 @@ export interface Candidate {
   notes: string[];
   returnDate?: Date | string;
   classConfirmation?: 'pending' | 'confirmed';
+  stageTimeline?: StageTimeline[]; // Add to track duration of each stage
 }
 
 export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'completed' | 'rejected';
@@ -61,6 +68,60 @@ export const getStatusLabel = (status: CandidateStatus): string => {
     default:
       return 'Bilinmiyor';
   }
+};
+
+// Calculate duration between two dates in days
+export const calculateDurationInDays = (startDate: Date | string, endDate: Date | string | undefined): number => {
+  if (!startDate || !endDate) return 0;
+  
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Calculate difference in milliseconds
+  const differenceInMs = end.getTime() - start.getTime();
+  
+  // Convert milliseconds to days
+  return Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
+};
+
+// Return string representation of duration
+export const formatDuration = (days: number): string => {
+  if (days === 0) return "Bugün";
+  if (days === 1) return "1 gün";
+  return `${days} gün`;
+};
+
+// Generate stage timeline for a candidate
+const generateStageTimeline = (stages: string[]): StageTimeline[] => {
+  const now = new Date();
+  const stageTimeline: StageTimeline[] = [];
+  
+  // Start from 3 months ago for the first stage
+  let currentDate = new Date(now);
+  currentDate.setMonth(currentDate.getMonth() - 3);
+  
+  stages.forEach((stage, index) => {
+    // Add some random days for realistic progression
+    const randomDays = Math.floor(Math.random() * 10) + 5;
+    currentDate.setDate(currentDate.getDate() + randomDays);
+    
+    const stageEntry: StageTimeline = {
+      stage,
+      date: new Date(currentDate)
+    };
+    
+    // If not the last stage, add completion date
+    if (index < stages.length - 1) {
+      const completionDate = new Date(currentDate);
+      const randomCompletionDays = Math.floor(Math.random() * 7) + 1;
+      completionDate.setDate(completionDate.getDate() + randomCompletionDays);
+      stageEntry.completedOn = completionDate;
+    }
+    
+    stageTimeline.push(stageEntry);
+  });
+  
+  return stageTimeline;
 };
 
 // Define the helper functions referenced in Index.tsx
@@ -218,6 +279,7 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     classConfirmation: 'pending',
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
   },
   {
     id: "candidate-2",
@@ -233,6 +295,7 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi"])
   },
   {
     id: "candidate-3",
@@ -249,6 +312,7 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     returnDate: faker.date.future(),
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
   },
   {
     id: "candidate-4",
@@ -264,6 +328,7 @@ export const mockCandidates: Candidate[] = [
     status: 'completed',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci"])
   },
   {
     id: "candidate-5",
@@ -279,6 +344,7 @@ export const mockCandidates: Candidate[] = [
     status: 'rejected',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı"])
   },
   {
     id: "candidate-6",
@@ -294,6 +360,7 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci", "Sertifika Süreci"])
   },
   {
     id: "candidate-7",
@@ -309,6 +376,7 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci"])
   },
   {
     id: "candidate-8",
@@ -325,6 +393,7 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     classConfirmation: 'pending',
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
   },
   {
     id: "candidate-9",
@@ -340,6 +409,7 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi"])
   },
   {
     id: "candidate-10",
@@ -356,6 +426,7 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     returnDate: faker.date.future(),
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
   },
 ];
 

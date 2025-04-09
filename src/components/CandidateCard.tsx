@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Candidate } from '@/lib/mock-data';
+import { Candidate, formatDate, calculateDurationInDays, formatDuration } from '@/lib/mock-data';
 import StatusBadge from './StatusBadge';
-import { formatDate } from '@/lib/mock-data';
-import { Phone, User, Calendar, CheckCircle, AlertCircle } from 'lucide-react';
+import { Phone, User, Calendar, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ProcessStageIcon from './ProcessStageIcon';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -32,6 +31,12 @@ export const calculateProgress = (currentStage: string): number => {
   if (currentStageIndex === -1) return 0;
   // Calculate percentage based on current stage index (adding 1 because arrays are 0-indexed)
   return Math.round(Math.max(0, Math.min(100, ((currentStageIndex + 1) / progressStages.length) * 100)));
+};
+
+// Helper function to find a stage in the timeline
+const findStageInTimeline = (stageTimeline: any[], stageName: string) => {
+  if (!stageTimeline) return null;
+  return stageTimeline.find(item => item.stage === stageName);
 };
 
 /*
@@ -183,6 +188,13 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
             <div className="text-sm text-primary flex items-center current-stage">
               <ProcessStageIcon stage={candidate.stage} className="mr-1 text-primary" size={14} />
               <span className="current-stage-text">{candidate.stage}</span>
+              
+              {/* Display current stage date */}
+              {candidate.stageTimeline && (
+                <span className="ml-2 text-xs text-gray-500">
+                  ({formatDate(findStageInTimeline(candidate.stageTimeline, candidate.stage)?.date)})
+                </span>
+              )}
             </div>
           </div>
           
@@ -202,20 +214,67 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               const isCompleted = index <= currentStageIndex;
               // A stage is current if its index matches the current stage index
               const isCurrent = index === currentStageIndex;
-              return (
-                <div key={index} className={`flex flex-col items-center stage-item stage-${index + 1} ${
-                  isCurrent ? 'current' : isCompleted ? 'completed' : 'pending'
-                }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 stage-icon
-                    ${isCurrent ? 'bg-primary text-white current' : 
-                      isCompleted ? 'bg-primary/20 text-primary completed' : 'bg-gray-100 text-gray-400 pending'}`}>
-                    <ProcessStageIcon stage={progressStages[index]} size={14} />
-                  </div>
-                  <span className={`text-[9px] text-center leading-tight stage-label ${isCurrent ? 'text-primary font-medium current' : 
-                    isCompleted ? 'text-gray-700 completed' : 'text-gray-400 pending'}`}>
-                    {stage}
-                  </span>
+              
+              // Get stage information from timeline
+              const stageInfo = candidate.stageTimeline ? findStageInTimeline(candidate.stageTimeline, stage) : null;
+              const stageDate = stageInfo?.date;
+              const stageCompletionDate = stageInfo?.completedOn;
+              let stageDuration = 0;
+              
+              // Calculate duration if we have both start and completion dates
+              if (stageDate && stageCompletionDate) {
+                stageDuration = calculateDurationInDays(stageDate, stageCompletionDate);
+              } else if (stageDate && isCurrent) {
+                // For current stage, calculate duration from start date to now
+                stageDuration = calculateDurationInDays(stageDate, new Date());
+              }
+              
+              // Tooltip content for stage date and duration info
+              const tooltipContent = stageInfo ? (
+                <div className="text-xs">
+                  <div><strong>Başlangıç:</strong> {formatDate(stageInfo.date)}</div>
+                  {stageInfo.completedOn && (
+                    <div><strong>Bitiş:</strong> {formatDate(stageInfo.completedOn)}</div>
+                  )}
+                  {stageDuration > 0 && (
+                    <div><strong>Süre:</strong> {formatDuration(stageDuration)}</div>
+                  )}
                 </div>
+              ) : null;
+              
+              return (
+                <TooltipProvider key={index}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className={`flex flex-col items-center stage-item stage-${index + 1} ${
+                        isCurrent ? 'current' : isCompleted ? 'completed' : 'pending'
+                      }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 stage-icon
+                          ${isCurrent ? 'bg-primary text-white current' : 
+                            isCompleted ? 'bg-primary/20 text-primary completed' : 'bg-gray-100 text-gray-400 pending'}`}>
+                          <ProcessStageIcon stage={progressStages[index]} size={14} />
+                        </div>
+                        <span className={`text-[9px] text-center leading-tight stage-label ${isCurrent ? 'text-primary font-medium current' : 
+                          isCompleted ? 'text-gray-700 completed' : 'text-gray-400 pending'}`}>
+                          {stage}
+                        </span>
+                        {stageInfo && (
+                          <span className={`text-[7px] mt-1 flex items-center ${
+                            isCurrent ? 'text-primary' : isCompleted ? 'text-gray-600' : 'text-gray-400'
+                          }`}>
+                            <Clock className="w-2 h-2 mr-0.5" />
+                            {stageDuration > 0 ? `${stageDuration} gün` : "Bugün"}
+                          </span>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    {tooltipContent && (
+                      <TooltipContent>
+                        {tooltipContent}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               );
             })}
           </div>
