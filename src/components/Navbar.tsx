@@ -25,7 +25,7 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-  const [notifications, setNotifications] = useState<{ id: string; message: string; read: boolean }[]>([]);
+  const [notifications, setNotifications] = useState<{ id: string; message: string; read: boolean; candidateId?: string }[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, currentUser, logout } = useAuth();
@@ -92,18 +92,18 @@ export const Navbar = () => {
       let mockNotifications = [];
       if (currentUser.role === 'admin') {
         mockNotifications = [
-          { id: '1', message: 'Yeni bir aday eklendi: Ali Yılmaz', read: false },
-          { id: '2', message: 'Evrak süreci tamamlanmayı bekliyor', read: false },
+          { id: '1', message: 'Yeni bir aday eklendi: Ali Yılmaz', read: false, candidateId: 'c1' },
+          { id: '2', message: 'Evrak süreci tamamlanmayı bekliyor', read: false, candidateId: 'c2' },
           { id: '3', message: 'Sistem güncellemesi yapıldı', read: true }
         ];
       } else if (currentUser.role === 'staff') {
         mockNotifications = [
-          { id: '1', message: 'Mehmet Aydın adlı aday evrak sürecinde', read: false },
-          { id: '2', message: 'Zeynep Kaya adlı aday evrak sürecinde', read: false }
+          { id: '1', message: 'Mehmet Aydın adlı aday evrak sürecinde', read: false, candidateId: 'c3' },
+          { id: '2', message: 'Zeynep Kaya adlı aday evrak sürecinde', read: false, candidateId: 'c4' }
         ];
       } else {
         mockNotifications = [
-          { id: '1', message: '3 aday işlem bekliyor', read: false }
+          { id: '1', message: '3 aday işlem bekliyor', read: false, candidateId: 'c5' }
         ];
       }
       setNotifications(mockNotifications);
@@ -134,6 +134,16 @@ export const Navbar = () => {
       prev.map(notification => ({ ...notification, read: true }))
     );
     setNotificationCount(0);
+  };
+
+  const handleNotificationClick = (notification: { id: string; message: string; read: boolean; candidateId?: string }) => {
+    // Mark as read
+    markAsRead(notification.id);
+    
+    // If there's a candidate ID, navigate to that candidate's detail page
+    if (notification.candidateId) {
+      navigate(`/candidate/${notification.candidateId}`);
+    }
   };
 
   // If on login page, don't render the navbar
@@ -215,11 +225,12 @@ export const Navbar = () => {
                               className={`p-3 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
                                 !notification.read ? 'bg-primary/5' : ''
                               }`}
-                              onClick={() => markAsRead(notification.id)}
+                              onClick={() => handleNotificationClick(notification)}
                             >
                               <p className="text-sm">{notification.message}</p>
                               <p className="text-xs text-gray-500 mt-1">
                                 {notification.read ? 'Okundu' : 'Okunmadı'}
+                                {notification.candidateId && <span className="ml-2 text-primary">• Detayları Görüntüle</span>}
                               </p>
                             </div>
                           ))
