@@ -1,282 +1,499 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart, Calendar, User, ListChecks, FileText, Users } from 'lucide-react';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
+
+import { useState, useEffect } from "react";
+import { BarChart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell } from "recharts";
+import { format, subDays, startOfWeek, startOfMonth, subWeeks, subMonths } from "date-fns";
+import { tr } from "date-fns/locale";
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar as CalendarComponent } from "@/components/ui/calendar"
-import { format } from "date-fns"
-import { cn } from "@/lib/utils"
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import StatCard from "@/components/StatCard";
+import { Users, CalendarDays, Calendar, BarChart as BarChartIcon } from "lucide-react";
 
-// Mock data for user reports
-const mockUserReports = [
-  {
-    userId: '1',
-    userName: 'Hatice Yıldırım',
-    userRole: 'İK Uzmanı',
-    processes: {
-      total: 120,
-      pending: 30,
-      completed: 90,
-    },
-    performance: {
-      averageDuration: '3 gün',
-      successRate: '75%',
-    },
-  },
-  {
-    userId: '2',
-    userName: 'İmre Özerim',
-    userRole: 'İK Uzmanı',
-    processes: {
-      total: 150,
-      pending: 25,
-      completed: 125,
-    },
-    performance: {
-      averageDuration: '2 gün',
-      successRate: '83%',
-    },
-  },
-  {
-    userId: '3',
-    userName: 'Ahmet Demir',
-    userRole: 'İK Uzmanı',
-    processes: {
-      total: 90,
-      pending: 15,
-      completed: 75,
-    },
-    performance: {
-      averageDuration: '4 gün',
-      successRate: '68%',
-    },
-  },
-  {
-    userId: '4',
-    userName: 'Ayşe Kaya',
-    userRole: 'İK Uzmanı',
-    processes: {
-      total: 180,
-      pending: 35,
-      completed: 145,
-    },
-    performance: {
-      averageDuration: '2.5 gün',
-      successRate: '79%',
-    },
-  },
-  {
-    userId: '5',
-    userName: 'Mehmet Şahin',
-    userRole: 'İK Uzmanı',
-    processes: {
-      total: 110,
-      pending: 20,
-      completed: 90,
-    },
-    performance: {
-      averageDuration: '3.5 gün',
-      successRate: '72%',
-    },
-  },
+// Sahte veri üretmek için kullanılacak yardımcı fonksiyon
+function generateMockData(users, stages, timeframes) {
+  const data = [];
+  
+  users.forEach(user => {
+    stages.forEach(stage => {
+      timeframes.forEach(({ name, days }) => {
+        // Her kullanıcı için her aşama ve zaman dilimi için rastgele değerler üretelim
+        const count = Math.floor(Math.random() * 50) + 1;
+        data.push({
+          userId: user.id,
+          userName: user.name,
+          userRole: user.role,
+          stage,
+          timeframe: name,
+          count,
+          date: format(subDays(new Date(), days), 'yyyy-MM-dd')
+        });
+      });
+    });
+  });
+  
+  return data;
+}
+
+// Süreç aşamaları
+const stages = [
+  "Başvuru Alındı",
+  "Telefon Görüşmesi",
+  "İK Görüşmesi",
+  "Evrak Toplama",
+  "Sisteme Evrak Girişi",
+  "Sınıf Yerleştirme",
+  "Denklik Süreci", 
+  "Vize Süreci",
+  "Sertifika Süreci"
+];
+
+// Renk paleti
+const COLORS = [
+  '#8E9196', '#9b87f5', '#7E69AB', '#6E59A5', '#1A1F2C', 
+  '#D6BCFA', '#F1F0FB', '#33C3F0', '#1EAEDB'
+];
+
+const timeframes = [
+  { name: "Günlük", days: 1 },
+  { name: "Haftalık", days: 7 },
+  { name: "Aylık", days: 30 }
 ];
 
 const UserReports = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedReportType, setSelectedReportType] = useState('detailed'); // 'summary' | 'detailed'
-  const [userData, setUserData] = useState(mockUserReports);
+  const [selectedStage, setSelectedStage] = useState(stages[0]);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("Günlük");
+  const [selectedUser, setSelectedUser] = useState("all");
+  const [reportData, setReportData] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Kullanıcıları ve rapor verilerini yükle
   useEffect(() => {
-    // In a real application, you would fetch data from an API here
-    // using the selectedDate and other filters.
-    // For now, we'll use the mock data.
-    setUserData(mockUserReports);
-  }, [selectedDate]);
+    // Gerçek API bağlantısı olmadığı için mock veri kullanıyoruz
+    const mockUsers = [
+      { id: "1", name: "Ahmet Yılmaz", role: "admin" },
+      { id: "2", name: "Mehmet Demir", role: "manager" },
+      { id: "3", name: "Ayşe Kaya", role: "staff" },
+      { id: "4", name: "Zeynep Aktaş", role: "staff" }
+    ];
+
+    const mockReportData = generateMockData(mockUsers, stages, [
+      { name: "Günlük", days: 1 },
+      { name: "Haftalık", days: 7 },
+      { name: "Aylık", days: 30 }
+    ]);
+
+    setUsers(mockUsers);
+    setReportData(mockReportData);
+    setLoading(false);
+  }, []);
+
+  // Özet istatistikler için verileri hesapla
+  const calculateSummaryStats = () => {
+    if (reportData.length === 0) return { total: 0, daily: 0, weekly: 0, monthly: 0 };
+
+    const total = reportData.reduce((sum, item) => sum + item.count, 0);
+    
+    const dailyData = reportData.filter(item => item.timeframe === "Günlük");
+    const weeklyData = reportData.filter(item => item.timeframe === "Haftalık");
+    const monthlyData = reportData.filter(item => item.timeframe === "Aylık");
+    
+    const dailySum = dailyData.reduce((sum, item) => sum + item.count, 0);
+    const weeklySum = weeklyData.reduce((sum, item) => sum + item.count, 0);
+    const monthlySum = monthlyData.reduce((sum, item) => sum + item.count, 0);
+
+    return { total, daily: dailySum, weekly: weeklySum, monthly: monthlySum };
+  };
+
+  const summaryStats = calculateSummaryStats();
+
+  // Filtreli verileri oluştur
+  const getFilteredData = () => {
+    let filtered = reportData;
+
+    // Seçili zaman dilimine göre filtrele
+    filtered = filtered.filter(item => item.timeframe === selectedTimeframe);
+    
+    // Seçili aşamaya göre filtrele
+    if (selectedStage !== "all") {
+      filtered = filtered.filter(item => item.stage === selectedStage);
+    }
+    
+    // Seçili kullanıcıya göre filtrele
+    if (selectedUser !== "all") {
+      filtered = filtered.filter(item => item.userId === selectedUser);
+    }
+
+    return filtered;
+  };
+
+  // Grafik verisini oluştur
+  const getChartData = () => {
+    const filtered = getFilteredData();
+    
+    // Aşamalara göre grupla
+    const groupedByStage = {};
+    filtered.forEach(item => {
+      if (!groupedByStage[item.stage]) {
+        groupedByStage[item.stage] = 0;
+      }
+      groupedByStage[item.stage] += item.count;
+    });
+
+    return Object.keys(groupedByStage).map(stage => ({
+      name: stage,
+      value: groupedByStage[stage]
+    }));
+  };
+
+  // Kullanıcılara göre verileri grupla
+  const getUserStatsForTable = () => {
+    const filtered = getFilteredData();
+    
+    // Kullanıcı ve aşamalara göre grupla
+    const groupedData = {};
+    
+    filtered.forEach(item => {
+      if (!groupedData[item.userId]) {
+        groupedData[item.userId] = {
+          userName: item.userName,
+          userRole: item.userRole,
+          stages: {}
+        };
+      }
+      
+      if (!groupedData[item.userId].stages[item.stage]) {
+        groupedData[item.userId].stages[item.stage] = 0;
+      }
+      
+      groupedData[item.userId].stages[item.stage] += item.count;
+    });
+    
+    // Tablo için uygun formata dönüştür
+    return Object.keys(groupedData).map(userId => {
+      const userData = groupedData[userId];
+      const result = {
+        userName: userData.userName,
+        userRole: userData.userRole
+      };
+      
+      // Her aşama için değerleri ekle
+      stages.forEach(stage => {
+        result[stage] = userData.stages[stage] || 0;
+      });
+      
+      // Toplam değeri hesapla
+      result.total = stages.reduce((sum, stage) => sum + (userData.stages[stage] || 0), 0);
+      
+      return result;
+    });
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center">Yükleniyor...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex flex-col md:flex-row md:justify-between md:items-center">
+    <div className="container mx-auto p-6 space-y-8">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Kullanıcı Raporları</h1>
+      
+      {/* Özet İstatistikler */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard 
+          title="Toplam İşlem"
+          value={summaryStats.total}
+          icon={<BarChartIcon size={24} />}
+        />
+        <StatCard 
+          title="Günlük İşlem"
+          value={summaryStats.daily}
+          icon={<CalendarDays size={24} />}
+          change={{ value: 5, isPositive: true }}
+        />
+        <StatCard 
+          title="Haftalık İşlem"
+          value={summaryStats.weekly}
+          icon={<Calendar size={24} />}
+          change={{ value: 10, isPositive: true }}
+        />
+        <StatCard 
+          title="Aylık İşlem"
+          value={summaryStats.monthly}
+          icon={<Users size={24} />}
+          change={{ value: 2, isPositive: false }}
+        />
+      </div>
+      
+      {/* Filtreler */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Rapor Filtreleri</CardTitle>
+          <CardDescription>
+            İstediğiniz parametrelere göre rapor verilerini filtreleyin
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h1 className="text-3xl font-bold">Kullanıcı Raporları</h1>
-            <p className="text-gray-500 mt-1">İK uzmanlarının performansını görüntüleyin</p>
-          </div>
-          <div className="mt-4 md:mt-0 flex items-center gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {selectedDate ? (
-                    format(selectedDate, "dd.MM.yyyy")
-                  ) : (
-                    <span>Tarih Seç</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date('2023-01-01')
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-            <Select value={selectedReportType} onValueChange={setSelectedReportType}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Rapor Tipi Seç" />
+            <label className="block text-sm font-medium mb-2">Zaman Dilimi</label>
+            <Select
+              value={selectedTimeframe}
+              onValueChange={setSelectedTimeframe}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Zaman Dilimi Seçin" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="summary">Özet Rapor</SelectItem>
-                <SelectItem value="detailed">Detaylı Rapor</SelectItem>
+                {timeframes.map((timeframe) => (
+                  <SelectItem key={timeframe.name} value={timeframe.name}>
+                    {timeframe.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        {selectedReportType === 'summary' ? (
-          // Summary Report
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userData.map((user) => (
-              <Card key={user.userId} className="animate-scale-in">
-                <CardHeader>
-                  <CardTitle>{user.userName}</CardTitle>
-                  <CardDescription>{user.userRole}</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>Toplam Aday:</span>
-                    <span className="ml-auto font-medium">{user.processes?.total || 0}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <ListChecks className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>Tamamlanan:</span>
-                    <span className="ml-auto font-medium">{user.processes?.completed || 0}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FileText className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>Ortalama Süre:</span>
-                    <span className="ml-auto font-medium">{user.performance?.averageDuration || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <BarChart className="h-4 w-4 mr-2 text-gray-500" />
-                    <span>Başarı Oranı:</span>
-                    <span className="ml-auto font-medium">{user.performance?.successRate || 'N/A'}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          // Detailed Report
-          <div className="animate-scale-in">
-            <Table>
-              <TableCaption>İK Uzmanlarının detaylı raporu</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px]">Kullanıcı Adı</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead className="text-center">Toplam İşlem</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userData.map((user, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {user.userName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.userRole}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                      {user.processes?.total || 0}
-                    </td>
-                  </tr>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Süreç Aşaması</label>
+            <Select
+              value={selectedStage}
+              onValueChange={setSelectedStage}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Aşama Seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tümü</SelectItem>
+                {stages.map((stage) => (
+                  <SelectItem key={stage} value={stage}>
+                    {stage}
+                  </SelectItem>
                 ))}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={2}>Toplam</TableCell>
-                  <TableCell className="text-center">
-                    {userData.reduce((acc, user) => acc + (user.processes?.total || 0), 0)}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
+              </SelectContent>
+            </Select>
           </div>
-        )}
-
-        {/* Mobile View */}
-        <div className="block md:hidden mt-8">
-          <h2 className="text-xl font-semibold mb-4">İK Uzmanı Performansı</h2>
-          <div className="space-y-4">
-            {userData.map((user) => (
-              <div key={user.userId} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                  <div>
-                    <p className="text-sm font-medium">{user.userName}</p>
-                    <p className="text-xs text-gray-500">{user.userRole}</p>
-                  </div>
-                  <div className="text-xs font-semibold mt-1 sm:mt-0">
-                    {user.processes?.total || 0} işlem
-                  </div>
-                </div>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <div className="flex items-center text-xs text-gray-500">
-                    <ListChecks className="h-3 w-3 mr-1" />
-                    <span>Tamamlanan: {user.processes?.completed || 0}</span>
-                  </div>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <FileText className="h-3 w-3 mr-1" />
-                    <span>Ort. Süre: {user.performance?.averageDuration || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <BarChart className="h-3 w-3 mr-1" />
-                    <span>Başarı: {user.performance?.successRate || 'N/A'}</span>
-                  </div>
-                </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">Kullanıcı</label>
+            <Select
+              value={selectedUser}
+              onValueChange={setSelectedUser}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Kullanıcı Seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tümü</SelectItem>
+                {users.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Grafikler ve Tablolar */}
+      <Tabs defaultValue="chart" className="w-full">
+        <TabsList className="grid grid-cols-3 mb-6">
+          <TabsTrigger value="chart">Grafik</TabsTrigger>
+          <TabsTrigger value="table">Tablo</TabsTrigger>
+          <TabsTrigger value="summary">Özet</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="chart">
+          <Card>
+            <CardHeader>
+              <CardTitle>Süreç Aşamalarına Göre İşlem Dağılımı</CardTitle>
+              <CardDescription>
+                {selectedTimeframe} bazında her aşamadaki işlem sayıları
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={getChartData()}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{fontSize: 12}} interval={0} angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [`${value} İşlem`, 'İşlem Sayısı']} />
+                    <Legend />
+                    <Bar dataKey="value" name="İşlem Sayısı" fill="#9b87f5" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getChartData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {getChartData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value} İşlem`, 'İşlem Sayısı']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="table">
+          <Card>
+            <CardHeader>
+              <CardTitle>Kullanıcıların İşlem Detayları</CardTitle>
+              <CardDescription>
+                Her kullanıcının {selectedTimeframe.toLowerCase()} gerçekleştirdiği işlemlerin aşamalara göre dağılımı
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Kullanıcı</TableHead>
+                      {stages.map((stage) => (
+                        <TableHead key={stage}>{stage}</TableHead>
+                      ))}
+                      <TableHead>Toplam</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {getUserStatsForTable().map((userData, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {userData.userName}
+                          <span className="block text-xs text-gray-500">
+                            {userData.userRole === 'admin' && 'Admin'}
+                            {userData.userRole === 'manager' && 'Yönetici'}
+                            {userData.userRole === 'staff' && 'Personel'}
+                          </span>
+                        </TableCell>
+                        {stages.map((stage) => (
+                          <TableCell key={stage}>{userData[stage]}</TableCell>
+                        ))}
+                        <TableCell className="font-bold">{userData.total}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="summary">
+          <Card>
+            <CardHeader>
+              <CardTitle>Özet İstatistikler</CardTitle>
+              <CardDescription>
+                Seçilen filtrelere göre oluşturulan özet veriler
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={stages.map(stage => ({
+                      name: stage,
+                      günlük: Math.floor(Math.random() * 30) + 1,
+                      haftalık: Math.floor(Math.random() * 100) + 30,
+                      aylık: Math.floor(Math.random() * 200) + 100
+                    }))}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-45} textAnchor="end" height={100} />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="günlük" stroke="#9b87f5" activeDot={{ r: 8 }} />
+                    <Line type="monotone" dataKey="haftalık" stroke="#7E69AB" />
+                    <Line type="monotone" dataKey="aylık" stroke="#33C3F0" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-xl font-bold">En Aktif Kullanıcı</div>
+                      <div className="text-lg">{users[0]?.name || "Veri yok"}</div>
+                      <div className="text-sm text-gray-500">{Math.floor(Math.random() * 100) + 50} işlem</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-xl font-bold">En Yoğun Süreç</div>
+                      <div className="text-lg">Evrak Toplama</div>
+                      <div className="text-sm text-gray-500">{Math.floor(Math.random() * 100) + 80} işlem</div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <Card>
+                  <CardHeader className="p-4">
+                    <CardTitle>Genel İstatistikler</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <ul className="space-y-2">
+                      <li className="flex justify-between">
+                        <span>Toplam İşlem:</span>
+                        <span className="font-bold">{summaryStats.total}</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>Ortalama Günlük İşlem:</span>
+                        <span className="font-bold">{Math.round(summaryStats.daily / users.length)}</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>Ortalama Haftalık İşlem:</span>
+                        <span className="font-bold">{Math.round(summaryStats.weekly / users.length)}</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>Ortalama Aylık İşlem:</span>
+                        <span className="font-bold">{Math.round(summaryStats.monthly / users.length)}</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

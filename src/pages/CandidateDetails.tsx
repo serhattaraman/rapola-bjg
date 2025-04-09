@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { mockCandidates, formatDate, getStatusLabel, calculateDurationInDays, formatDuration } from '@/lib/mock-data';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle } from 'lucide-react';
+import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
@@ -15,13 +15,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -33,7 +26,6 @@ const CandidateDetails = () => {
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
   const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
   const [isClassConfirmDialogOpen, setIsClassConfirmDialogOpen] = useState(false);
-  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [waitingDate, setWaitingDate] = useState<Date | undefined>(
     candidate?.returnDate ? new Date(candidate.returnDate) : undefined
@@ -41,22 +33,6 @@ const CandidateDetails = () => {
   const [classConfirmation, setClassConfirmation] = useState<'pending' | 'confirmed'>(
     candidate?.classConfirmation || 'pending'
   );
-  const [rejectionReason, setRejectionReason] = useState<string>('');
-  const [rejectionNote, setRejectionNote] = useState<string>('');
-
-  // Define common rejection reasons
-  const rejectionReasons = [
-    "Yetersiz deneyim",
-    "Başka bir pozisyon için uygun",
-    "İletişim becerisi yetersiz",
-    "Teknik bilgi yetersiz",
-    "Maaş beklentisi uyumsuz",
-    "İlgilenmekten vazgeçti",
-    "Başka bir firmayı tercih etti",
-    "Belgeler eksik",
-    "Aday yanıt vermedi",
-    "Diğer"
-  ];
   
   if (!candidate) {
     return (
@@ -208,81 +184,7 @@ const CandidateDetails = () => {
     setIsClassConfirmDialogOpen(false);
   };
 
-  const handleReject = () => {
-    setIsRejectDialogOpen(true);
-  };
-
-  const submitRejection = () => {
-    if (!rejectionReason) {
-      toast({
-        title: "Red işlemi tamamlanamadı",
-        description: "Lütfen bir red nedeni seçin",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // In a real app, this would update the API
-    // For now, we'll update the local state
-    setCandidate(prev => {
-      if (!prev) return null;
-      
-      // Add a new timeline entry for the rejection
-      const newTimelineEntry = {
-        id: `timeline-${Date.now()}`,
-        date: new Date(),
-        title: 'Red İşlemi',
-        description: `Aday reddedildi. Neden: ${rejectionReason}${rejectionNote ? '. Not: ' + rejectionNote : ''}`,
-        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
-      };
-      
-      toast({
-        title: "Aday reddedildi",
-        description: `Aday başarıyla reddedildi.`,
-        variant: "default"
-      });
-      
-      return {
-        ...prev,
-        status: 'rejected',
-        rejectionReason: rejectionReason,
-        rejectionNote: rejectionNote,
-        timeline: [newTimelineEntry, ...prev.timeline]
-      };
-    });
-    
-    // Reset form and close dialog
-    setRejectionReason('');
-    setRejectionNote('');
-    setIsRejectDialogOpen(false);
-  };
-
   const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
-  const isRejected = candidate.status === 'rejected';
-
-  // Helper function to get stage duration info
-  const getStageTimelineInfo = (stageTitle: string) => {
-    // Find stage entry in candidate's stage timeline
-    if (!candidate.stageTimeline) return null;
-    
-    const stageEntry = candidate.stageTimeline.find(entry => entry.stage === stageTitle);
-    if (!stageEntry) return null;
-    
-    // Calculate duration
-    let duration = 0;
-    if (stageEntry.completedOn) {
-      duration = calculateDurationInDays(stageEntry.date, stageEntry.completedOn);
-    } else {
-      // If stage is not completed, calculate duration from start to now
-      duration = calculateDurationInDays(stageEntry.date, new Date());
-    }
-    
-    return {
-      startDate: stageEntry.date,
-      endDate: stageEntry.completedOn,
-      duration: duration
-    };
-  };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -357,36 +259,11 @@ const CandidateDetails = () => {
                 )}
               </Button>
             )}
-            {!isRejected && (
-              <Button 
-                variant="outline" 
-                className="inline-flex items-center text-red-600 hover:text-red-700"
-                onClick={handleReject}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Reddet
-              </Button>
-            )}
             <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
               <Trash2 className="mr-2 h-4 w-4" />
               Sil
             </Button>
           </div>
-          
-          {/* Display rejection reason if candidate is rejected */}
-          {isRejected && candidate.rejectionReason && (
-            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-              <div className="flex items-start gap-2 text-red-700">
-                <X className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium">Red Nedeni: {candidate.rejectionReason}</p>
-                  {candidate.rejectionNote && (
-                    <p className="mt-1 text-sm text-red-600">{candidate.rejectionNote}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
         
         {/* Two Column Layout */}
@@ -397,66 +274,12 @@ const CandidateDetails = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Aday Süreci</h2>
                 <div className="text-sm text-gray-500">
-                  Sorumlu: <span className="text-primary font-medium">{candidate.responsiblePerson || "İK Uzmanı"}</span>
+                  Başvuru: {formatDate(candidate.appliedAt)}
                 </div>
-              </div>
-              
-              {/* Process Stages with Duration Information */}
-              <div className="mt-8 space-y-6">
-                {candidate.stageTimeline && candidate.stageTimeline.length > 0 ? (
-                  candidate.stageTimeline.map((stage) => {
-                    const timelineInfo = getStageTimelineInfo(stage.stage);
-                    return (
-                      <div key={stage.id} className="p-4 rounded-lg bg-gray-50 border border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <ProcessStageIcon stage={stage.stage} size={20} className="text-primary mr-2" />
-                            <span className="font-medium">{stage.stage}</span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDate(stage.date)}
-                          </div>
-                        </div>
-                        <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 text-gray-500 mr-2" />
-                            <div className="text-sm">
-                              <span className="text-gray-500">Başlangıç:</span> {formatDate(stage.date)}
-                            </div>
-                          </div>
-                          {stage.completedOn && (
-                            <div className="flex items-center">
-                              <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                              <div className="text-sm">
-                                <span className="text-gray-500">Bitiş:</span> {formatDate(stage.completedOn)}
-                              </div>
-                            </div>
-                          )}
-                          {timelineInfo && timelineInfo.duration > 0 && (
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 text-gray-500 mr-2" />
-                              <div className="text-sm">
-                                <span className="text-gray-500">Süre:</span> {formatDuration(timelineInfo.duration)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {stage.notes && (
-                          <div className="mt-2 text-sm text-gray-600">
-                            <span className="text-gray-500">Notlar:</span> {stage.notes}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center text-gray-500">Hiç süreç kaydı bulunamadı</div>
-                )}
               </div>
               
               {/* Timeline */}
               <div className="mt-8">
-                <h3 className="text-md font-semibold mb-4">Aktivite Geçmişi</h3>
                 <div className="flow-root">
                   <ul className="-mb-8">
                     {candidate.timeline.map((event, eventIdx) => (
@@ -561,18 +384,6 @@ const CandidateDetails = () => {
                     Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
                   </p>
                 </div>
-                
-                {/* Show current stage duration */}
-                {candidate.stageTimeline && (
-                  <div className="mt-3 text-sm border-t border-primary/10 pt-3">
-                    <div className="flex items-center text-gray-700">
-                      <Clock className="h-4 w-4 mr-2 text-primary" />
-                      <span>
-                        Bu aşamada {formatDuration(getStageTimelineInfo(candidate.stage)?.duration || 0)}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
               
               <div className="mt-4">
@@ -747,62 +558,6 @@ const CandidateDetails = () => {
                   Sınıf Yerleştirmeyi Onayla
                 </>
               )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rejection Dialog */}
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Adayı Reddet</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Red Nedeni</label>
-              <Select 
-                value={rejectionReason} 
-                onValueChange={setRejectionReason}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Red nedeni seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rejectionReasons.map(reason => (
-                    <SelectItem key={reason} value={reason}>
-                      {reason}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Açıklama (Opsiyonel)</label>
-              <Textarea
-                placeholder="Ek açıklama yazın..."
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-              />
-            </div>
-            <div className="p-3 bg-red-50 rounded-lg border border-red-200">
-              <p className="text-sm text-red-700">
-                <AlertCircle className="h-4 w-4 inline-block mr-1" />
-                Adayı reddetmek geri alınamaz bir işlemdir. Reddetmek istediğinizden emin misiniz?
-              </p>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              type="button"
-              variant="destructive"
-              onClick={submitRejection}
-              disabled={!rejectionReason}
-            >
-              Adayı Reddet
             </Button>
           </DialogFooter>
         </DialogContent>
