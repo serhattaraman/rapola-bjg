@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BarChart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line, ResponsiveContainer } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StatCard from "@/components/StatCard";
-import { Users, CalendarDays, Calendar, BarChart as BarChartIcon } from "lucide-react";
+import { Users, CalendarDays, Calendar, BarChart as BarChartIcon, Clock, Timer, Hourglass } from "lucide-react";
 
 // Sahte veri üretmek için kullanılacak yardımcı fonksiyon
 function generateMockData(users, stages, timeframes) {
@@ -110,7 +109,15 @@ const UserReports = () => {
 
   // Özet istatistikler için verileri hesapla
   const calculateSummaryStats = () => {
-    if (reportData.length === 0) return { total: 0, daily: 0, weekly: 0, monthly: 0 };
+    if (reportData.length === 0) return { 
+      total: 0, 
+      daily: 0, 
+      weekly: 0, 
+      monthly: 0, 
+      averageTimePerCandidate: 0,
+      longestProcess: { name: "-", days: 0 },
+      shortestProcess: { name: "-", days: 0 }
+    };
 
     const total = reportData.reduce((sum, item) => sum + item.count, 0);
     
@@ -122,7 +129,31 @@ const UserReports = () => {
     const weeklySum = weeklyData.reduce((sum, item) => sum + item.count, 0);
     const monthlySum = monthlyData.reduce((sum, item) => sum + item.count, 0);
 
-    return { total, daily: dailySum, weekly: weeklySum, monthly: monthlySum };
+    // Calculate average time per candidate (random value between 5-20 days)
+    const averageTimePerCandidate = Math.floor(Math.random() * 15) + 5;
+    
+    // Generate process duration data for longest and shortest process
+    const processDurations = stages.map(stage => ({
+      name: stage,
+      days: Math.floor(Math.random() * 30) + 1  // Random duration between 1-30 days
+    }));
+    
+    // Find longest and shortest process
+    const longestProcess = processDurations.reduce((max, process) => 
+      process.days > max.days ? process : max, { name: "", days: 0 });
+    
+    const shortestProcess = processDurations.reduce((min, process) => 
+      (min.days === 0 || process.days < min.days) ? process : min, { name: "", days: Infinity });
+    
+    return { 
+      total, 
+      daily: dailySum, 
+      weekly: weeklySum, 
+      monthly: monthlySum,
+      averageTimePerCandidate,
+      longestProcess,
+      shortestProcess: { ...shortestProcess, days: shortestProcess.days !== Infinity ? shortestProcess.days : 0 }
+    };
   };
 
   const summaryStats = calculateSummaryStats();
@@ -241,6 +272,30 @@ const UserReports = () => {
           value={summaryStats.monthly}
           icon={<Users size={24} />}
           change={{ value: 2, isPositive: false }}
+        />
+      </div>
+      
+      {/* Yeni Eklenen Süreç İstatistikleri */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard 
+          title="Aday Başına Ortalama Süre"
+          value={`${summaryStats.averageTimePerCandidate} gün`}
+          icon={<Clock size={24} />}
+          description="Her aday için harcanan ortalama süre"
+        />
+        <StatCard 
+          title="En Uzun Süren Aşama"
+          value={`${summaryStats.longestProcess.name}`}
+          subValue={`${summaryStats.longestProcess.days} gün`}
+          icon={<Hourglass size={24} />}
+          description="En çok zaman alan süreç aşaması"
+        />
+        <StatCard 
+          title="En Kısa Süren Aşama"
+          value={`${summaryStats.shortestProcess.name}`}
+          subValue={`${summaryStats.shortestProcess.days} gün`}
+          icon={<Timer size={24} />}
+          description="En hızlı tamamlanan süreç aşaması"
         />
       </div>
       
@@ -485,6 +540,18 @@ const UserReports = () => {
                       <li className="flex justify-between">
                         <span>Ortalama Aylık İşlem:</span>
                         <span className="font-bold">{Math.round(summaryStats.monthly / users.length)}</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>Aday Başına Ortalama Süre:</span>
+                        <span className="font-bold">{summaryStats.averageTimePerCandidate} gün</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>En Uzun Süren Aşama:</span>
+                        <span className="font-bold">{summaryStats.longestProcess.name} ({summaryStats.longestProcess.days} gün)</span>
+                      </li>
+                      <li className="flex justify-between">
+                        <span>En Kısa Süren Aşama:</span>
+                        <span className="font-bold">{summaryStats.shortestProcess.name} ({summaryStats.shortestProcess.days} gün)</span>
                       </li>
                     </ul>
                   </CardContent>
