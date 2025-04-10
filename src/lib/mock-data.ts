@@ -1,7 +1,8 @@
-import { format, differenceInDays } from 'date-fns';
+
+import { format, differenceInDays, addDays } from 'date-fns';
 
 // Candidate status types
-export type CandidateStatus = 'inProgress' | 'waiting' | 'rejected' | 'completed';
+export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'rejected' | 'completed';
 
 // Timeline event interface
 export interface TimelineEvent {
@@ -62,10 +63,12 @@ export const formatDuration = (days: number): string => {
 // Helper function to get status label
 export const getStatusLabel = (status: CandidateStatus): string => {
   switch (status) {
+    case 'pending':
+      return 'Beklemede';
     case 'inProgress':
       return 'İşlemde';
     case 'waiting':
-      return 'Beklemede';
+      return 'Bekleme Modu';
     case 'rejected':
       return 'Reddedildi';
     case 'completed':
@@ -73,6 +76,66 @@ export const getStatusLabel = (status: CandidateStatus): string => {
     default:
       return 'Bilinmiyor';
   }
+};
+
+// Calculate days remaining until a date
+export const getDaysRemaining = (date: Date | string | undefined): number => {
+  if (!date) return 0;
+  const targetDate = typeof date === 'string' ? new Date(date) : date;
+  const today = new Date();
+  return differenceInDays(targetDate, today);
+};
+
+// Helper functions for statistics needed in Index page
+export const getStatusCount = (candidates: Candidate[]) => {
+  return candidates.reduce((count, candidate) => {
+    count[candidate.status] = (count[candidate.status] || 0) + 1;
+    return count;
+  }, {} as Record<string, number>);
+};
+
+export const getRecentApplications = (candidates: Candidate[], days = 30) => {
+  const cutoffDate = addDays(new Date(), -days);
+  return candidates.filter(candidate => candidate.appliedAt > cutoffDate);
+};
+
+export const getApplicationTrend = (candidates: Candidate[]) => {
+  // Simple mock implementation - would be more complex in real app
+  return [
+    { name: 'Jan', count: 4 },
+    { name: 'Feb', count: 6 },
+    { name: 'Mar', count: 8 },
+    { name: 'Apr', count: 10 },
+    { name: 'May', count: 12 },
+  ];
+};
+
+export const getStageDistribution = (candidates: Candidate[]) => {
+  const stageCount = candidates.reduce((count, candidate) => {
+    count[candidate.stage] = (count[candidate.stage] || 0) + 1;
+    return count;
+  }, {} as Record<string, number>);
+
+  return Object.entries(stageCount).map(([name, value]) => ({ name, value }));
+};
+
+export const getProfessionDistribution = (candidates: Candidate[]) => {
+  const professionCount = candidates.reduce((count, candidate) => {
+    count[candidate.position] = (count[candidate.position] || 0) + 1;
+    return count;
+  }, {} as Record<string, number>);
+
+  return Object.entries(professionCount).map(([name, value]) => ({ name, value }));
+};
+
+export const getAgeDistribution = () => {
+  // Mock implementation for age distribution
+  return [
+    { name: '20-30', value: 10 },
+    { name: '30-40', value: 15 },
+    { name: '40-50', value: 8 },
+    { name: '50+', value: 5 },
+  ];
 };
 
 // Make sure mockCandidates have the new properties when needed
