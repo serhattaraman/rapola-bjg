@@ -1,98 +1,56 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
 
-interface StatCardProps {
+export interface StatCardProps {
   title: string;
-  value: number | string;
-  icon: React.ReactNode;
-  change?: {
-    value: number;
-    isPositive: boolean;
-  };
-  className?: string;
+  value: string | number;
+  icon?: React.ReactNode;
+  bgColor?: string;
+  textColor?: string;
+  subValue?: string;
+  change?: number;
+  changeLabel?: string;
+  tooltip?: string;
+  description?: string;
 }
 
-/*
-.NET MVC için ViewModel sınıfları:
-
-public class StatViewModel
-{
-    public string Title { get; set; }
-    public string Value { get; set; }
-    public string IconCssClass { get; set; }
-    public StatChangeViewModel Change { get; set; }
-    public string AdditionalCssClass { get; set; }
-}
-
-public class StatChangeViewModel
-{
-    public int Value { get; set; }
-    public bool IsPositive { get; set; }
-    public string FormattedValue => (IsPositive ? "+" : "") + Value + "%";
-    public string CssClass => IsPositive ? "positive" : "negative";
-}
-
-// Razor View Örneği:
-@model StatViewModel
-
-<div class="stat-card @Model.AdditionalCssClass">
-  <div class="stat-card-inner">
-    <div class="stat-content">
-      <p class="stat-title">@Model.Title</p>
-      <h3 class="stat-value">@Model.Value</h3>
-      
-      @if (Model.Change != null)
-      {
-        <div class="stat-change">
-          <span class="stat-change-value @Model.Change.CssClass">
-            @Model.Change.FormattedValue
-          </span>
-          <span class="stat-change-label">son haftaya göre</span>
-        </div>
-      }
-    </div>
-    
-    <div class="stat-icon @Model.IconCssClass"></div>
-  </div>
-</div>
-*/
-
-const StatCard: React.FC<StatCardProps> = ({ 
-  title, 
-  value, 
-  icon, 
-  change, 
-  className 
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  bgColor = 'bg-white',
+  textColor,
+  subValue,
+  change,
+  changeLabel,
+  tooltip,
+  description
 }) => {
+  const bgColorClass = bgColor || 'bg-white';
+  const textColorClass = textColor || 'text-gray-700';
+  
   return (
-    <div className={cn(
-      'bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 stat-card',
-      className
-    )}>
-      <div className="flex items-start justify-between stat-card-inner">
-        <div className="stat-content">
-          <p className="text-sm font-medium text-gray-500 stat-title">{title}</p>
-          <h3 className="text-2xl font-bold mt-1 stat-value">{value}</h3>
-          
-          {change && (
-            <div className="flex items-center mt-2 stat-change">
-              <span className={cn(
-                'text-xs font-medium stat-change-value',
-                change.isPositive ? 'text-green-600 positive' : 'text-red-600 negative'
-              )}>
-                {change.isPositive ? '+' : ''}{change.value}%
-              </span>
-              <span className="text-xs text-gray-500 ml-1 stat-change-label">son haftaya göre</span>
-            </div>
-          )}
+    <Card className={`shadow-sm border border-gray-100 ${bgColorClass} animate-scale-in`}>
+      <Card className="p-5 space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className={`text-sm font-semibold ${textColorClass}`}>{title}</h3>
+          {icon && <span className="text-gray-500">{icon}</span>}
         </div>
-        
-        <div className="p-3 rounded-lg bg-primary/10 text-primary stat-icon">
-          {icon}
-        </div>
-      </div>
-    </div>
+        <div className="text-3xl font-bold tracking-tight">{value}</div>
+        {subValue && <div className="text-sm text-gray-500">{subValue}</div>}
+        {description && <div className="text-xs text-gray-500 mt-1">{description}</div>}
+        {change && (
+          <div className="flex items-center text-sm">
+            <span className={change > 0 ? "text-green-600" : "text-red-600"}>
+              {change > 0 ? "+" : ""}
+              {change}%
+            </span>
+            <span className="text-gray-500 ml-1">{changeLabel}</span>
+          </div>
+        )}
+      </Card>
+    </Card>
   );
 };
 
