@@ -87,30 +87,35 @@ export const getDaysRemaining = (date: Date | string | undefined): number => {
 };
 
 // Helper functions for statistics needed in Index page
-export const getStatusCount = (candidates: Candidate[]) => {
-  return candidates.reduce((count, candidate) => {
+export const getStatusCount = (candidates = mockCandidates) => {
+  const statusCounts = candidates.reduce((count, candidate) => {
     count[candidate.status] = (count[candidate.status] || 0) + 1;
     return count;
   }, {} as Record<string, number>);
+  
+  // Add total count
+  statusCounts.total = candidates.length;
+  
+  return statusCounts;
 };
 
-export const getRecentApplications = (candidates: Candidate[], days = 30) => {
+export const getRecentApplications = (candidates = mockCandidates, days = 30) => {
   const cutoffDate = addDays(new Date(), -days);
   return candidates.filter(candidate => candidate.appliedAt > cutoffDate);
 };
 
-export const getApplicationTrend = (candidates: Candidate[]) => {
+export const getApplicationTrend = (candidates = mockCandidates) => {
   // Simple mock implementation - would be more complex in real app
   return [
-    { name: 'Jan', count: 4 },
-    { name: 'Feb', count: 6 },
-    { name: 'Mar', count: 8 },
-    { name: 'Apr', count: 10 },
-    { name: 'May', count: 12 },
+    { name: 'Jan', date: 'Jan', count: 4 },
+    { name: 'Feb', date: 'Feb', count: 6 },
+    { name: 'Mar', date: 'Mar', count: 8 },
+    { name: 'Apr', date: 'Apr', count: 10 },
+    { name: 'May', date: 'May', count: 12 },
   ];
 };
 
-export const getStageDistribution = (candidates: Candidate[]) => {
+export const getStageDistribution = (candidates = mockCandidates) => {
   const stageCount = candidates.reduce((count, candidate) => {
     count[candidate.stage] = (count[candidate.stage] || 0) + 1;
     return count;
@@ -119,13 +124,20 @@ export const getStageDistribution = (candidates: Candidate[]) => {
   return Object.entries(stageCount).map(([name, value]) => ({ name, value }));
 };
 
-export const getProfessionDistribution = (candidates: Candidate[]) => {
+export const getProfessionDistribution = (candidates = mockCandidates) => {
   const professionCount = candidates.reduce((count, candidate) => {
     count[candidate.position] = (count[candidate.position] || 0) + 1;
     return count;
   }, {} as Record<string, number>);
 
-  return Object.entries(professionCount).map(([name, value]) => ({ name, value }));
+  const professionStats = Object.entries(professionCount).map(([name, count]) => {
+    // Add mock age distribution data for each profession
+    const under42 = Math.floor(count * 0.6); // 60% under 42
+    const over42 = count - under42;
+    return { name, value: count, count, under42, over42 };
+  });
+
+  return professionStats;
 };
 
 export const getAgeDistribution = () => {

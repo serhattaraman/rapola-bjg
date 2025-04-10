@@ -14,6 +14,7 @@ export interface StatCardProps {
   changeLabel?: string;
   tooltip?: string;
   description?: string;
+  className?: string; // Added className prop
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -26,7 +27,8 @@ const StatCard: React.FC<StatCardProps> = ({
   change,
   changeLabel,
   tooltip,
-  description
+  description,
+  className
 }) => {
   const bgColorClass = bgColor || 'bg-white';
   const textColorClass = textColor || 'text-gray-700';
@@ -58,7 +60,7 @@ const StatCard: React.FC<StatCardProps> = ({
   };
   
   return (
-    <Card className={`shadow-sm border border-gray-100 ${bgColorClass} animate-scale-in`}>
+    <Card className={cn(`shadow-sm border border-gray-100 ${bgColorClass} animate-scale-in`, className)}>
       <Card className="p-5 space-y-2">
         <div className="flex items-center justify-between">
           <h3 className={`text-sm font-semibold ${textColorClass}`}>{title}</h3>
