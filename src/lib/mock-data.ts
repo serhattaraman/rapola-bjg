@@ -1,10 +1,6 @@
+import { faker } from '@faker-js/faker';
 
-import { format, differenceInDays, addDays } from 'date-fns';
-
-// Candidate status types
-export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'rejected' | 'completed';
-
-// Timeline event interface
+// Define the types
 export interface TimelineEvent {
   id: string;
   date: Date;
@@ -13,497 +9,427 @@ export interface TimelineEvent {
   staff?: string;
 }
 
-// Update the Candidate type to include the missing properties
+export interface StageTimeline {
+  stage: string;
+  date: Date;
+  completedOn?: Date;
+}
+
 export interface Candidate {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
+  phone: string;
   position: string;
+  profession: "nursing" | "mechatronics" | "automotive" | "other";
+  age: number;
+  appliedAt: Date | string;
   stage: string;
   status: CandidateStatus;
-  appliedAt: Date;
-  lastUpdatedAt: Date;
-  returnDate?: Date;
   timeline: TimelineEvent[];
   notes: string[];
-  responsiblePerson?: string;
+  returnDate?: Date | string;
   classConfirmation?: 'pending' | 'confirmed';
-  rejectionReason?: string;
-  rejectionNote?: string;
-  stageTimeline?: {
-    stage: string;
-    date: Date;
-    completedOn?: Date;
-  }[];
+  stageTimeline?: StageTimeline[]; // Add to track duration of each stage
 }
 
-// Helper function to format dates
-export const formatDate = (date: Date | string | undefined): string => {
-  if (!date) return 'Belirtilmemiş';
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return format(dateObj, 'dd.MM.yyyy');
+export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'completed' | 'rejected';
+
+export const formatDate = (date: Date | string): string => {
+  const d = new Date(date);
+  return d.toLocaleDateString('tr-TR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 };
 
-// Helper function to calculate duration in days
-export const calculateDurationInDays = (startDate: Date | string, endDate: Date | string): number => {
-  const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-  const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-  return differenceInDays(end, start);
+export const getDaysRemaining = (returnDate: Date | string | undefined): number => {
+  if (!returnDate) return 0;
+  const now = new Date();
+  const returnDateTime = new Date(returnDate).getTime();
+  const timeDiff = returnDateTime - now.getTime();
+  return Math.ceil(timeDiff / (1000 * 3600 * 24));
 };
 
-// Helper function to format duration
-export const formatDuration = (days: number): string => {
-  if (days === 0) return 'Bugün';
-  if (days === 1) return '1 gün';
-  return `${days} gün`;
-};
-
-// Helper function to get status label
 export const getStatusLabel = (status: CandidateStatus): string => {
   switch (status) {
     case 'pending':
       return 'Beklemede';
     case 'inProgress':
-      return 'İşlemde';
+      return 'Devam Ediyor';
     case 'waiting':
-      return 'Bekleme Modu';
-    case 'rejected':
-      return 'Reddedildi';
+      return 'Beklemede';
     case 'completed':
       return 'Tamamlandı';
+    case 'rejected':
+      return 'Reddedildi';
     default:
       return 'Bilinmiyor';
   }
 };
 
-// Calculate days remaining until a date
-export const getDaysRemaining = (date: Date | string | undefined): number => {
-  if (!date) return 0;
-  const targetDate = typeof date === 'string' ? new Date(date) : date;
-  const today = new Date();
-  return differenceInDays(targetDate, today);
-};
-
-// Helper functions for statistics needed in Index page
-export const getStatusCount = (candidates = mockCandidates) => {
-  const statusCounts = candidates.reduce((count, candidate) => {
-    count[candidate.status] = (count[candidate.status] || 0) + 1;
-    return count;
-  }, {} as Record<string, number>);
+// Calculate duration between two dates in days
+export const calculateDurationInDays = (startDate: Date | string, endDate: Date | string | undefined): number => {
+  if (!startDate || !endDate) return 0;
   
-  // Add total count
-  statusCounts.total = candidates.length;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
   
-  return statusCounts;
+  // Calculate difference in milliseconds
+  const differenceInMs = end.getTime() - start.getTime();
+  
+  // Convert milliseconds to days
+  return Math.floor(differenceInMs / (1000 * 60 * 60 * 24));
 };
 
-export const getRecentApplications = (candidates = mockCandidates, days = 30) => {
-  const cutoffDate = addDays(new Date(), -days);
-  return candidates.filter(candidate => candidate.appliedAt > cutoffDate);
+// Return string representation of duration
+export const formatDuration = (days: number): string => {
+  if (days === 0) return "Bugün";
+  if (days === 1) return "1 gün";
+  return `${days} gün`;
 };
 
-export const getApplicationTrend = (candidates = mockCandidates) => {
-  // Simple mock implementation - would be more complex in real app
-  return [
-    { name: 'Jan', date: 'Jan', count: 4 },
-    { name: 'Feb', date: 'Feb', count: 6 },
-    { name: 'Mar', date: 'Mar', count: 8 },
-    { name: 'Apr', date: 'Apr', count: 10 },
-    { name: 'May', date: 'May', count: 12 },
-  ];
-};
-
-export const getStageDistribution = (candidates = mockCandidates) => {
-  const stageCount = candidates.reduce((count, candidate) => {
-    count[candidate.stage] = (count[candidate.stage] || 0) + 1;
-    return count;
-  }, {} as Record<string, number>);
-
-  return Object.entries(stageCount).map(([name, value]) => ({ name, value }));
-};
-
-export const getProfessionDistribution = (candidates = mockCandidates) => {
-  const professionCount = candidates.reduce((count, candidate) => {
-    count[candidate.position] = (count[candidate.position] || 0) + 1;
-    return count;
-  }, {} as Record<string, number>);
-
-  const professionStats = Object.entries(professionCount).map(([name, count]) => {
-    // Add mock age distribution data for each profession
-    const under42 = Math.floor(count * 0.6); // 60% under 42
-    const over42 = count - under42;
-    return { name, value: count, count, under42, over42 };
+// Generate stage timeline for a candidate
+const generateStageTimeline = (stages: string[]): StageTimeline[] => {
+  const now = new Date();
+  const stageTimeline: StageTimeline[] = [];
+  
+  // Start from 3 months ago for the first stage
+  let currentDate = new Date(now);
+  currentDate.setMonth(currentDate.getMonth() - 3);
+  
+  stages.forEach((stage, index) => {
+    // Add some random days for realistic progression
+    const randomDays = Math.floor(Math.random() * 10) + 5;
+    currentDate.setDate(currentDate.getDate() + randomDays);
+    
+    const stageEntry: StageTimeline = {
+      stage,
+      date: new Date(currentDate)
+    };
+    
+    // If not the last stage, add completion date
+    if (index < stages.length - 1) {
+      const completionDate = new Date(currentDate);
+      const randomCompletionDays = Math.floor(Math.random() * 7) + 1;
+      completionDate.setDate(completionDate.getDate() + randomCompletionDays);
+      stageEntry.completedOn = completionDate;
+    }
+    
+    stageTimeline.push(stageEntry);
   });
-
-  return professionStats;
+  
+  return stageTimeline;
 };
 
+// Define the helper functions referenced in Index.tsx
+export const getStatusCount = () => {
+  const total = mockCandidates.length;
+  const pending = mockCandidates.filter(c => c.status === 'pending').length;
+  const inProgress = mockCandidates.filter(c => c.status === 'inProgress').length;
+  const waiting = mockCandidates.filter(c => c.status === 'waiting').length;
+  const completed = mockCandidates.filter(c => c.status === 'completed').length;
+  const rejected = mockCandidates.filter(c => c.status === 'rejected').length;
+  
+  return { total, pending, inProgress, waiting, completed, rejected };
+};
+
+export const getRecentApplications = () => {
+  return [...mockCandidates]
+    .sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime())
+    .slice(0, 5);
+};
+
+export const getApplicationTrend = () => {
+  // Generate last 7 days application trend
+  const result = [];
+  const now = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric' });
+    
+    // Random count between 1-10 for demo purposes
+    const count = Math.floor(Math.random() * 10) + 1;
+    
+    result.push({
+      date: dateStr,
+      count: count
+    });
+  }
+  
+  return result;
+};
+
+export const getStageDistribution = () => {
+  const stages = {};
+  
+  mockCandidates.forEach(candidate => {
+    if (!stages[candidate.stage]) {
+      stages[candidate.stage] = 0;
+    }
+    stages[candidate.stage]++;
+  });
+  
+  return Object.entries(stages).map(([name, value]) => ({ name, value }));
+};
+
+// Combine existing getProfessionDistribution with age breakdown
+export const getProfessionDistribution = () => {
+  const professions = {
+    "nursing": { 
+      name: "Hemşirelik", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    },
+    "mechatronics": { 
+      name: "Mekatronik", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    },
+    "automotive": { 
+      name: "Otomotiv", 
+      count: 0, 
+      under42: 0, 
+      over42: 0 
+    }
+  };
+  
+  mockCandidates.forEach(candidate => {
+    if (professions[candidate.profession]) {
+      professions[candidate.profession].count++;
+      
+      if (candidate.age < 42) {
+        professions[candidate.profession].under42++;
+      } else {
+        professions[candidate.profession].over42++;
+      }
+    }
+  });
+  
+  return Object.values(professions);
+};
+
+// Yeni fonksiyon: Yaş dağılımını al
 export const getAgeDistribution = () => {
-  // Mock implementation for age distribution
+  const under42 = mockCandidates.filter(c => c.age < 42).length;
+  const over42 = mockCandidates.filter(c => c.age >= 42).length;
+  
   return [
-    { name: '20-30', value: 10 },
-    { name: '30-40', value: 15 },
-    { name: '40-50', value: 8 },
-    { name: '50+', value: 5 },
+    { name: "42 yaş altı", value: under42 },
+    { name: "42 yaş ve üstü", value: over42 }
   ];
 };
 
-// Make sure mockCandidates have the new properties when needed
+const generateTimeline = (): TimelineEvent[] => {
+  const timeline: TimelineEvent[] = [
+    {
+      id: `timeline-${Date.now()}-1`,
+      date: faker.date.past(),
+      title: 'Başvuru Alındı',
+      description: 'Adayın başvurusu başarıyla alındı.',
+      staff: faker.person.fullName(),
+    },
+    {
+      id: `timeline-${Date.now()}-2`,
+      date: faker.date.past(),
+      title: 'Telefon Görüşmesi',
+      description: 'Aday ile telefon görüşmesi yapıldı.',
+      staff: faker.person.fullName(),
+    },
+    {
+      id: `timeline-${Date.now()}-3`,
+      date: faker.date.recent(),
+      title: 'İK Görüşmesi',
+      description: 'Aday ile İK görüşmesi yapıldı.',
+      staff: faker.person.fullName(),
+    },
+  ];
+  return timeline;
+};
+
+// Meslek seçenekleri
+const professionOptions = ["nursing", "mechatronics", "automotive", "other"];
+const professionLabels = {
+  "nursing": "Hemşirelik",
+  "mechatronics": "Mekatronik", 
+  "automotive": "Otomotiv",
+  "other": "Diğer"
+};
+
+// Modify mockCandidates to include profession and age
 export const mockCandidates: Candidate[] = [
   {
-    id: 'c1',
-    firstName: 'Ali',
-    lastName: 'Yılmaz',
-    email: 'ali.yilmaz@example.com',
-    phone: '05321234567',
-    position: 'Aile Hekimi',
-    stage: 'İK Görüşmesi',
+    id: "candidate-1",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 38,
+    appliedAt: faker.date.past(),
+    stage: "Sınıf Yerleştirme",
     status: 'inProgress',
-    appliedAt: new Date('2023-05-15'),
-    lastUpdatedAt: new Date('2023-05-20'),
-    notes: [
-      'İlk görüşmede çok istekli görünüyordu.',
-      'Belgeleri tamamlaması için süre verildi.'
-    ],
-    timeline: [
-      {
-        id: 'tl1',
-        date: new Date('2023-05-15'),
-        title: 'Başvuru Alındı',
-        description: 'Aday başvurusu sistem üzerinden alındı.'
-      },
-      {
-        id: 'tl2',
-        date: new Date('2023-05-17'),
-        title: 'Telefon Görüşmesi',
-        description: 'İlk telefon görüşmesi yapıldı, aday uygun bulundu.'
-      },
-      {
-        id: 'tl3',
-        date: new Date('2023-05-20'),
-        title: 'İK Görüşmesi',
-        description: 'İK departmanı ile görüşme yapıldı.'
-      }
-    ],
-    responsiblePerson: 'Ayşe Demir',
-    stageTimeline: [
-      {
-        stage: 'Başvuru Alındı',
-        date: new Date('2023-05-15'),
-        completedOn: new Date('2023-05-16')
-      },
-      {
-        stage: 'Telefon Görüşmesi',
-        date: new Date('2023-05-17'),
-        completedOn: new Date('2023-05-18')
-      },
-      {
-        stage: 'İK Görüşmesi',
-        date: new Date('2023-05-20')
-      }
-    ]
-  },
-  {
-    id: 'c2',
-    firstName: 'Ayşe',
-    lastName: 'Kaya',
-    email: 'ayse.kaya@example.com',
-    phone: '05331234567',
-    position: 'Çocuk Doktoru',
-    stage: 'Evrak Toplama',
-    status: 'waiting',
-    appliedAt: new Date('2023-05-10'),
-    lastUpdatedAt: new Date('2023-05-18'),
-    returnDate: new Date('2023-06-10'),
-    notes: [
-      'Adayın diploma denklik belgesi eksik.',
-      'Denklik belgesi için 10 Haziran\'a kadar süre verildi.'
-    ],
-    timeline: [
-      {
-        id: 'tl4',
-        date: new Date('2023-05-10'),
-        title: 'Başvuru Alındı',
-        description: 'Aday başvurusu sistem üzerinden alındı.'
-      },
-      {
-        id: 'tl5',
-        date: new Date('2023-05-12'),
-        title: 'Telefon Görüşmesi',
-        description: 'İlk telefon görüşmesi yapıldı, aday uygun bulundu.'
-      },
-      {
-        id: 'tl6',
-        date: new Date('2023-05-15'),
-        title: 'İK Görüşmesi',
-        description: 'İK departmanı ile görüşme yapıldı.'
-      },
-      {
-        id: 'tl7',
-        date: new Date('2023-05-18'),
-        title: 'Evrak Toplama',
-        description: 'Evrak toplama aşamasına geçildi.'
-      },
-      {
-        id: 'tl8',
-        date: new Date('2023-05-18'),
-        title: 'Durum Değişikliği',
-        description: 'Durum "İşlemde" konumundan "Beklemede" konumuna güncellendi. Dönüş tarihi: 10.06.2023'
-      }
-    ],
-    responsiblePerson: 'Mehmet Yılmaz',
-    stageTimeline: [
-      {
-        stage: 'Başvuru Alındı',
-        date: new Date('2023-05-10'),
-        completedOn: new Date('2023-05-11')
-      },
-      {
-        stage: 'Telefon Görüşmesi',
-        date: new Date('2023-05-12'),
-        completedOn: new Date('2023-05-14')
-      },
-      {
-        stage: 'İK Görüşmesi',
-        date: new Date('2023-05-15'),
-        completedOn: new Date('2023-05-17')
-      },
-      {
-        stage: 'Evrak Toplama',
-        date: new Date('2023-05-18')
-      }
-    ]
-  },
-  {
-    id: 'c3',
-    firstName: 'Mehmet',
-    lastName: 'Demir',
-    email: 'mehmet.demir@example.com',
-    phone: '05341234567',
-    position: 'Genel Cerrah',
-    stage: 'Sınıf Yerleştirme',
-    status: 'inProgress',
-    appliedAt: new Date('2023-05-05'),
-    lastUpdatedAt: new Date('2023-05-25'),
-    notes: [
-      'Tüm evraklar tamamlandı.',
-      'Sınıf yerleştirme için onay bekleniyor.'
-    ],
-    timeline: [
-      {
-        id: 'tl9',
-        date: new Date('2023-05-05'),
-        title: 'Başvuru Alındı',
-        description: 'Aday başvurusu sistem üzerinden alındı.'
-      },
-      {
-        id: 'tl10',
-        date: new Date('2023-05-08'),
-        title: 'Telefon Görüşmesi',
-        description: 'İlk telefon görüşmesi yapıldı, aday uygun bulundu.'
-      },
-      {
-        id: 'tl11',
-        date: new Date('2023-05-12'),
-        title: 'İK Görüşmesi',
-        description: 'İK departmanı ile görüşme yapıldı.'
-      },
-      {
-        id: 'tl12',
-        date: new Date('2023-05-15'),
-        title: 'Evrak Toplama',
-        description: 'Evrak toplama aşamasına geçildi.'
-      },
-      {
-        id: 'tl13',
-        date: new Date('2023-05-20'),
-        title: 'Sisteme Evrak Girişi',
-        description: 'Evraklar sisteme girildi.'
-      },
-      {
-        id: 'tl14',
-        date: new Date('2023-05-25'),
-        title: 'Sınıf Yerleştirme',
-        description: 'Sınıf yerleştirme aşamasına geçildi.'
-      }
-    ],
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     classConfirmation: 'pending',
-    responsiblePerson: 'Ayşe Demir',
-    stageTimeline: [
-      {
-        stage: 'Başvuru Alındı',
-        date: new Date('2023-05-05'),
-        completedOn: new Date('2023-05-07')
-      },
-      {
-        stage: 'Telefon Görüşmesi',
-        date: new Date('2023-05-08'),
-        completedOn: new Date('2023-05-11')
-      },
-      {
-        stage: 'İK Görüşmesi',
-        date: new Date('2023-05-12'),
-        completedOn: new Date('2023-05-14')
-      },
-      {
-        stage: 'Evrak Toplama',
-        date: new Date('2023-05-15'),
-        completedOn: new Date('2023-05-19')
-      },
-      {
-        stage: 'Sisteme Evrak Girişi',
-        date: new Date('2023-05-20'),
-        completedOn: new Date('2023-05-24')
-      },
-      {
-        stage: 'Sınıf Yerleştirme',
-        date: new Date('2023-05-25')
-      }
-    ]
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
   },
   {
-    id: 'c4',
-    firstName: 'Zeynep',
-    lastName: 'Şahin',
-    email: 'zeynep.sahin@example.com',
-    phone: '05351234567',
-    position: 'Kardiyolog',
-    stage: 'Başvuru Alındı',
-    status: 'rejected',
-    appliedAt: new Date('2023-05-01'),
-    lastUpdatedAt: new Date('2023-05-03'),
-    notes: [
-      'Aday deneyim kriterlerini karşılamıyor.',
-      'Başvuru reddedildi.'
-    ],
-    timeline: [
-      {
-        id: 'tl15',
-        date: new Date('2023-05-01'),
-        title: 'Başvuru Alındı',
-        description: 'Aday başvurusu sistem üzerinden alındı.'
-      },
-      {
-        id: 'tl16',
-        date: new Date('2023-05-03'),
-        title: 'Aday Reddedildi',
-        description: 'Red nedeni: Yeterli Deneyim Yok - Not: En az 3 yıl deneyim gerekiyor.'
-      }
-    ],
-    rejectionReason: 'Yeterli Deneyim Yok',
-    rejectionNote: 'En az 3 yıl deneyim gerekiyor.',
-    responsiblePerson: 'Mehmet Yılmaz',
-    stageTimeline: [
-      {
-        stage: 'Başvuru Alındı',
-        date: new Date('2023-05-01')
-      }
-    ]
-  },
-  {
-    id: 'c5',
-    firstName: 'Mustafa',
-    lastName: 'Öztürk',
-    email: 'mustafa.ozturk@example.com',
-    phone: '05361234567',
-    position: 'Nörolog',
-    stage: 'Denklik Süreci',
+    id: "candidate-2",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "mechatronics",
+    age: 44,
+    appliedAt: faker.date.past(),
+    stage: "İK Görüşmesi",
     status: 'inProgress',
-    appliedAt: new Date('2023-04-20'),
-    lastUpdatedAt: new Date('2023-05-30'),
-    notes: [
-      'Denklik başvurusu yapıldı.',
-      'Denklik onayı bekleniyor.'
-    ],
-    timeline: [
-      {
-        id: 'tl17',
-        date: new Date('2023-04-20'),
-        title: 'Başvuru Alındı',
-        description: 'Aday başvurusu sistem üzerinden alındı.'
-      },
-      {
-        id: 'tl18',
-        date: new Date('2023-04-22'),
-        title: 'Telefon Görüşmesi',
-        description: 'İlk telefon görüşmesi yapıldı, aday uygun bulundu.'
-      },
-      {
-        id: 'tl19',
-        date: new Date('2023-04-25'),
-        title: 'İK Görüşmesi',
-        description: 'İK departmanı ile görüşme yapıldı.'
-      },
-      {
-        id: 'tl20',
-        date: new Date('2023-04-28'),
-        title: 'Evrak Toplama',
-        description: 'Evrak toplama aşamasına geçildi.'
-      },
-      {
-        id: 'tl21',
-        date: new Date('2023-05-05'),
-        title: 'Sisteme Evrak Girişi',
-        description: 'Evraklar sisteme girildi.'
-      },
-      {
-        id: 'tl22',
-        date: new Date('2023-05-10'),
-        title: 'Sınıf Yerleştirme',
-        description: 'Sınıf yerleştirme aşamasına geçildi.'
-      },
-      {
-        id: 'tl23',
-        date: new Date('2023-05-15'),
-        title: 'Sınıf Onayı',
-        description: 'Sınıf yerleştirme onaylandı.'
-      },
-      {
-        id: 'tl24',
-        date: new Date('2023-05-30'),
-        title: 'Denklik Süreci',
-        description: 'Denklik süreci başlatıldı.'
-      }
-    ],
-    classConfirmation: 'confirmed',
-    responsiblePerson: 'Ayşe Demir',
-    stageTimeline: [
-      {
-        stage: 'Başvuru Alındı',
-        date: new Date('2023-04-20'),
-        completedOn: new Date('2023-04-21')
-      },
-      {
-        stage: 'Telefon Görüşmesi',
-        date: new Date('2023-04-22'),
-        completedOn: new Date('2023-04-24')
-      },
-      {
-        stage: 'İK Görüşmesi',
-        date: new Date('2023-04-25'),
-        completedOn: new Date('2023-04-27')
-      },
-      {
-        stage: 'Evrak Toplama',
-        date: new Date('2023-04-28'),
-        completedOn: new Date('2023-05-04')
-      },
-      {
-        stage: 'Sisteme Evrak Girişi',
-        date: new Date('2023-05-05'),
-        completedOn: new Date('2023-05-09')
-      },
-      {
-        stage: 'Sınıf Yerleştirme',
-        date: new Date('2023-05-10'),
-        completedOn: new Date('2023-05-29')
-      },
-      {
-        stage: 'Denklik Süreci',
-        date: new Date('2023-05-30')
-      }
-    ]
-  }
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi"])
+  },
+  {
+    id: "candidate-3",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "automotive",
+    age: 35,
+    appliedAt: faker.date.past(),
+    stage: "Evrak Toplama",
+    status: 'waiting',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    returnDate: faker.date.future(),
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
+  },
+  {
+    id: "candidate-4",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 51,
+    appliedAt: faker.date.past(),
+    stage: "Vize Süreci",
+    status: 'completed',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci"])
+  },
+  {
+    id: "candidate-5",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "mechatronics",
+    age: 31,
+    appliedAt: faker.date.past(),
+    stage: "Başvuru Alındı",
+    status: 'rejected',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı"])
+  },
+  {
+    id: "candidate-6",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "automotive",
+    age: 47,
+    appliedAt: faker.date.past(),
+    stage: "Sertifika Süreci",
+    status: 'inProgress',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci", "Sertifika Süreci"])
+  },
+  {
+    id: "candidate-7",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 33,
+    appliedAt: faker.date.past(),
+    stage: "Denklik Süreci",
+    status: 'inProgress',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci"])
+  },
+  {
+    id: "candidate-8",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "mechatronics",
+    age: 40,
+    appliedAt: faker.date.past(),
+    stage: "Sınıf Yerleştirme",
+    status: 'inProgress',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    classConfirmation: 'pending',
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
+  },
+  {
+    id: "candidate-9",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "automotive",
+    age: 29,
+    appliedAt: faker.date.past(),
+    stage: "Telefon Görüşmesi",
+    status: 'inProgress',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi"])
+  },
+  {
+    id: "candidate-10",
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    profession: "nursing",
+    age: 46,
+    appliedAt: faker.date.past(),
+    stage: "Evrak Toplama",
+    status: 'waiting',
+    timeline: generateTimeline(),
+    notes: [faker.lorem.sentence(), faker.lorem.sentence()],
+    returnDate: faker.date.future(),
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
+  },
 ];
+
+// Profesyonları ve Türkçe karşılıklarını dışa aktar
+export const professions = professionOptions;
+export const professionNames = professionLabels;

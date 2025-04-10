@@ -1,18 +1,9 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase, GraduationCap, Stethoscope, Wrench, Car } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
-import { 
-  getStatusCount, 
-  getRecentApplications, 
-  getApplicationTrend, 
-  getStageDistribution, 
-  mockCandidates, 
-  getProfessionDistribution, 
-  getAgeDistribution 
-} from '@/lib/mock-data';
+import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates, getProfessionDistribution, getAgeDistribution } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
@@ -58,6 +49,12 @@ const Index = () => {
             >
               <UserPlus className="mr-2 h-5 w-5" />
               Yeni Aday Ekle
+              {/* .NET MVC'de:
+                <a href="@Url.Action("Create", "Candidate")" class="btn-primary add-candidate-btn">
+                  <i class="icon-user-plus"></i>
+                  Yeni Aday Ekle
+                </a>
+              */}
             </Link>
           </div>
         </div>
@@ -73,28 +70,28 @@ const Index = () => {
           />
           <StatCard 
             title="Bekleyen Adaylar" 
-            value={statusCounts.pending || 0}
+            value={statusCounts.pending}
             icon={<Clock className="h-6 w-6" />}
             change={{ value: 5, isPositive: true }}
             className="stat-pending"
           />
           <StatCard 
             title="İşlemdeki Adaylar" 
-            value={statusCounts.inProgress || 0}
+            value={statusCounts.inProgress}
             icon={<UserPlus className="h-6 w-6" />}
             change={{ value: 8, isPositive: true }}
             className="stat-inProgress"
           />
           <StatCard 
             title="Tamamlanan Adaylar" 
-            value={statusCounts.completed || 0}
+            value={statusCounts.completed}
             icon={<CheckCircle className="h-6 w-6" />}
             change={{ value: 3, isPositive: true }}
             className="stat-completed"
           />
           <StatCard 
             title="Bekleme Modundaki Adaylar" 
-            value={statusCounts.waiting || 0}
+            value={statusCounts.waiting}
             icon={<Clock className="h-6 w-6 text-amber-500" />}
             change={{ value: 1, isPositive: true }}
             className="bg-amber-50 border-amber-200"
@@ -213,7 +210,7 @@ const Index = () => {
                     cy="50%"
                     outerRadius={80}
                     fill="#8884d8"
-                    dataKey="value"
+                    dataKey="count"
                     nameKey="name"
                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     labelLine={false}
