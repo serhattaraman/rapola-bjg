@@ -37,7 +37,6 @@ export interface Candidate {
   responsiblePerson?: string;
   classConfirmation?: ClassConfirmation;
   examResults?: ExamResult[];
-  // Additional properties needed by components
   returnDate?: Date | string;
   rejectionReason?: string;
   rejectionNote?: string;
@@ -55,7 +54,7 @@ const generateRandomExamResults = (): ExamResult[] => {
   return levels.map(level => ({
     level,
     passed: faker.datatype.boolean(),
-    score: faker.datatype.number({ min: 50, max: 100 }),
+    score: faker.number.int({ min: 50, max: 100 }),
     date: faker.date.past(),
   }));
 };

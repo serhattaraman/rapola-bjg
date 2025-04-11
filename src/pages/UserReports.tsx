@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { BarChart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line, ResponsiveContainer } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
@@ -223,20 +224,19 @@ const UserReports = () => {
     // Tablo için uygun formata dönüştür
     return Object.keys(groupedData).map(userId => {
       const userData = groupedData[userId];
-      const result = {
+      const userStats: any = {
         userName: userData.userName,
-        userRole: userData.userRole
+        userRole: userData.userRole,
+        total: 0
       };
       
       // Her aşama için değerleri ekle
       stages.forEach(stage => {
-        result[stage] = userData.stages[stage] || 0;
+        userStats[stage] = userData.stages[stage] || 0;
+        userStats.total += userData.stages[stage] || 0;
       });
       
-      // Toplam değeri hesapla
-      result.total = stages.reduce((sum, stage) => sum + (userData.stages[stage] || 0), 0);
-      
-      return result;
+      return userStats;
     });
   };
 
