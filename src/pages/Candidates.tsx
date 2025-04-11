@@ -31,10 +31,14 @@ const allProcessStages = [
 // Number of candidates to show per page
 const CANDIDATES_PER_PAGE = 20;
 
+// Class confirmation filter options
+type ClassConfirmationFilter = 'all' | 'pending' | 'confirmed';
+
 const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
+  const [classConfirmationFilter, setClassConfirmationFilter] = useState<ClassConfirmationFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -54,6 +58,12 @@ const Candidates = () => {
     return Array.from(combinedStages);
   }, [uniqueStages]);
 
+  // Reset class confirmation filter when stage filter changes
+  const handleStageFilterChange = (stage: string | 'all') => {
+    setStageFilter(stage);
+    setClassConfirmationFilter('all');
+  };
+
   const filteredCandidates = useMemo(() => {
     return mockCandidates.filter(candidate => {
       // Filter by search query
@@ -69,9 +79,19 @@ const Candidates = () => {
       // Filter by stage
       const matchesStage = stageFilter === 'all' || candidate.stage === stageFilter;
       
-      return matchesSearch && matchesStatus && matchesStage;
+      // Filter by class confirmation (only for "Sınıf Yerleştirme" stage)
+      let matchesClassConfirmation = true;
+      if (stageFilter === "Sınıf Yerleştirme" && classConfirmationFilter !== 'all') {
+        if (classConfirmationFilter === 'pending') {
+          matchesClassConfirmation = candidate.classConfirmation === 'pending';
+        } else if (classConfirmationFilter === 'confirmed') {
+          matchesClassConfirmation = candidate.classConfirmation === 'confirmed';
+        }
+      }
+      
+      return matchesSearch && matchesStatus && matchesStage && matchesClassConfirmation;
     });
-  }, [searchQuery, statusFilter, stageFilter]);
+  }, [searchQuery, statusFilter, stageFilter, classConfirmationFilter]);
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
@@ -97,6 +117,9 @@ const Candidates = () => {
     // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Show class confirmation filters only when "Sınıf Yerleştirme" stage is selected
+  const showClassConfirmationFilters = stageFilter === "Sınıf Yerleştirme";
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -193,7 +216,7 @@ const Candidates = () => {
                     Süreç:
                   </span>
                   <button
-                    onClick={() => setStageFilter('all')}
+                    onClick={() => handleStageFilterChange('all')}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       stageFilter === 'all' 
                         ? 'bg-primary text-white' 
@@ -205,7 +228,7 @@ const Candidates = () => {
                   {allStages.map((stage) => (
                     <button
                       key={stage}
-                      onClick={() => setStageFilter(stage)}
+                      onClick={() => handleStageFilterChange(stage)}
                       className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center ${
                         stageFilter === stage 
                           ? 'bg-primary text-white' 
@@ -217,6 +240,46 @@ const Candidates = () => {
                     </button>
                   ))}
                 </div>
+
+                {/* Class Confirmation Filters - Only show when Sınıf Yerleştirme is selected */}
+                {showClassConfirmationFilters && (
+                  <div className="flex flex-wrap items-center gap-2 pl-8 pb-2 mt-1 border-l-2 border-primary/30">
+                    <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                      <Filter className="w-4 h-4 inline-block mr-1" />
+                      Sınıf Onayı:
+                    </span>
+                    <button
+                      onClick={() => setClassConfirmationFilter('all')}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        classConfirmationFilter === 'all' 
+                          ? 'bg-primary text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      Tümü
+                    </button>
+                    <button
+                      onClick={() => setClassConfirmationFilter('pending')}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        classConfirmationFilter === 'pending' 
+                          ? 'bg-orange-500 text-white' 
+                          : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
+                      }`}
+                    >
+                      Sınıf Onayı Bekliyor
+                    </button>
+                    <button
+                      onClick={() => setClassConfirmationFilter('confirmed')}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        classConfirmationFilter === 'confirmed' 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
+                      }`}
+                    >
+                      Sınıf Onayı Verildi
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
