@@ -50,7 +50,7 @@ const ExamStatsBadge: React.FC<ExamStatsBadgeProps> = ({ examResults, className 
             className={`px-2 py-0.5 text-xs border rounded ${statusColor}`}
             title={`Sınav tarihi: ${dateStr}, Skor: ${scoreStr}`}
           >
-            {level}: {exam.passed ? 'Geçti' : 'Kalmadı'}
+            {level}: {exam.passed ? 'Geçti' : 'Kaldı'}
           </span>
         );
       })}

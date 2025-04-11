@@ -1,15 +1,16 @@
 import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase, GraduationCap, Stethoscope, Wrench, Car } from 'lucide-react';
+import { Users, UserPlus, CheckCircle, XCircle, Clock, Briefcase, GraduationCap, Stethoscope, Wrench, Car, FileSpreadsheet } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
-import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates, getProfessionDistribution, getAgeDistribution } from '@/lib/mock-data';
+import { getStatusCount, getRecentApplications, getApplicationTrend, getStageDistribution, mockCandidates, getProfessionDistribution, getAgeDistribution, getExamStatistics } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
 const COLORS = ['#3498db', '#f1c40f', '#2ecc71', '#e74c3c'];
 const PROFESSION_COLORS = ['#3498db', '#9b59b6', '#e74c3c'];
 const AGE_COLORS = ['#2ecc71', '#f39c12'];
+const EXAM_COLORS = ['#4cc9f0', '#4895ef', '#4361ee', '#3f37c9'];
 
 // .NET MVC'de bu sayfa Home/Index.cshtml olarak dönüştürülebilir
 const Index = () => {
@@ -19,6 +20,7 @@ const Index = () => {
   const stageDistribution = getStageDistribution();
   const professionStats = getProfessionDistribution();
   const ageStats = getAgeDistribution();
+  const examStats = getExamStatistics();
 
   // Meslek ikonlarını belirleme fonksiyonu
   const getProfessionIcon = (profession: string) => {
@@ -166,6 +168,139 @@ const Index = () => {
                 </PieChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        </div>
+
+        {/* Exam Statistics */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in mb-8">
+          <div className="flex items-center mb-4">
+            <FileSpreadsheet className="h-6 w-6 text-primary mr-2" />
+            <h2 className="text-lg font-semibold">Sınav İstatistikleri</h2>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Pie Chart for Exam Pass/Fail Distribution */}
+            <div className="h-80">
+              <ChartContainer config={{}} className="h-full">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'A1 Geçen', value: examStats.a1.passed },
+                      { name: 'A1 Kalan', value: examStats.a1.failed },
+                      { name: 'A2 Geçen', value: examStats.a2.passed },
+                      { name: 'A2 Kalan', value: examStats.a2.failed },
+                      { name: 'B1 Geçen', value: examStats.b1.passed },
+                      { name: 'B1 Kalan', value: examStats.b1.failed },
+                      { name: 'B2 Geçen', value: examStats.b2.passed },
+                      { name: 'B2 Kalan', value: examStats.b2.failed },
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {[...Array(8)].map((_, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={EXAM_COLORS[Math.floor(index/2) % EXAM_COLORS.length]} 
+                        fillOpacity={index % 2 === 0 ? 1 : 0.7}
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ChartContainer>
+            </div>
+
+            {/* Bar Chart for Exam Statistics */}
+            <div className="h-80">
+              <ChartContainer config={{}} className="h-full">
+                <BarChart
+                  data={[
+                    {
+                      name: 'A1',
+                      Geçen: examStats.a1.passed,
+                      Kalan: examStats.a1.failed,
+                      Toplam: examStats.a1.passed + examStats.a1.failed,
+                    },
+                    {
+                      name: 'A2',
+                      Geçen: examStats.a2.passed,
+                      Kalan: examStats.a2.failed,
+                      Toplam: examStats.a2.passed + examStats.a2.failed,
+                    },
+                    {
+                      name: 'B1',
+                      Geçen: examStats.b1.passed,
+                      Kalan: examStats.b1.failed,
+                      Toplam: examStats.b1.passed + examStats.b1.failed,
+                    },
+                    {
+                      name: 'B2',
+                      Geçen: examStats.b2.passed,
+                      Kalan: examStats.b2.failed,
+                      Toplam: examStats.b2.passed + examStats.b2.failed,
+                    },
+                  ]}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="Geçen" stackId="a" fill={EXAM_COLORS[0]} />
+                  <Bar dataKey="Kalan" stackId="a" fill={EXAM_COLORS[1]} fillOpacity={0.7} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          </div>
+          
+          {/* Summary Statistics */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {['A1', 'A2', 'B1', 'B2'].map((level, index) => {
+              const stats = examStats[level.toLowerCase() as 'a1' | 'a2' | 'b1' | 'b2'];
+              const total = stats.passed + stats.failed;
+              const passRate = total > 0 ? Math.round((stats.passed / total) * 100) : 0;
+              
+              return (
+                <div 
+                  key={level}
+                  className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-lg font-semibold" style={{ color: EXAM_COLORS[index % EXAM_COLORS.length] }}>
+                      {level}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      Toplam: {total} aday
+                    </span>
+                  </div>
+                  <div className="flex justify-between mb-1 text-sm">
+                    <span>Başarı oranı:</span>
+                    <span className="font-semibold">{passRate}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="h-2.5 rounded-full" 
+                      style={{ 
+                        width: `${passRate}%`, 
+                        backgroundColor: EXAM_COLORS[index % EXAM_COLORS.length] 
+                      }}
+                    ></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Geçen:</span>
+                      <span className="font-semibold text-green-600">{stats.passed}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Kalan:</span>
+                      <span className="font-semibold text-red-600">{stats.failed}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
