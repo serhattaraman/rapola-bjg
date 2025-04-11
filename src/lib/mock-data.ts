@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected' | 'waiting';
@@ -49,14 +48,54 @@ export interface Candidate {
   }[];
 }
 
+// Modified to ensure logical exam progression: You must pass previous level to take next exam
 const generateRandomExamResults = (): ExamResult[] => {
   const levels = ['A1', 'A2', 'B1', 'B2'];
-  return levels.map(level => ({
-    level,
-    passed: faker.datatype.boolean(),
-    score: faker.number.int({ min: 50, max: 100 }),
+  const results: ExamResult[] = [];
+  
+  // Start with A1
+  const a1Passed = faker.datatype.boolean();
+  results.push({
+    level: 'A1',
+    passed: a1Passed,
+    score: faker.number.int({ min: a1Passed ? 60 : 30, max: a1Passed ? 100 : 59 }),
     date: faker.date.past(),
-  }));
+  });
+  
+  // Only continue to A2 if A1 was passed
+  if (a1Passed) {
+    const a2Passed = faker.datatype.boolean();
+    results.push({
+      level: 'A2',
+      passed: a2Passed,
+      score: faker.number.int({ min: a2Passed ? 60 : 30, max: a2Passed ? 100 : 59 }),
+      date: faker.date.recent({ days: 60 }),
+    });
+    
+    // Only continue to B1 if A2 was passed
+    if (a2Passed) {
+      const b1Passed = faker.datatype.boolean();
+      results.push({
+        level: 'B1',
+        passed: b1Passed,
+        score: faker.number.int({ min: b1Passed ? 60 : 30, max: b1Passed ? 100 : 59 }),
+        date: faker.date.recent({ days: 30 }),
+      });
+      
+      // Only continue to B2 if B1 was passed
+      if (b1Passed) {
+        const b2Passed = faker.datatype.boolean();
+        results.push({
+          level: 'B2',
+          passed: b2Passed,
+          score: faker.number.int({ min: b2Passed ? 60 : 30, max: b2Passed ? 100 : 59 }),
+          date: faker.date.recent({ days: 15 }),
+        });
+      }
+    }
+  }
+  
+  return results;
 };
 
 // Generate random timeline events
@@ -275,24 +314,29 @@ export const getAgeDistribution = () => {
   ];
 };
 
+// Updated getExamStatistics to consider the new exam generation logic
 export const getExamStatistics = () => {
+  const a1Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A1')).length;
   const a1Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A1' && e.passed)).length;
-  const a1Failed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A1' && !e.passed)).length;
+  const a1Failed = a1Total - a1Passed;
   
+  const a2Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A2')).length;
   const a2Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A2' && e.passed)).length;
-  const a2Failed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A2' && !e.passed)).length;
+  const a2Failed = a2Total - a2Passed;
   
+  const b1Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B1')).length;
   const b1Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B1' && e.passed)).length;
-  const b1Failed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B1' && !e.passed)).length;
+  const b1Failed = b1Total - b1Passed;
   
+  const b2Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B2')).length;
   const b2Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B2' && e.passed)).length;
-  const b2Failed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B2' && !e.passed)).length;
+  const b2Failed = b2Total - b2Passed;
   
   return {
-    a1: { passed: a1Passed, failed: a1Failed },
-    a2: { passed: a2Passed, failed: a2Failed },
-    b1: { passed: b1Passed, failed: b1Failed },
-    b2: { passed: b2Passed, failed: b2Failed }
+    a1: { passed: a1Passed, failed: a1Failed, total: a1Total },
+    a2: { passed: a2Passed, failed: a2Failed, total: a2Total },
+    b1: { passed: b1Passed, failed: b1Failed, total: b1Total },
+    b2: { passed: b2Passed, failed: b2Failed, total: b2Total }
   };
 };
 
