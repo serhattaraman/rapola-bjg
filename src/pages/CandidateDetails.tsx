@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
@@ -18,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import ExamStatsBadge from '@/components/ExamStatsBadge';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -278,6 +278,11 @@ const CandidateDetails = () => {
             </div>
           </div>
           
+          {/* Add Exam Statistics */}
+          <div className="mt-4">
+            <ExamStatsBadge examResults={candidate.examResults} className="justify-start" />
+          </div>
+          
           <div className="flex flex-wrap gap-2 mt-6">
             <Button variant="outline" className="inline-flex items-center">
               <Edit className="mr-2 h-4 w-4" />
@@ -343,6 +348,94 @@ const CandidateDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Language Proficiency Section */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <h2 className="text-lg font-semibold mb-4">Dil Bilgisi ve Sınav Bilgileri</h2>
+              
+              <div className="space-y-4">
+                {/* Language Level */}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Dil Seviyesi</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {candidate.examResults && candidate.examResults.length > 0 ? (
+                      candidate.examResults
+                        .sort((a, b) => {
+                          // Sort by level priority: A1, A2, B1, B2
+                          const levels = {A1: 1, A2: 2, B1: 3, B2: 4};
+                          return levels[a.level as keyof typeof levels] - levels[b.level as keyof typeof levels];
+                        })
+                        .map(exam => (
+                          <div 
+                            key={exam.level} 
+                            className={cn(
+                              "px-3 py-2 rounded-lg flex flex-col items-center", 
+                              exam.passed 
+                                ? "bg-green-50 border border-green-200 text-green-800" 
+                                : "bg-red-50 border border-red-200 text-red-800"
+                            )}
+                          >
+                            <span className="text-lg font-bold">{exam.level}</span>
+                            <span className="text-xs mt-1">
+                              {exam.score !== undefined && `${exam.score}%`}
+                            </span>
+                            <span className="text-xs mt-1">
+                              {exam.date && formatDate(exam.date)}
+                            </span>
+                            <span className="text-xs font-medium mt-1">
+                              {exam.passed ? 'Geçti' : 'Kalmadı'}
+                            </span>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="text-sm text-gray-500">Henüz sınav kaydı bulunmuyor</div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Exam History */}
+                {candidate.examResults && candidate.examResults.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Sınav Geçmişi</h3>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seviye</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {candidate.examResults.map((exam, index) => (
+                            <tr key={index}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{exam.level}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {exam.date ? formatDate(exam.date) : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {exam.score !== undefined ? `${exam.score}%` : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={cn(
+                                  "px-2 py-1 text-xs rounded-full", 
+                                  exam.passed 
+                                    ? "bg-green-100 text-green-800" 
+                                    : "bg-red-100 text-red-800"
+                                )}>
+                                  {exam.passed ? 'Geçti' : 'Kalmadı'}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Aday Süreci</h2>
@@ -654,74 +747,3 @@ const CandidateDetails = () => {
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Candidate Dialog */}
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu aday neden reddediliyor? Bu işlem sonradan geri alınabilir.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="py-4">
-            <div className="mb-4">
-              <Label htmlFor="rejectionReason" className="text-sm font-medium mb-2 block">Red nedeni</Label>
-              <RadioGroup value={rejectionReason} onValueChange={setRejectionReason}>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Başvuru Kriterleri Uyumsuzluğu" id="reason-1" />
-                    <Label htmlFor="reason-1">Başvuru Kriterleri Uyumsuzluğu</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="İletişim Eksikliği" id="reason-2" />
-                    <Label htmlFor="reason-2">İletişim Eksikliği</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Yeterli Deneyim Yok" id="reason-3" />
-                    <Label htmlFor="reason-3">Yeterli Deneyim Yok</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Belge Eksikliği" id="reason-4" />
-                    <Label htmlFor="reason-4">Belge Eksikliği</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Dil Yeterliliği Yetersiz" id="reason-5" />
-                    <Label htmlFor="reason-5">Dil Yeterliliği Yetersiz</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Diğer" id="reason-6" />
-                    <Label htmlFor="reason-6">Diğer</Label>
-                  </div>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="mb-2">
-              <Label htmlFor="rejectionNote" className="text-sm font-medium mb-2 block">Ek not (opsiyonel)</Label>
-              <Textarea 
-                id="rejectionNote"
-                placeholder="Reddetme hakkında ek açıklama girin..." 
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRejectCandidate} className="bg-red-600 hover:bg-red-700">
-              Adayı Reddet
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default CandidateDetails;
