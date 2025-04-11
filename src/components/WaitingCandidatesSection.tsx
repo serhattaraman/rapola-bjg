@@ -27,7 +27,7 @@ const WaitingCandidatesSection: React.FC<WaitingCandidatesSectionProps> = ({ can
       <CardContent>
         <div className="space-y-3">
           {waitingCandidates.map(candidate => {
-            const daysRemaining = getDaysRemaining(candidate.returnDate);
+            const daysRemaining = candidate.returnDate ? getDaysRemaining(candidate.returnDate) : 0;
             
             return (
               <Link 

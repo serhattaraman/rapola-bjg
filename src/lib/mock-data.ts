@@ -1,6 +1,7 @@
+
 import { faker } from '@faker-js/faker';
 
-export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected';
+export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected' | 'waiting';
 export type ClassConfirmation = 'pending' | 'confirmed';
 
 export interface ExamResult {
@@ -8,6 +9,14 @@ export interface ExamResult {
   passed: boolean;
   score?: number;
   date?: Date | string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  date: Date | string;
+  title: string;
+  description: string;
+  staff?: string;
 }
 
 export interface Candidate {
@@ -28,6 +37,17 @@ export interface Candidate {
   responsiblePerson?: string;
   classConfirmation?: ClassConfirmation;
   examResults?: ExamResult[];
+  // Additional properties needed by components
+  returnDate?: Date | string;
+  rejectionReason?: string;
+  rejectionNote?: string;
+  notes?: string[];
+  timeline?: TimelineEvent[];
+  stageTimeline?: {
+    stage: string;
+    date: Date | string;
+    completedOn?: Date | string;
+  }[];
 }
 
 const generateRandomExamResults = (): ExamResult[] => {
@@ -40,17 +60,94 @@ const generateRandomExamResults = (): ExamResult[] => {
   }));
 };
 
+// Generate random timeline events
+const generateRandomTimeline = (candidate: Partial<Candidate>): TimelineEvent[] => {
+  const stages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ];
+  
+  const currentStageIndex = stages.findIndex(stage => stage === candidate.stage);
+  const completedStages = stages.slice(0, currentStageIndex + 1);
+  
+  return completedStages.map((stage, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (completedStages.length - index) * 5);
+    
+    return {
+      id: `timeline-${faker.string.uuid()}`,
+      date,
+      title: stage,
+      description: `${stage} aşaması tamamlandı.`,
+      staff: faker.person.fullName()
+    };
+  }).reverse();
+};
+
+// Generate random stage timeline
+const generateStageTimeline = (candidate: Partial<Candidate>): any[] => {
+  const stages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ];
+  
+  const currentStageIndex = stages.findIndex(stage => stage === candidate.stage);
+  const completedStages = stages.slice(0, currentStageIndex + 1);
+  
+  return completedStages.map((stage, index) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (completedStages.length - index) * 10);
+    
+    const completedDate = index < currentStageIndex ? new Date(startDate) : undefined;
+    if (completedDate) {
+      completedDate.setDate(startDate.getDate() + faker.number.int({ min: 3, max: 8 }));
+    }
+    
+    return {
+      stage,
+      date: startDate,
+      completedOn: completedDate
+    };
+  });
+};
+
 const generateCandidate = (): Candidate => {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   const position = faker.person.jobTitle();
   const profession = faker.person.jobArea();
-  const status = faker.helpers.shuffle<CandidateStatus>(['pending', 'inProgress', 'completed', 'rejected'])[0];
+  const status = faker.helpers.arrayElement<CandidateStatus>(['pending', 'inProgress', 'completed', 'rejected', 'waiting']);
   const startDate = faker.date.past();
   const endDate = faker.date.future();
-  const processDays = faker.datatype.number({ min: 5, max: 120 });
+  const processDays = faker.number.int({ min: 5, max: 120 });
+  
+  const stage = faker.helpers.arrayElement<string>([
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ]);
 
-  return {
+  const candidate: Candidate = {
     id: faker.string.uuid(),
     firstName,
     lastName,
@@ -58,32 +155,48 @@ const generateCandidate = (): Candidate => {
     phone: faker.phone.number(),
     position,
     profession,
-    age: faker.datatype.number({ min: 18, max: 65 }),
+    age: faker.number.int({ min: 18, max: 65 }),
     appliedAt: faker.date.past(),
     status,
-    stage: faker.helpers.shuffle<string>([
-      "Başvuru Alındı",
-      "Telefon Görüşmesi",
-      "İK Görüşmesi",
-      "Evrak Toplama",
-      "Sisteme Evrak Girişi",
-      "Sınıf Yerleştirme",
-      "Denklik Süreci",
-      "Vize Süreci",
-      "Sertifika Süreci"
-    ])[0],
+    stage,
     processDays,
     startDate,
     endDate,
     responsiblePerson: faker.person.fullName(),
-    classConfirmation: faker.helpers.shuffle<ClassConfirmation>(['pending', 'confirmed'])[0],
+    classConfirmation: faker.helpers.arrayElement<ClassConfirmation>(['pending', 'confirmed']),
     examResults: generateRandomExamResults(),
+    notes: faker.helpers.maybe(() => [
+      faker.lorem.paragraph(),
+      faker.lorem.paragraph(),
+    ], { probability: 0.7 }),
   };
+  
+  // Add timeline events
+  candidate.timeline = generateRandomTimeline(candidate);
+  // Add stage timeline
+  candidate.stageTimeline = generateStageTimeline(candidate);
+  
+  // Add waiting mode data if applicable
+  if (status === 'waiting') {
+    candidate.returnDate = faker.date.future();
+  }
+  
+  // Add rejection reason if applicable
+  if (status === 'rejected') {
+    candidate.rejectionReason = faker.helpers.arrayElement([
+      'Evrak Eksikliği',
+      'Uygun Olmayan Profil',
+      'Aday Vazgeçti',
+      'Başka Programı Seçti',
+      'Sağlık Sorunları'
+    ]);
+    candidate.rejectionNote = faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.6 });
+  }
+
+  return candidate;
 };
 
-export const mockCandidates: Candidate[] = faker.helpers.multiple(generateCandidate, {
-  count: 67,
-});
+export const mockCandidates: Candidate[] = Array.from({ length: 67 }, generateCandidate);
 
 export const getStatusCount = () => {
   return {
@@ -92,7 +205,7 @@ export const getStatusCount = () => {
     inProgress: mockCandidates.filter(c => c.status === 'inProgress').length,
     completed: mockCandidates.filter(c => c.status === 'completed').length,
     rejected: mockCandidates.filter(c => c.status === 'rejected').length,
-    waiting: mockCandidates.filter(c => c.status === 'pending').length,
+    waiting: mockCandidates.filter(c => c.status === 'waiting').length,
   };
 };
 
@@ -116,7 +229,7 @@ export const getApplicationTrend = () => {
 
   return last7Days.map(date => ({
     date,
-    count: faker.datatype.number({ min: 5, max: 20 }),
+    count: faker.number.int({ min: 5, max: 20 }),
   }));
 };
 
@@ -182,4 +295,55 @@ export const getExamStatistics = () => {
     b1: { passed: b1Passed, failed: b1Failed },
     b2: { passed: b2Passed, failed: b2Failed }
   };
+};
+
+// Helper functions for date formatting and calculations
+export const formatDate = (date?: string | Date): string => {
+  if (!date) return '-';
+  const d = new Date(date);
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+export const calculateDurationInDays = (startDate: Date | string, endDate: Date | string): number => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
+};
+
+export const formatDuration = (days: number): string => {
+  if (days === 0) return 'Bugün';
+  if (days === 1) return '1 gün';
+  return `${days} gün`;
+};
+
+export const getDaysRemaining = (returnDate?: Date | string): number => {
+  if (!returnDate) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const endDate = new Date(returnDate);
+  endDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = endDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+export const getStatusLabel = (status: CandidateStatus): string => {
+  switch (status) {
+    case 'pending':
+      return 'Beklemede';
+    case 'inProgress':
+      return 'İşlemde';
+    case 'completed':
+      return 'Tamamlandı';
+    case 'rejected':
+      return 'Reddedildi';
+    case 'waiting':
+      return 'Bekleme Modu';
+    default:
+      return 'Bilinmiyor';
+  }
 };
