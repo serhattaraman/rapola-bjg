@@ -15,6 +15,13 @@ export interface StageTimeline {
   completedOn?: Date;
 }
 
+export interface ExamResult {
+  level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  score?: number;
+  date?: Date;
+  passed: boolean;
+}
+
 export interface Candidate {
   id: string;
   firstName: string;
@@ -32,6 +39,10 @@ export interface Candidate {
   returnDate?: Date | string;
   classConfirmation?: 'pending' | 'confirmed';
   stageTimeline?: StageTimeline[]; // Add to track duration of each stage
+  examResults?: ExamResult[];
+  rejectionReason?: string;
+  rejectionNote?: string;
+  responsiblePerson?: string;
 }
 
 export type CandidateStatus = 'pending' | 'inProgress' | 'waiting' | 'completed' | 'rejected';
@@ -89,6 +100,30 @@ export const formatDuration = (days: number): string => {
   if (days === 0) return "Bugün";
   if (days === 1) return "1 gün";
   return `${days} gün`;
+};
+
+// Generate random exam results for a candidate
+const generateExamResults = (): ExamResult[] => {
+  const examLevels = ['A1', 'A2', 'B1', 'B2'] as const;
+  const results: ExamResult[] = [];
+  
+  // For each level, decide if the candidate has taken this exam
+  examLevels.forEach((level) => {
+    // 70% chance to have taken the exam
+    if (Math.random() > 0.3) {
+      const score = Math.floor(Math.random() * 40) + 60; // Score between 60-100
+      const passed = score >= 70; // Pass threshold at 70
+      
+      results.push({
+        level,
+        score,
+        date: faker.date.recent({ days: 60 }),
+        passed
+      });
+    }
+  });
+  
+  return results;
 };
 
 // Generate stage timeline for a candidate
@@ -279,7 +314,9 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     classConfirmation: 'pending',
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-2",
@@ -295,7 +332,9 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-3",
@@ -312,7 +351,9 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     returnDate: faker.date.future(),
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-4",
@@ -328,7 +369,9 @@ export const mockCandidates: Candidate[] = [
     status: 'completed',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-5",
@@ -344,7 +387,9 @@ export const mockCandidates: Candidate[] = [
     status: 'rejected',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-6",
@@ -360,7 +405,9 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci", "Sertifika Süreci"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci", "Vize Süreci", "Sertifika Süreci"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-7",
@@ -376,7 +423,9 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme", "Denklik Süreci"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-8",
@@ -393,7 +442,9 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     classConfirmation: 'pending',
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama", "Sisteme Evrak Girişi", "Sınıf Yerleştirme"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-9",
@@ -409,7 +460,9 @@ export const mockCandidates: Candidate[] = [
     status: 'inProgress',
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
   {
     id: "candidate-10",
@@ -426,9 +479,31 @@ export const mockCandidates: Candidate[] = [
     timeline: generateTimeline(),
     notes: [faker.lorem.sentence(), faker.lorem.sentence()],
     returnDate: faker.date.future(),
-    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"])
+    stageTimeline: generateStageTimeline(["Başvuru Alındı", "Telefon Görüşmesi", "İK Görüşmesi", "Evrak Toplama"]),
+    examResults: generateExamResults(),
+    responsiblePerson: faker.person.fullName()
   },
 ];
+
+// Each candidate in mockCandidates array needs examResults
+mockCandidates.forEach(candidate => {
+  if (!candidate.examResults) {
+    candidate.examResults = generateExamResults();
+  }
+  if (!candidate.responsiblePerson) {
+    candidate.responsiblePerson = faker.person.fullName();
+  }
+  if (candidate.status === 'rejected' && !candidate.rejectionReason) {
+    candidate.rejectionReason = faker.helpers.arrayElement([
+      'Sınav başarısız',
+      'Başvuru kriterleri uyumsuz',
+      'Adayın vazgeçmesi',
+      'İletişim problemi',
+      'Evrak eksikliği'
+    ]);
+    candidate.rejectionNote = faker.lorem.sentence();
+  }
+});
 
 // Profesyonları ve Türkçe karşılıklarını dışa aktar
 export const professions = professionOptions;

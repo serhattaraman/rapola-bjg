@@ -1,11 +1,9 @@
 
 import React, { useState, useMemo } from 'react';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal, CalendarRange, FileSpreadsheet } from 'lucide-react';
 import { mockCandidates, CandidateStatus } from '@/lib/mock-data';
 import CandidateCard from '@/components/CandidateCard';
 import SearchBar from '@/components/SearchBar';
-import StatusBadge from '@/components/StatusBadge';
-import ProcessStageIcon from '@/components/ProcessStageIcon';
 import { 
   Pagination, 
   PaginationContent, 
@@ -14,6 +12,17 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "@/components/ui/pagination";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { format, isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import { toast } from "@/hooks/use-toast";
+import ExamStatsBadge from '@/components/ExamStatsBadge';
+import * as XLSX from 'xlsx';
 
 // Define all possible process stages for filtering
 const allProcessStages = [
@@ -41,6 +50,8 @@ const Candidates = () => {
   const [classConfirmationFilter, setClassConfirmationFilter] = useState<ClassConfirmationFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   // Get unique stages that exist in the current candidate data
   const uniqueStages = useMemo(() => {
@@ -88,10 +99,20 @@ const Candidates = () => {
           matchesClassConfirmation = candidate.classConfirmation === 'confirmed';
         }
       }
+
+      // Filter by date range
+      let matchesDateRange = true;
+      if (startDate && endDate) {
+        const appliedDate = new Date(candidate.appliedAt);
+        matchesDateRange = isWithinInterval(appliedDate, {
+          start: startOfDay(startDate),
+          end: endOfDay(endDate)
+        });
+      }
       
-      return matchesSearch && matchesStatus && matchesStage && matchesClassConfirmation;
+      return matchesSearch && matchesStatus && matchesStage && matchesClassConfirmation && matchesDateRange;
     });
-  }, [searchQuery, statusFilter, stageFilter, classConfirmationFilter]);
+  }, [searchQuery, statusFilter, stageFilter, classConfirmationFilter, startDate, endDate]);
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
@@ -121,6 +142,60 @@ const Candidates = () => {
   // Show class confirmation filters only when "Sınıf Yerleştirme" stage is selected
   const showClassConfirmationFilters = stageFilter === "Sınıf Yerleştirme";
 
+  // Clear date filters
+  const clearDateFilter = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    toast({
+      description: "Tarih filtreleri temizlendi",
+    });
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    // Create worksheet from data
+    const worksheet = XLSX.utils.json_to_sheet(
+      filteredCandidates.map(candidate => ({
+        'Ad': candidate.firstName,
+        'Soyad': candidate.lastName,
+        'Email': candidate.email,
+        'Telefon': candidate.phone,
+        'Pozisyon': candidate.position,
+        'Meslek': candidate.profession,
+        'Yaş': candidate.age,
+        'Başvuru Tarihi': candidate.appliedAt instanceof Date 
+          ? format(candidate.appliedAt, 'dd.MM.yyyy') 
+          : format(new Date(candidate.appliedAt), 'dd.MM.yyyy'),
+        'Süreç': candidate.stage,
+        'Durum': statusFilter === 'pending' ? 'Beklemede' : 
+                 statusFilter === 'inProgress' ? 'İşlemde' : 
+                 statusFilter === 'completed' ? 'Tamamlandı' : 
+                 statusFilter === 'rejected' ? 'Reddedildi' : 'Bilinmiyor',
+        'A1 Sınavı': candidate.examResults?.find(e => e.level === 'A1')?.passed ? 'Geçti' : 'Kalmadı / Yok',
+        'A2 Sınavı': candidate.examResults?.find(e => e.level === 'A2')?.passed ? 'Geçti' : 'Kalmadı / Yok',
+        'B1 Sınavı': candidate.examResults?.find(e => e.level === 'B1')?.passed ? 'Geçti' : 'Kalmadı / Yok',
+        'B2 Sınavı': candidate.examResults?.find(e => e.level === 'B2')?.passed ? 'Geçti' : 'Kalmadı / Yok',
+        'Sorumlu Kişi': candidate.responsiblePerson || 'Belirtilmemiş'
+      }))
+    );
+
+    // Create workbook and add the worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Adaylar");
+
+    // Generate Excel file
+    const fileName = startDate && endDate
+      ? `Adaylar_${format(startDate, 'dd-MM-yyyy')}_${format(endDate, 'dd-MM-yyyy')}.xlsx`
+      : `Adaylar_${format(new Date(), 'dd-MM-yyyy')}.xlsx`;
+      
+    XLSX.writeFile(workbook, fileName);
+
+    toast({
+      title: "Rapor indirildi",
+      description: `${filteredCandidates.length} aday içeren Excel dosyası indirildi.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-5xl mx-auto">
@@ -129,7 +204,7 @@ const Candidates = () => {
             <h1 className="text-3xl font-bold">Adaylar</h1>
             <p className="text-gray-500 mt-1">Tüm adayları görüntüleyin ve yönetin</p>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className="inline-flex items-center btn-secondary"
@@ -137,6 +212,15 @@ const Candidates = () => {
               <SlidersHorizontal className="mr-2 h-5 w-5" />
               Filtreler
             </button>
+            
+            <Button
+              onClick={exportToExcel}
+              variant="outline"
+              className="inline-flex items-center"
+            >
+              <FileSpreadsheet className="mr-2 h-5 w-5" />
+              Excel'e Aktar
+            </Button>
           </div>
         </div>
 
@@ -148,6 +232,42 @@ const Candidates = () => {
               placeholder="Aday ara..." 
               className="md:w-96"
             />
+            
+            {/* Date Range Filter */}
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={startDate ? "text-primary" : ""}>
+                    <CalendarRange className="mr-2 h-4 w-4" />
+                    {startDate && endDate ? (
+                      `${format(startDate, 'dd.MM.yyyy')} - ${format(endDate, 'dd.MM.yyyy')}`
+                    ) : (
+                      'Tarih Filtresi'
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={{
+                      from: startDate,
+                      to: endDate,
+                    }}
+                    onSelect={(range) => {
+                      setStartDate(range?.from);
+                      setEndDate(range?.to);
+                    }}
+                    numberOfMonths={2}
+                    className="p-3 pointer-events-auto"
+                  />
+                  <div className="flex justify-end gap-2 p-3 border-t">
+                    <Button variant="ghost" size="sm" onClick={clearDateFilter}>
+                      Temizle
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
             
             {showFilters && (
               <div className="flex flex-col gap-4 w-full">
@@ -235,7 +355,6 @@ const Candidates = () => {
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
-                      <ProcessStageIcon stage={stage} size={14} className="mr-1" />
                       {stage}
                     </button>
                   ))}
@@ -287,6 +406,11 @@ const Candidates = () => {
           {/* Results count */}
           <div className="mt-4 text-sm text-gray-500">
             {filteredCandidates.length} aday bulundu (Sayfa {currentPage}/{totalPages || 1})
+            {startDate && endDate && (
+              <span className="ml-2">
+                • {format(startDate, 'dd.MM.yyyy')} - {format(endDate, 'dd.MM.yyyy')} tarih aralığı
+              </span>
+            )}
           </div>
         </div>
 
@@ -294,7 +418,12 @@ const Candidates = () => {
         <div className="flex flex-col gap-6 animate-slide-in">
           {paginatedCandidates.length > 0 ? (
             paginatedCandidates.map(candidate => (
-              <CandidateCard key={candidate.id} candidate={candidate} />
+              <div key={candidate.id} className="relative">
+                <CandidateCard candidate={candidate} />
+                <div className="mt-2 ml-1">
+                  <ExamStatsBadge examResults={candidate.examResults} />
+                </div>
+              </div>
             ))
           ) : (
             <div className="py-20 text-center">
