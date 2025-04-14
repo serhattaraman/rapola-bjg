@@ -167,7 +167,7 @@ const generateCandidate = (): Candidate => {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
   const position = faker.person.jobTitle();
-  const profession = faker.person.jobArea();
+  const profession = faker.helpers.arrayElement(['Hemşirelik', 'Öğretmen', 'Mühendis', 'Doktor', 'Avukat', 'Diğer']);
   const status = faker.helpers.arrayElement<CandidateStatus>(['pending', 'inProgress', 'completed', 'rejected', 'waiting']);
   const startDate = faker.date.past();
   const endDate = faker.date.future();
