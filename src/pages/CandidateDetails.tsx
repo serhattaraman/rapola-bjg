@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
@@ -746,4 +747,74 @@ const CandidateDetails = () => {
                 </>
               )}
             </Button>
-          </DialogFooter
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rejection Dialog */}
+      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu işlem geri alınabilir, ancak aday reddedilmiş olarak işaretlenecektir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Red Nedeni</Label>
+              <RadioGroup 
+                value={rejectionReason} 
+                onValueChange={setRejectionReason}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Sınav başarısız" id="r1" />
+                  <Label htmlFor="r1">Sınav başarısız</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Başvuru kriterleri uyumsuz" id="r2" />
+                  <Label htmlFor="r2">Başvuru kriterleri uyumsuz</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Adayın vazgeçmesi" id="r3" />
+                  <Label htmlFor="r3">Adayın vazgeçmesi</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="İletişim problemi" id="r4" />
+                  <Label htmlFor="r4">İletişim problemi</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Evrak eksikliği" id="r5" />
+                  <Label htmlFor="r5">Evrak eksikliği</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="rejection-note">Ek not (opsiyonel)</Label>
+              <Textarea 
+                id="rejection-note" 
+                placeholder="Reddetme nedeni hakkında ek bilgi girin..." 
+                value={rejectionNote}
+                onChange={(e) => setRejectionNote(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRejectCandidate}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Adayı Reddet
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default CandidateDetails;
