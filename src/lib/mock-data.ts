@@ -27,6 +27,7 @@ export interface Candidate {
   position: string;
   profession: string;
   age: number;
+  experienceYears: number; // Added this field
   appliedAt: Date | string;
   status: CandidateStatus;
   stage: string;
@@ -194,6 +195,7 @@ const generateCandidate = (): Candidate => {
     position,
     profession,
     age: faker.number.int({ min: 18, max: 65 }),
+    experienceYears: faker.number.int({ min: 0, max: 30 }), // Added this field
     appliedAt: faker.date.past(),
     status,
     stage,
@@ -389,4 +391,12 @@ export const getStatusLabel = (status: CandidateStatus): string => {
     default:
       return 'Bilinmiyor';
   }
+};
+
+// Add new function to calculate average experience
+export const getAverageExperience = () => {
+  if (mockCandidates.length === 0) return 0;
+  
+  const totalExperience = mockCandidates.reduce((sum, candidate) => sum + candidate.experienceYears, 0);
+  return (totalExperience / mockCandidates.length).toFixed(1);
 };

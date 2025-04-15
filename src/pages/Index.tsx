@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveCo
 import { Users, UserPlus, CheckCircle, Clock, Briefcase, GraduationCap, Stethoscope, Wrench, Car, FileSpreadsheet } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import CandidateCard from '@/components/CandidateCard';
-import { getStatusCount, getRecentApplications, getApplicationTrend, mockCandidates, getProfessionDistribution, getAgeDistribution, getExamStatistics } from '@/lib/mock-data';
+import { getStatusCount, getRecentApplications, getApplicationTrend, mockCandidates, getProfessionDistribution, getAgeDistribution, getExamStatistics, getAverageExperience } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
 import { ChartContainer, ChartTooltipContent, ChartTooltip, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
 
@@ -400,6 +400,7 @@ const Index = () => {
   const professionStats = getProfessionDistribution();
   const ageStats = getAgeDistribution();
   const examStats = getExamStatistics();
+  const averageExperience = getAverageExperience();
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in dashboard-page">
@@ -430,6 +431,13 @@ const Index = () => {
             className="stat-total"
           />
           <StatCard 
+            title="Ortalama Tecrübe" 
+            value={`${averageExperience} Yıl`}
+            icon={<Briefcase className="h-6 w-6" />}
+            description="Başvuranların ortalama tecrübesi"
+            className="stat-experience"
+          />
+          <StatCard 
             title="Bekleyen Adaylar" 
             value={statusCounts.pending}
             icon={<Clock className="h-6 w-6" />}
@@ -449,13 +457,6 @@ const Index = () => {
             icon={<CheckCircle className="h-6 w-6" />}
             change={{ value: 3, isPositive: true }}
             className="stat-completed"
-          />
-          <StatCard 
-            title="Bekleme Modundaki Adaylar" 
-            value={statusCounts.waiting}
-            icon={<Clock className="h-6 w-6 text-amber-500" />}
-            change={{ value: 1, isPositive: true }}
-            className="bg-amber-50 border-amber-200"
           />
         </div>
 
