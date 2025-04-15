@@ -1,8 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
+import { findCandidateById } from '@/utils/candidate-helpers';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
@@ -23,9 +23,21 @@ import ExamStatsBadge from '@/components/ExamStatsBadge';
 const CandidateDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [candidate, setCandidate] = useState(() => 
-    mockCandidates.find(c => c.id === id) || null
-  );
+  const [candidate, setCandidate] = useState(() => findCandidateById(id));
+
+  useEffect(() => {
+    console.log("Current candidate ID param:", id);
+    console.log("Available candidate IDs:", mockCandidates.map(c => c.id));
+    
+    // Update candidate if ID changes
+    const foundCandidate = findCandidateById(id);
+    if (foundCandidate) {
+      setCandidate(foundCandidate);
+    } else {
+      console.error(`Candidate with ID ${id} not found`);
+    }
+  }, [id]);
+
   const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
   const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
@@ -46,9 +58,16 @@ const CandidateDetails = () => {
       <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Aday bulunamadı</h2>
-          <Link to="/candidates" className="btn-primary">
-            Adaylara Dön
-          </Link>
+          <p className="text-gray-500 mb-4">Aradığınız ID: {id}</p>
+          <div className="space-y-4">
+            <Link to="/candidates" className="btn btn-primary block">
+              Tüm Adaylar Sayfasına Git
+            </Link>
+            <Button onClick={() => navigate(-1)} variant="outline" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Önceki Sayfaya Dön
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -721,100 +740,4 @@ const CandidateDetails = () => {
               
               <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
                 <p className="text-sm">
-                  Sınıf yerleştirme onaylandığında, aday bir sonraki aşamaya geçebilir. Bu işlem daha sonra geri alınabilir.
-                </p>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              type="button" 
-              variant={candidate.classConfirmation === 'confirmed' ? 'destructive' : 'default'}
-              onClick={() => updateClassConfirmation(candidate.classConfirmation !== 'confirmed')}
-            >
-              {candidate.classConfirmation === 'confirmed' ? (
-                <>
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  Onayı Kaldır
-                </>
-              ) : (
-                <>
-                  <Check className="mr-2 h-4 w-4" />
-                  Sınıf Yerleştirmeyi Onayla
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rejection Dialog */}
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu işlem geri alınabilir, ancak aday reddedilmiş olarak işaretlenecektir.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Red Nedeni</Label>
-              <RadioGroup 
-                value={rejectionReason} 
-                onValueChange={setRejectionReason}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Sınav başarısız" id="r1" />
-                  <Label htmlFor="r1">Sınav başarısız</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Başvuru kriterleri uyumsuz" id="r2" />
-                  <Label htmlFor="r2">Başvuru kriterleri uyumsuz</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Adayın vazgeçmesi" id="r3" />
-                  <Label htmlFor="r3">Adayın vazgeçmesi</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="İletişim problemi" id="r4" />
-                  <Label htmlFor="r4">İletişim problemi</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Evrak eksikliği" id="r5" />
-                  <Label htmlFor="r5">Evrak eksikliği</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="rejection-note">Ek not (opsiyonel)</Label>
-              <Textarea 
-                id="rejection-note" 
-                placeholder="Reddetme nedeni hakkında ek bilgi girin..." 
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleRejectCandidate}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              Adayı Reddet
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default CandidateDetails;
+                  Sınıf yerleştirme onaylandığında, aday bir sonraki aşamaya geçebilir. Bu işlem daha sonra
