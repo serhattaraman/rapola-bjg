@@ -23,9 +23,14 @@ import ExamStatsBadge from '@/components/ExamStatsBadge';
 const CandidateDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [candidate, setCandidate] = useState(() => 
-    mockCandidates.find(c => c.id === id) || null
-  );
+  const [candidate, setCandidate] = useState(() => {
+    // Find the candidate with the matching ID
+    const foundCandidate = mockCandidates.find(c => c.id === id);
+    console.log(`Looking for candidate with ID: ${id}`);
+    console.log(`Found candidate:`, foundCandidate);
+    return foundCandidate || null;
+  });
+
   const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
   const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
   const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
@@ -46,9 +51,16 @@ const CandidateDetails = () => {
       <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Aday bulunamadı</h2>
-          <Link to="/candidates" className="btn-primary">
-            Adaylara Dön
-          </Link>
+          <p className="text-gray-500 mb-4">Aradığınız ID: {id}</p>
+          <div className="space-y-4">
+            <Link to="/candidates" className="btn btn-primary block">
+              Tüm Adaylar Sayfasına Git
+            </Link>
+            <Button onClick={() => navigate(-1)} variant="outline" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Önceki Sayfaya Dön
+            </Button>
+          </div>
         </div>
       </div>
     );
