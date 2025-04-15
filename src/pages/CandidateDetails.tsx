@@ -396,8 +396,8 @@ const CandidateDetails = () => {
                           >
                             <span className="text-lg font-bold">{exam.level}</span>
                             <span className="text-xs mt-1">
-                              {exam.score !== undefined && `${exam.score}%`}
-                            </span>
+                              {exam.score !== undefined && `${exam.score}%`
+                            }</span>
                             <span className="text-xs mt-1">
                               {exam.date && formatDate(exam.date)}
                             </span>
@@ -740,4 +740,4 @@ const CandidateDetails = () => {
               
               <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
                 <p className="text-sm">
-                  Sınıf yerleştirme onaylandığında, aday bir sonraki aşamaya geçebilir. Bu işlem daha sonra
+                  Sınıf yerleştirme onaylandığında, aday bir sonraki aşamaya geçebilir. Bu işlem daha
