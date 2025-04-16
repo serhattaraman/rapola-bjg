@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, PlusCircle, BarChart, Menu, X, FileText, LogIn, LogOut, UserPlus, Shield, Bell } from 'lucide-react';
+
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Bell, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useIsMobile } from '../hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,50 +24,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notifications, setNotifications] = useState<{ id: string; message: string; read: boolean; candidateId?: string }[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, currentUser, logout } = useAuth();
-  const { toast } = useToast();
+  const { isAuthenticated, currentUser } = useAuth();
+  const isMobile = useIsMobile();
 
-  // Check if current page is login page - important: moved outside any conditional rendering
+  // Check if current page is login page
   const isLoginPage = location.pathname === '/login';
-
-  // Bu nesne .NET MVC'de C# model sınıfına dönüştürülebilir
-  const navItems = [
-    { name: 'Genel Bakış', path: '/', icon: <Home className="w-5 h-5" />, cssClass: 'nav-home', controller: 'Home', action: 'Index', roles: ['admin', 'manager', 'staff'] },
-    { name: 'Adaylar', path: '/candidates', icon: <Users className="w-5 h-5" />, cssClass: 'nav-candidates', controller: 'Candidate', action: 'Index', roles: ['admin', 'manager', 'staff'] },
-    { name: 'Aday Ekle', path: '/add-candidate', icon: <PlusCircle className="w-5 h-5" />, cssClass: 'nav-add', controller: 'Candidate', action: 'Create', roles: ['admin', 'manager'] },
-    { name: 'Kullanıcı Raporları', path: '/reports', icon: <BarChart className="w-5 h-5" />, cssClass: 'nav-reports', controller: 'Report', action: 'Index', roles: ['admin', 'manager'] },
-    { name: 'Form', path: '/form', icon: <FileText className="w-5 h-5" />, cssClass: 'nav-form', controller: 'Form', action: 'Index', roles: ['admin', 'manager', 'staff'] },
-  ];
-
-  // Add user management menu item for admins - moved outside conditional rendering
-  const filteredNavItems = navItems.filter(item => {
-    if (!currentUser) return false;
-    return item.roles.includes(currentUser.role);
-  });
-
-  // Add admin-only menu item if applicable
-  if (currentUser && currentUser.role === 'admin') {
-    const adminMenuItem = { 
-      name: 'Kullanıcı Yönetimi', 
-      path: '/users', 
-      icon: <UserPlus className="w-5 h-5" />, 
-      cssClass: 'nav-users', 
-      controller: 'User', 
-      action: 'Index',
-      roles: ['admin']
-    };
-    
-    // Check if it's not already there before adding
-    if (!filteredNavItems.some(item => item.path === '/users')) {
-      filteredNavItems.push(adminMenuItem);
-    }
-  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -79,12 +48,7 @@ export const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
-
-  // Mock notifications based on user role - in a real app, this would come from an API
+  // Mock notifications based on user role
   useEffect(() => {
     if (currentUser) {
       // Simulate fetching notifications
@@ -109,15 +73,6 @@ export const Navbar = () => {
       setNotificationCount(mockNotifications.filter(n => !n.read).length);
     }
   }, [currentUser]);
-
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Çıkış yapıldı",
-      description: "Başarıyla çıkış yaptınız",
-    });
-    navigate('/login');
-  };
 
   const markAsRead = (id: string) => {
     setNotifications(prev => 
@@ -152,43 +107,23 @@ export const Navbar = () => {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 main-navbar ${
-        scrolled ? 'bg-white/80 backdrop-blur-lg shadow-sm scrolled' : 'bg-white/0'
+      className={`fixed top-0 right-0 left-0 md:left-[var(--sidebar-width)] z-40 transition-all duration-300 ${
+        scrolled ? 'bg-white/80 backdrop-blur-lg shadow-sm' : 'bg-white/0'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 navbar-container">
-        <div className="flex justify-between h-16 navbar-inner">
-          <div className="flex-shrink-0 flex items-center navbar-logo">
-            <Link to="/" className="flex items-center">
-              <img 
-                src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
-                alt="Rapola Logo" 
-                className="h-10" 
-              />
-            </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16 items-center">
+          {/* Mobile menu toggle */}
+          <div className="flex items-center">
+            <SidebarTrigger className="md:hidden" />
           </div>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4 desktop-nav">
-            {isAuthenticated ? (
+          {/* Right side items */}
+          <div className="flex items-center">
+            {isAuthenticated && (
               <>
-                {filteredNavItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 nav-item ${item.cssClass} ${
-                      location.pathname === item.path
-                        ? 'text-primary bg-primary/10 active'
-                        : 'text-gray-600 hover:text-primary hover:bg-primary/5'
-                    }`}
-                  >
-                    {item.icon}
-                    <span className="ml-2 nav-text">{item.name}</span>
-                  </Link>
-                ))}
-                
                 {/* Notification button */}
-                <div className="flex items-center">
+                <div className="flex items-center mr-4">
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative">
@@ -243,7 +178,8 @@ export const Navbar = () => {
                   </Popover>
                 </div>
 
-                <div className="ml-2">
+                {/* User avatar dropdown */}
+                <div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -264,113 +200,13 @@ export const Navbar = () => {
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Çıkış Yap</span>
-                      </DropdownMenuItem>
+                      {/* User controls moved to sidebar */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </>
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:text-primary hover:bg-primary/5 transition-all duration-200"
-              >
-                <LogIn className="w-5 h-5" />
-                <span className="ml-2">Giriş Yap</span>
-              </Link>
             )}
           </div>
-          
-          {/* Mobile menu button */}
-          <div className="flex md:hidden items-center mobile-menu-button">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-primary hover:bg-primary/5 focus:outline-none"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {isOpen ? (
-                <X className="block h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="block h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className={`${isOpen ? 'block' : 'hidden'} md:hidden bg-white mobile-nav-container`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 mobile-nav-inner">
-          {isAuthenticated ? (
-            <>
-              <div className="px-3 py-2 text-sm font-medium text-gray-600">
-                <div className="flex items-center space-x-2 mb-2">
-                  {currentUser?.role === 'admin' && <Shield className="h-4 w-4 text-red-500" />}
-                  <span>{currentUser?.name}</span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  {currentUser?.role === 'admin' && 'Admin'}
-                  {currentUser?.role === 'manager' && 'Yönetici'}
-                  {currentUser?.role === 'staff' && 'Personel'}
-                </div>
-              </div>
-
-              {/* Mobile Notifications */}
-              <button
-                className="flex w-full items-center justify-between px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary hover:bg-primary/5"
-                onClick={() => {
-                  // In a real app, this would open a mobile-friendly notification drawer
-                  toast({
-                    title: "Bildirimler",
-                    description: `${notificationCount} okunmamış bildiriminiz var.`,
-                  });
-                }}
-              >
-                <div className="flex items-center">
-                  <Bell className="w-5 h-5 mr-2" />
-                  <span>Bildirimler</span>
-                </div>
-                {notificationCount > 0 && (
-                  <Badge className="bg-red-500 text-white">
-                    {notificationCount}
-                  </Badge>
-                )}
-              </button>
-              
-              {filteredNavItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center px-3 py-2 rounded-md text-base font-medium nav-item-mobile ${item.cssClass} ${
-                    location.pathname === item.path
-                      ? 'text-primary bg-primary/10 active'
-                      : 'text-gray-600 hover:text-primary hover:bg-primary/5'
-                  }`}
-                >
-                  {item.icon}
-                  <span className="ml-2 nav-text">{item.name}</span>
-                </Link>
-              ))}
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="ml-2">Çıkış Yap</span>
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary hover:bg-primary/5"
-            >
-              <LogIn className="w-5 h-5" />
-              <span className="ml-2">Giriş Yap</span>
-            </Link>
-          )}
         </div>
       </div>
     </nav>
