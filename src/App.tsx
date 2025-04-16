@@ -31,9 +31,9 @@ const App = () => (
           <SidebarProvider>
             <div className="flex min-h-screen">
               <AppSidebar />
-              <div className="flex-1">
+              <div className="flex-1 flex flex-col">
                 <Navbar />
-                <main className="pt-16 px-4 md:px-8 pb-8">
+                <main className="flex-1 pt-16 px-4 md:px-8 pb-8">
                   <Routes>
                     {/* Public route */}
                     <Route path="/login" element={<Login />} />
