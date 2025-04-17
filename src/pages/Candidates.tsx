@@ -37,6 +37,14 @@ const allProcessStages = [
   "Sertifika Süreci"
 ];
 
+// Define available groups for filtering
+const allGroups = [
+  "A1-1", "A1-2", "A1-3", "A1-4", "A1-5", "A1-6", "A1-7", "A1-8", "A1-9", "A1-10",
+  "A2-1", "A2-2", "A2-3", "A2-4", "A2-5",  
+  "B1-1", "B1-2", "B1-3",
+  "B2-1"
+];
+
 // Number of candidates to show per page
 const CANDIDATES_PER_PAGE = 20;
 
@@ -47,6 +55,7 @@ const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
+  const [groupFilter, setGroupFilter] = useState<string | 'all'>('all');
   const [classConfirmationFilter, setClassConfirmationFilter] = useState<ClassConfirmationFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,6 +69,17 @@ const Candidates = () => {
       stages.add(candidate.stage);
     });
     return Array.from(stages);
+  }, []);
+
+  // Get unique groups from candidates
+  const uniqueGroups = useMemo(() => {
+    const groups = new Set<string>();
+    mockCandidates.forEach(candidate => {
+      if (candidate.group) {
+        groups.add(candidate.group);
+      }
+    });
+    return Array.from(groups);
   }, []);
 
   // Combine predefined stages with any unique stages from the data
@@ -90,6 +110,9 @@ const Candidates = () => {
       // Filter by stage
       const matchesStage = stageFilter === 'all' || candidate.stage === stageFilter;
       
+      // Filter by group
+      const matchesGroup = groupFilter === 'all' || candidate.group === groupFilter;
+      
       // Filter by class confirmation (only for "Sınıf Yerleştirme" stage)
       let matchesClassConfirmation = true;
       if (stageFilter === "Sınıf Yerleştirme" && classConfirmationFilter !== 'all') {
@@ -110,9 +133,9 @@ const Candidates = () => {
         });
       }
       
-      return matchesSearch && matchesStatus && matchesStage && matchesClassConfirmation && matchesDateRange;
+      return matchesSearch && matchesStatus && matchesStage && matchesGroup && matchesClassConfirmation && matchesDateRange;
     });
-  }, [searchQuery, statusFilter, stageFilter, classConfirmationFilter, startDate, endDate]);
+  }, [searchQuery, statusFilter, stageFilter, groupFilter, classConfirmationFilter, startDate, endDate]);
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
@@ -163,6 +186,7 @@ const Candidates = () => {
         'Pozisyon': candidate.position,
         'Meslek': candidate.profession,
         'Yaş': candidate.age,
+        'Grup': candidate.group || 'Atanmamış',
         'Başvuru Tarihi': candidate.appliedAt instanceof Date 
           ? format(candidate.appliedAt, 'dd.MM.yyyy') 
           : format(new Date(candidate.appliedAt), 'dd.MM.yyyy'),
@@ -356,6 +380,37 @@ const Candidates = () => {
                       }`}
                     >
                       {stage}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Group Filters */}
+                <div className="flex flex-wrap items-center gap-2 pb-2">
+                  <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                    <Filter className="w-4 h-4 inline-block mr-1" />
+                    Grup:
+                  </span>
+                  <button
+                    onClick={() => setGroupFilter('all')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      groupFilter === 'all' 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Tüm Gruplar
+                  </button>
+                  {uniqueGroups.map((group) => (
+                    <button
+                      key={group}
+                      onClick={() => setGroupFilter(group)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center ${
+                        groupFilter === group 
+                          ? 'bg-primary text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {group}
                     </button>
                   ))}
                 </div>

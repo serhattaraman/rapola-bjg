@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, Home, Users, UserPlus, FileText, Settings, LogOut, User } from 'lucide-react';
+import { Menu, X, Home, Users, UserPlus, FileText, Settings, LogOut, User, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DarkModeButton } from './DarkModeButton';
@@ -50,6 +50,10 @@ const Navbar = () => {
             <Link to="/candidates" className={`nav-item ${isActive('/candidates')}`}>
               <Users className="h-5 w-5" />
               <span className="nav-text">Adaylar</span>
+            </Link>
+            <Link to="/groups" className={`nav-item ${isActive('/groups')}`}>
+              <BookOpen className="h-5 w-5" />
+              <span className="nav-text">Gruplar</span>
             </Link>
             {user?.role === 'admin' && (
               <Link to="/users" className={`nav-item ${isActive('/users')}`}>
@@ -100,6 +104,10 @@ const Navbar = () => {
             <Link to="/candidates" className={`nav-item-mobile ${isActive('/candidates')}`}>
               <Users className="h-5 w-5 mr-2" />
               Adaylar
+            </Link>
+            <Link to="/groups" className={`nav-item-mobile ${isActive('/groups')}`}>
+              <BookOpen className="h-5 w-5 mr-2" />
+              Gruplar
             </Link>
             {user?.role === 'admin' && (
               <Link to="/users" className={`nav-item-mobile ${isActive('/users')}`}>

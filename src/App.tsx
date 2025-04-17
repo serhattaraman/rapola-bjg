@@ -16,6 +16,8 @@ import Login from "./pages/Login";
 import UserManagement from "./pages/UserManagement";
 import UserReports from "./pages/UserReports";
 import RouteGuard from "./components/RouteGuard";
+import Groups from "./pages/Groups";
+import GroupDetail from "./pages/GroupDetail";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -48,6 +50,8 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/candidates" element={<Candidates />} />
                 <Route path="/candidate/:id" element={<CandidateDetails />} />
+                <Route path="/groups" element={<Groups />} />
+                <Route path="/group/:id" element={<GroupDetail />} />
                 <Route path="/form" element={<Form />} />
               </Route>
               
