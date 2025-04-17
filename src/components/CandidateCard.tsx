@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Candidate, formatDate, calculateDurationInDays, formatDuration } from '@/lib/mock-data';
 import StatusBadge from './StatusBadge';
-import { Phone, User, Calendar, CheckCircle, AlertCircle, Clock, XCircle } from 'lucide-react';
+import { Phone, User, Calendar, CheckCircle, AlertCircle, Clock, XCircle, Users } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ProcessStageIcon from './ProcessStageIcon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -25,6 +24,7 @@ interface CandidateCardProps {
     classConfirmation?: 'pending' | 'confirmed';
     responsiblePerson?: string;
     stageTimeline?: any[];
+    group?: string;
   };
 }
 
@@ -171,6 +171,14 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               <Phone className="w-3 h-3 mr-1 phone-icon" />
               <span className="candidate-phone">{candidate.phone || "05XXXXXXXXX"}</span>
             </p>
+            
+            {/* Display group information if available */}
+            {candidate.group && (
+              <p className="flex items-center text-xs text-blue-600 mt-1">
+                <Users className="w-3 h-3 mr-1" />
+                <span>Grup: {candidate.group}</span>
+              </p>
+            )}
             
             {/* Display return date if in waiting mode */}
             {candidate.status === 'waiting' && candidate.returnDate && (
