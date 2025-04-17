@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Users, FileChart, UserCheck, FileClock, FileX } from 'lucide-react';
+import { ChevronLeft, Users, BarChart, UserCheck, FileClock, FileX } from 'lucide-react';
 import { mockCandidates } from '@/lib/mock-data';
 import { 
   Card, 
@@ -140,7 +140,7 @@ const GroupDetail = () => {
                   
                   <div className="pt-3">
                     <p className="text-sm text-gray-500 mb-2 flex items-center">
-                      <FileChart className="h-4 w-4 mr-2" />
+                      <BarChart className="h-4 w-4 mr-2" />
                       Sınav Durumu
                     </p>
                     <div className="space-y-4">
@@ -223,7 +223,7 @@ const GroupDetail = () => {
                             <ExamStatsBadge examResults={candidate.examResults} />
                           </TableCell>
                           <TableCell className="hidden md:table-cell text-sm text-gray-500">
-                            {format(new Date(candidate.updatedAt || candidate.appliedAt), 'dd.MM.yyyy')}
+                            {format(new Date(candidate.appliedAt), 'dd.MM.yyyy')}
                           </TableCell>
                         </TableRow>
                       ))}

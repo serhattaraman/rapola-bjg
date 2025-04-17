@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, Search, FileChart, Users } from 'lucide-react';
+import { ChevronRight, Search, BarChart, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -159,7 +159,7 @@ const Groups = () => {
                     
                     <div className="text-sm">
                       <div className="text-gray-500 mb-1 flex items-center">
-                        <FileChart className="h-4 w-4 mr-2" />
+                        <BarChart className="h-4 w-4 mr-2" />
                         Sınav Durumu
                       </div>
                       <div className="space-y-1">

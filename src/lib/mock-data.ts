@@ -27,7 +27,7 @@ export interface Candidate {
   position: string;
   profession: string;
   age: number;
-  experienceYears: number; // Added this field
+  experienceYears: number;
   appliedAt: Date | string;
   status: CandidateStatus;
   stage: string;
@@ -47,6 +47,7 @@ export interface Candidate {
     date: Date | string;
     completedOn?: Date | string;
   }[];
+  group?: string; // Add group field to Candidate interface
 }
 
 // Modified to ensure logical exam progression: You must pass previous level to take next exam
@@ -186,6 +187,13 @@ const generateCandidate = (): Candidate => {
     "Sertifika Süreci"
   ]);
 
+  // Randomly assign a group to some candidates
+  const group = faker.helpers.maybe(() => {
+    const level = faker.helpers.arrayElement(['A1', 'A2', 'B1', 'B2']);
+    const number = faker.number.int({ min: 1, max: 10 });
+    return `${level}-${number}`;
+  }, { probability: 0.8 });
+
   const candidate: Candidate = {
     id: faker.string.uuid(),
     firstName,
@@ -195,7 +203,7 @@ const generateCandidate = (): Candidate => {
     position,
     profession,
     age: faker.number.int({ min: 18, max: 65 }),
-    experienceYears: faker.number.int({ min: 0, max: 30 }), // Added this field
+    experienceYears: faker.number.int({ min: 0, max: 30 }),
     appliedAt: faker.date.past(),
     status,
     stage,
@@ -209,6 +217,7 @@ const generateCandidate = (): Candidate => {
       faker.lorem.paragraph(),
       faker.lorem.paragraph(),
     ], { probability: 0.7 }),
+    group // Add group field to candidate
   };
   
   // Add timeline events

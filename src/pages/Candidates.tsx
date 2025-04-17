@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Filter, SlidersHorizontal, CalendarRange, FileSpreadsheet } from 'lucide-react';
 import { mockCandidates, CandidateStatus } from '@/lib/mock-data';
