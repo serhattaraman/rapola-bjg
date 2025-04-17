@@ -19,5 +19,5 @@ export function useIsMobile() {
   return !!isMobile
 }
 
-// Alias for backward compatibility
+// Add this alias for backward compatibility
 export const useMediaQuery = useIsMobile;
