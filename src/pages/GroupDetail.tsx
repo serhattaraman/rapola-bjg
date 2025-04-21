@@ -1,6 +1,7 @@
+
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, Users, BarChart, UserCheck, FileClock, FileX } from 'lucide-react';
+import { ChevronLeft, Users, BarChart, UserCheck } from 'lucide-react';
 import { mockCandidates } from '@/lib/mock-data';
 import { 
   Card, 
@@ -19,7 +20,6 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
 import { AddStudentToGroupDialog } from '@/components/AddStudentToGroupDialog';
@@ -190,7 +190,8 @@ const GroupDetail = () => {
                       </div>
                     </div>
                   </div>
-                </CardContent>
+                </div>
+              </CardContent>
             </Card>
           </div>
           
