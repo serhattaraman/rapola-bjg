@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { mockCandidates } from "@/lib/mock-data";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Users } from "lucide-react";
+import { Users, Search } from "lucide-react";
 
 interface AddStudentToGroupDialogProps {
   groupId: string;
@@ -23,10 +24,18 @@ interface AddStudentToGroupDialogProps {
 export function AddStudentToGroupDialog({ groupId, onStudentsAdd }: AddStudentToGroupDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   // Get students not in this group
   const availableStudents = mockCandidates.filter(c => c.group !== groupId);
+  
+  // Filter students based on search query
+  const filteredStudents = availableStudents.filter(student => 
+    `${student.firstName} ${student.lastName}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,6 +52,7 @@ export function AddStudentToGroupDialog({ groupId, onStudentsAdd }: AddStudentTo
     onStudentsAdd(selectedStudents);
     setOpen(false);
     setSelectedStudents([]);
+    setSearchQuery("");
 
     toast({
       title: "Başarılı",
@@ -71,9 +81,22 @@ export function AddStudentToGroupDialog({ groupId, onStudentsAdd }: AddStudentTo
           <DialogHeader>
             <DialogTitle>Gruba Öğrenci Ekle</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="h-[400px] mt-4">
+          
+          <div className="mt-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Öğrenci ara..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <ScrollArea className="h-[400px]">
             <div className="space-y-4">
-              {availableStudents.map((student) => (
+              {filteredStudents.map((student) => (
                 <div key={student.id} className="flex items-center space-x-2 p-2 hover:bg-slate-100 rounded">
                   <Checkbox
                     id={student.id}
@@ -88,9 +111,9 @@ export function AddStudentToGroupDialog({ groupId, onStudentsAdd }: AddStudentTo
                   </label>
                 </div>
               ))}
-              {availableStudents.length === 0 && (
+              {filteredStudents.length === 0 && (
                 <p className="text-center text-sm text-gray-500 py-4">
-                  Eklenebilecek öğrenci bulunamadı.
+                  {searchQuery ? 'Aranan öğrenci bulunamadı.' : 'Eklenebilecek öğrenci bulunamadı.'}
                 </p>
               )}
             </div>
