@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth, UserRole, StageKey } from '../context/AuthContext';
-import { Plus, User, Shield, Users } from 'lucide-react';
+import { Plus, User, Shield, Users, Phone, Lock } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const allStages: StageKey[] = [
   "Başvuru Alındı",
@@ -32,6 +33,8 @@ const UserManagement = () => {
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
+    phone: '',
+    password: '',
     role: 'staff' as UserRole,
     authorizedStages: [] as StageKey[]
   });
@@ -45,6 +48,14 @@ const UserManagement = () => {
   }
 
   const handleAddUser = () => {
+    if (!newUser.name || !newUser.email || !newUser.phone || !newUser.password) {
+      toast({
+        title: "Eksik bilgi",
+        description: "Tüm alanları doldurun.",
+        variant: "destructive"
+      });
+      return;
+    }
     addUser(newUser);
     toast({
       title: "Kullanıcı eklendi",
@@ -54,6 +65,8 @@ const UserManagement = () => {
     setNewUser({
       name: '',
       email: '',
+      phone: '',
+      password: '',
       role: 'staff',
       authorizedStages: []
     });
@@ -122,9 +135,9 @@ const UserManagement = () => {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="name" className="text-right text-sm font-medium">
+                  <Label htmlFor="name" className="text-right text-sm font-medium">
                     Ad Soyad
-                  </label>
+                  </Label>
                   <Input
                     id="name"
                     value={newUser.name}
@@ -133,9 +146,9 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="email" className="text-right text-sm font-medium">
+                  <Label htmlFor="email" className="text-right text-sm font-medium">
                     E-posta
-                  </label>
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -145,9 +158,35 @@ const UserManagement = () => {
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <label htmlFor="role" className="text-right text-sm font-medium">
+                  <Label htmlFor="phone" className="text-right text-sm font-medium flex items-center gap-1">
+                    <Phone className="w-4 h-4" /> Telefon
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={newUser.phone}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="5XX1234567"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="password" className="text-right text-sm font-medium flex items-center gap-1">
+                    <Lock className="w-4 h-4" /> Şifre
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
+                    className="col-span-3"
+                    placeholder="Şifre"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="role" className="text-right text-sm font-medium">
                     Rol
-                  </label>
+                  </Label>
                   <Select
                     value={newUser.role}
                     onValueChange={(value: UserRole) => setNewUser(prev => ({ ...prev, role: value }))}
@@ -164,9 +203,9 @@ const UserManagement = () => {
                 </div>
                 {/* Süreç yetkisi seçimi */}
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <label className="text-right text-sm font-medium pt-2">
+                  <Label className="text-right text-sm font-medium pt-2">
                     Süreç Yetkileri
-                  </label>
+                  </Label>
                   <div className="col-span-3 flex flex-col gap-1">
                     {allStages.map(stage => (
                       <label key={stage} className="flex items-center gap-2">
@@ -210,9 +249,13 @@ const UserManagement = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center text-sm text-gray-600 mt-1">
+                <div className="flex items-center text-sm text-gray-600 mt-1 gap-2">
                   {getRoleIcon(user.role)}
                   <span className="ml-2">{user.email}</span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600 mt-1 gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span className="ml-2">{user.phone || '-'}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1 text-xs">
                   <span className="font-medium text-gray-800">Yetkili olduğu süreçler:</span>
