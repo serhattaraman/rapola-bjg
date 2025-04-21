@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { ChevronRight, Search, BarChart, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -9,6 +8,7 @@ import { mockCandidates } from '@/lib/mock-data';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar';
 import StatCard from "@/components/StatCard";
 import { useToast } from "@/hooks/use-toast"; // Bildirim sistemi eklendi
+import { AddGroupDialog } from "@/components/AddGroupDialog";
 
 // Group types
 type Group = {
@@ -165,16 +165,26 @@ const Groups = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleAddGroup = (groupData: { name: string; level: string; instructor: string }) => {
+    // In a real application, this would make an API call to add the group
+    toast({
+      title: "Grup Eklendi",
+      description: `${groupData.name} grubu başarıyla eklendi.`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-5xl mx-auto">
-
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Gruplar</h1>
             <p className="text-gray-500 mt-1">
               Tüm sınıf gruplarını görüntüleyin ve yönetin
             </p>
+          </div>
+          <div className="mt-4 md:mt-0">
+            <AddGroupDialog onGroupAdd={handleAddGroup} />
           </div>
         </div>
 
@@ -356,4 +366,3 @@ const Groups = () => {
 };
 
 export default Groups;
-
