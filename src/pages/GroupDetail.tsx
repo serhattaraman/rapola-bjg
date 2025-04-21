@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronLeft, Users, BarChart, UserCheck, FileClock, FileX } from 'lucide-react';
@@ -23,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
+import { AddStudentToGroupDialog } from '@/components/AddStudentToGroupDialog';
 
 const GroupDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +31,11 @@ const GroupDetail = () => {
   const groupCandidates = useMemo(() => {
     return mockCandidates.filter(candidate => candidate.group === id);
   }, [id]);
+
+  const handleAddStudents = (studentIds: string[]) => {
+    // In a real application, this would make an API call to update the students' group
+    console.log('Adding students to group:', studentIds);
+  };
   
   // If no candidates in group, show error
   if (groupCandidates.length === 0) {
@@ -96,11 +101,12 @@ const GroupDetail = () => {
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <Link to="/groups" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
             <ChevronLeft className="h-4 w-4 mr-1" />
             Tüm Gruplar
           </Link>
+          <AddStudentToGroupDialog groupId={id || ''} onStudentsAdd={handleAddStudents} />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -184,8 +190,7 @@ const GroupDetail = () => {
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
             </Card>
           </div>
           
