@@ -4,19 +4,32 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 // Define user roles
 export type UserRole = 'admin' | 'manager' | 'staff';
 
+// Süreçler için yetki türü
+export type StageKey =
+  | 'Başvuru Alındı'
+  | 'Telefon Görüşmesi'
+  | 'İK Görüşmesi'
+  | 'Evrak Toplama'
+  | 'Sisteme Evrak Girişi'
+  | 'Sınıf Yerleştirme'
+  | 'Denklik Süreci'
+  | 'Vize Süreci'
+  | 'Sertifika Süreci';
+
 // Define user interface
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  authorizedStages?: StageKey[];
 }
 
 // Initialize a mock users array
 const initialUsers: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-  { id: '2', name: 'Manager User', email: 'manager@example.com', role: 'manager' },
-  { id: '3', name: 'Staff User', email: 'staff@example.com', role: 'staff' }
+  { id: '1', name: 'Admin User', email: 'admin@example.com', role: 'admin', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi', 'Evrak Toplama', 'Sisteme Evrak Girişi', 'Sınıf Yerleştirme', 'Denklik Süreci', 'Vize Süreci', 'Sertifika Süreci'] },
+  { id: '2', name: 'Manager User', email: 'manager@example.com', role: 'manager', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi'] },
+  { id: '3', name: 'Staff User', email: 'staff@example.com', role: 'staff', authorizedStages: ['Başvuru Alındı'] }
 ];
 
 interface AuthContextType {
@@ -26,6 +39,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   addUser: (user: Omit<User, 'id'>) => void;
+  updateUserStages: (userId: string, authorizedStages: StageKey[]) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,7 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check for existing session on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
@@ -50,19 +63,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Simple mock login function (in a real app, this would call an API)
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, you would validate the password
-    // For this demo, we'll accept any password
     const user = users.find(u => u.email === email);
-    
     if (user) {
       setCurrentUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('currentUser', JSON.stringify(user));
       return true;
     }
-    
     return false;
   };
 
@@ -77,18 +85,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ...newUser,
       id: String(users.length + 1)
     };
-    
     setUsers(prev => [...prev, user]);
   };
 
+  const updateUserStages = (userId: string, authorizedStages: StageKey[]) => {
+    setUsers((prevUsers) =>
+      prevUsers.map((u) => u.id === userId ? { ...u, authorizedStages } : u)
+    );
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      currentUser, 
+    <AuthContext.Provider value={{
+      currentUser,
       users,
-      isAuthenticated, 
-      login, 
+      isAuthenticated,
+      login,
       logout,
-      addUser
+      addUser,
+      updateUserStages
     }}>
       {children}
     </AuthContext.Provider>
