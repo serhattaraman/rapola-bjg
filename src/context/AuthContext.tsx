@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define user roles
@@ -21,15 +20,17 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  password: string;
   role: UserRole;
   authorizedStages?: StageKey[];
 }
 
 // Initialize a mock users array
 const initialUsers: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@example.com', role: 'admin', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi', 'Evrak Toplama', 'Sisteme Evrak Girişi', 'Sınıf Yerleştirme', 'Denklik Süreci', 'Vize Süreci', 'Sertifika Süreci'] },
-  { id: '2', name: 'Manager User', email: 'manager@example.com', role: 'manager', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi'] },
-  { id: '3', name: 'Staff User', email: 'staff@example.com', role: 'staff', authorizedStages: ['Başvuru Alındı'] }
+  { id: '1', name: 'Admin User', email: 'admin@example.com', phone: '5551112233', password: 'admin123', role: 'admin', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi', 'Evrak Toplama', 'Sisteme Evrak Girişi', 'Sınıf Yerleştirme', 'Denklik Süreci', 'Vize Süreci', 'Sertifika Süreci'] },
+  { id: '2', name: 'Manager User', email: 'manager@example.com', phone: '5552223344', password: 'manager123', role: 'manager', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi'] },
+  { id: '3', name: 'Staff User', email: 'staff@example.com', phone: '5553334455', password: 'staff123', role: 'staff', authorizedStages: ['Başvuru Alındı'] }
 ];
 
 interface AuthContextType {
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    const user = users.find(u => u.email === email);
+    const user = users.find(u => u.email === email && u.password === password);
     if (user) {
       setCurrentUser(user);
       setIsAuthenticated(true);

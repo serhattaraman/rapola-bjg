@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { ChevronRight, Search, BarChart, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,16 +9,6 @@ import { mockCandidates } from '@/lib/mock-data';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar';
 import StatCard from "@/components/StatCard";
 import { useToast } from "@/hooks/use-toast"; // Bildirim sistemi eklendi
-// GRAFİK için ekstra importlar:
-import { ChartContainer } from "@/components/ui/chart";
-import {
-  PieChart,
-  Pie,
-  Tooltip,
-  Cell,
-  ResponsiveContainer,
-  Legend
-} from "recharts";
 
 // Group types
 type Group = {
@@ -117,21 +108,6 @@ const Groups = () => {
     return ratio;
   }, [groups]);
 
-  // Eğitmen başarı istatistiklerini pasta grafiği için diziye dönüştür.
-  const instructorPieData = useMemo(() => {
-    return Object.entries(instructorSuccessStats)
-      .map(([instructor, success]) => ({
-        name: instructor,
-        value: Number(success.toFixed(1)), // Yüzde cinsinden
-      }))
-      .filter(item => !isNaN(item.value) && item.value > 0);
-  }, [instructorSuccessStats]);
-
-  // Pasta grafiği renkleri
-  const PIE_COLORS = [
-    "#38bdf8", "#a78bfa", "#fbbf24", "#22c55e", "#ef4444", "#f472b6", "#818cf8", "#10b981"
-  ];
-
   // Seviye bazlı en iyi eğitmen istatistikleri: { [level]: { instructor: string, rate: number, groupCount: number, candidateCount: number } }
   const levelBestInstructors = useMemo(() => {
     const levelsMap: Record<string, Record<string, { candidateCount: number; passedCount: number }>> = {};
@@ -199,37 +175,6 @@ const Groups = () => {
             <p className="text-gray-500 mt-1">
               Tüm sınıf gruplarını görüntüleyin ve yönetin
             </p>
-          </div>
-        </div>
-
-        {/* === EĞİTMEN BAŞARI PASTA GRAFİĞİ === */}
-        <div className="bg-white rounded-xl shadow p-6 mb-8 flex flex-col items-center">
-          <h2 className="text-lg font-semibold mb-2">Eğitmen Başarı İstatistikleri (Pasta Grafik)</h2>
-          <div style={{ width: "100%", maxWidth: 550, height: 300 }}>
-            <ChartContainer config={{}}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie
-                    data={instructorPieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {instructorPieData.map((entry, idx) => (
-                      <Cell
-                        key={`cell-${idx}`}
-                        fill={PIE_COLORS[idx % PIE_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
           </div>
         </div>
 
@@ -411,3 +356,4 @@ const Groups = () => {
 };
 
 export default Groups;
+
