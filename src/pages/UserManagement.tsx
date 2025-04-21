@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth, UserRole, StageKey } from '../context/AuthContext';
-import { Plus, User, Shield, Users, Phone, Lock } from 'lucide-react';
+import { Plus, User, Shield, Users, Phone } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,7 +34,6 @@ const UserManagement = () => {
     name: '',
     email: '',
     phone: '',
-    password: '',
     role: 'staff' as UserRole,
     authorizedStages: [] as StageKey[]
   });
@@ -48,7 +47,7 @@ const UserManagement = () => {
   }
 
   const handleAddUser = () => {
-    if (!newUser.name || !newUser.email || !newUser.phone || !newUser.password) {
+    if (!newUser.name || !newUser.email || !newUser.phone) {
       toast({
         title: "Eksik bilgi",
         description: "Tüm alanları doldurun.",
@@ -66,7 +65,6 @@ const UserManagement = () => {
       name: '',
       email: '',
       phone: '',
-      password: '',
       role: 'staff',
       authorizedStages: []
     });
@@ -98,7 +96,7 @@ const UserManagement = () => {
     }
   };
 
-  // Süreç yetkileri düzenleme
+  // Edit stages authority
   const startEditStages = (userId: string, stages: StageKey[]) => {
     setEditStagesUserId(userId);
     setEditStages(stages);
@@ -168,19 +166,6 @@ const UserManagement = () => {
                     onChange={(e) => setNewUser(prev => ({ ...prev, phone: e.target.value }))}
                     className="col-span-3"
                     placeholder="5XX1234567"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="password" className="text-right text-sm font-medium flex items-center gap-1">
-                    <Lock className="w-4 h-4" /> Şifre
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser(prev => ({ ...prev, password: e.target.value }))}
-                    className="col-span-3"
-                    placeholder="Şifre"
                   />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -309,3 +294,4 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
+
