@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Upload, X } from 'lucide-react';
@@ -236,7 +235,7 @@ const AddCandidate = () => {
                 <div className="flex flex-col items-center">
                   <Upload className="h-10 w-10 text-gray-400 mb-2" />
                   <p className="text-sm text-gray-500">
-                    <span className="text-primary font-medium">Dosya yüklemek için tıklayın</span> veya dosyaları sürükleyip bırakın
+                    Dosya yüklemek için tıklayın veya dosyaları sürükleyip bırakın
                   </p>
                   <p className="mt-1 text-xs text-gray-400">
                     PDF, Word, Excel veya görüntü dosyaları (maks. 10MB)
@@ -244,7 +243,6 @@ const AddCandidate = () => {
                 </div>
               </div>
               
-              {/* Yüklenen dosya listesi */}
               {uploadedFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
                   <p className="text-sm font-medium text-gray-700">Yüklenen Belgeler:</p>
