@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { mockCandidates } from '@/lib/mock-data';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } from '@/components/ui/menubar';
+import StatCard from "@/components/StatCard";
+import { useToast } from "@/hooks/use-toast"; // Bildirim sistemi eklendi
 
 // Group types
 type Group = {
@@ -26,8 +28,9 @@ const Groups = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [selectedInstructor, setSelectedInstructor] = useState<string | null>(null);
+  const { toast } = useToast(); // Bildirim sistemi hook'u
 
-  // Generate groups from candidates
+  // Gruplar ve istatistikler
   const groups = useMemo(() => {
     const groupMap = new Map<string, Group>();
 
@@ -73,12 +76,12 @@ const Groups = () => {
     return Array.from(groupMap.values());
   }, []);
 
-  // Get unique levels
+  // Tüm seviyeler
   const levels = useMemo(() => {
     return [...new Set(groups.map(g => g.level))].sort();
   }, [groups]);
 
-  // Get unique instructors for filter
+  // Eğitmenler (Atanmamış da dahil)
   const instructors = useMemo(
     () =>
       Array.from(
@@ -87,7 +90,7 @@ const Groups = () => {
     [groups]
   );
 
-  // Hesap: Eğitmen başına başarı oranı
+  // Eğitmen başına toplam başarı oranı
   const instructorSuccessStats = useMemo(() => {
     // { instructor: { total: number, passed: number } }
     const stats: Record<string, { total: number; passed: number }> = {};
@@ -105,7 +108,38 @@ const Groups = () => {
     return ratio;
   }, [groups]);
 
-  // Filter groups by search query, level and instructor
+  // Seviye bazlı en iyi eğitmen istatistikleri: { [level]: { instructor: string, rate: number, groupCount: number, candidateCount: number } }
+  const levelBestInstructors = useMemo(() => {
+    const levelsMap: Record<string, Record<string, { candidateCount: number; passedCount: number }>> = {};
+    groups.forEach(group => {
+      if (!levelsMap[group.level]) levelsMap[group.level] = {};
+      const instr = group.instructor;
+      if (!levelsMap[group.level][instr]) {
+        levelsMap[group.level][instr] = { candidateCount: 0, passedCount: 0 };
+      }
+      levelsMap[group.level][instr].candidateCount += group.candidateCount;
+      levelsMap[group.level][instr].passedCount += group.examStats.passed;
+    });
+    // Her seviye için en başarılı eğitmeni bul
+    const bests: Record<string, { instructor: string, rate: number, candidateCount: number }> = {};
+    Object.entries(levelsMap).forEach(([level, stats]) => {
+      let bestInstructor = "Yok";
+      let bestRate = 0;
+      let count = 0;
+      Object.entries(stats).forEach(([inst, { candidateCount, passedCount }]) => {
+        const rate = candidateCount > 0 ? (passedCount / candidateCount) * 100 : 0;
+        if (rate > bestRate) {
+          bestRate = rate;
+          bestInstructor = inst;
+          count = candidateCount;
+        }
+      });
+      bests[level] = { instructor: bestInstructor, rate: bestRate, candidateCount: count };
+    });
+    return bests;
+  }, [groups]);
+
+  // Filtrele
   const filteredGroups = useMemo(() => {
     return groups.filter(group => {
       const matchesSearch =
@@ -122,9 +156,19 @@ const Groups = () => {
     });
   }, [groups, searchQuery, selectedLevel, selectedInstructor]);
 
+  // Sayfa ilk açıldığında örnek bir toast gönderelim (kullanıcıya bildirim sistemi geldiğini göstermek için)
+  React.useEffect(() => {
+    toast({
+      title: "Hoşgeldin!",
+      description: "Gruplar sayfasına girdin. Bildirim sistemi aktif.",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-5xl mx-auto">
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Gruplar</h1>
@@ -132,6 +176,23 @@ const Groups = () => {
               Tüm sınıf gruplarını görüntüleyin ve yönetin
             </p>
           </div>
+        </div>
+
+        {/* GENEL SEVİYE İSTATİSTİKLERİ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {levels.map(level => (
+            <StatCard
+              key={level}
+              title={`${level} Seviyesinde En Başarılı Eğitmen`}
+              value={levelBestInstructors[level]?.instructor || "Yok"}
+              subValue={levelBestInstructors[level]?.candidateCount > 0
+                ? `${levelBestInstructors[level].rate.toFixed(1)}% başarı`
+                : ""}
+              description={`Toplam ${levelBestInstructors[level]?.candidateCount || 0} öğrenci`}
+              icon={<BarChart className="text-blue-500" />}
+              className="bg-white"
+            />
+          ))}
         </div>
 
         {/* Search and Filters */}
@@ -143,11 +204,12 @@ const Groups = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="pl-8"
+              data-testid="search-group"
             />
           </div>
 
           {/* Level Filter */}
-          <Menubar className="border-none p-0 bg-transparent shadow-none">
+          <Menubar className="border-none p-0 bg-transparent shadow-none" data-testid="filter-menubar-level">
             <MenubarMenu>
               <MenubarTrigger className="bg-white border dark:bg-slate-900 px-4 py-2 rounded-md h-10">
                 {selectedLevel ? `Seviye: ${selectedLevel}` : "Tüm Seviyeler"}
@@ -169,7 +231,7 @@ const Groups = () => {
           </Menubar>
 
           {/* Instructor Filter */}
-          <Menubar className="border-none p-0 bg-transparent shadow-none">
+          <Menubar className="border-none p-0 bg-transparent shadow-none" data-testid="filter-menubar-instructor">
             <MenubarMenu>
               <MenubarTrigger className="bg-white border dark:bg-slate-900 px-4 py-2 rounded-md h-10">
                 {selectedInstructor
@@ -186,6 +248,11 @@ const Groups = () => {
                     onClick={() => setSelectedInstructor(instructor)}
                   >
                     {instructor}
+                    <span className="ml-2 text-xs text-green-700">
+                      {instructorSuccessStats[instructor]
+                        ? `${instructorSuccessStats[instructor].toFixed(1)}% başarı`
+                        : "0%"}
+                    </span>
                   </MenubarItem>
                 ))}
               </MenubarContent>
@@ -289,3 +356,4 @@ const Groups = () => {
 };
 
 export default Groups;
+
