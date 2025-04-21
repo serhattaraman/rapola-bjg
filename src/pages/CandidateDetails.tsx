@@ -69,8 +69,6 @@ const CandidateDetails = () => {
   const phoneUrl = `tel:${phoneNumber.replace(/\s/g, '')}`;
 
   const handleUpdateStage = (newStage: string) => {
-    // In a real app, this would update the API
-    // For now, we'll update the local state
     setCandidate(prev => {
       if (!prev) return null;
       
@@ -736,3 +734,4 @@ const CandidateDetails = () => {
               
               <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
                 <p className="text-sm">
+                  Sınıf yerleştirmeyi onaylamak, adayın sınıf seçiminin tamamlandığı anlamına gelir. Bu işlem geri alın
