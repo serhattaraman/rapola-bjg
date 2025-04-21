@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth, UserRole, StageKey } from '../context/AuthContext';
 import { Plus, User, Shield, Users, Phone } from 'lucide-react';
@@ -294,4 +293,3 @@ const UserManagement = () => {
 };
 
 export default UserManagement;
-

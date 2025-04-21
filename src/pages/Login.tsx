@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -22,8 +21,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      
+      const success = await login(email);
       if (success) {
         toast({
           title: "Giriş başarılı!",
@@ -33,7 +31,7 @@ const Login = () => {
       } else {
         toast({
           title: "Giriş başarısız",
-          description: "E-posta veya şifre yanlış. Lütfen tekrar deneyin.",
+          description: "E-posta bulunamadı. Lütfen tekrar deneyin.",
           variant: "destructive",
         });
       }
@@ -61,7 +59,7 @@ const Login = () => {
           </div>
           <CardTitle className="text-2xl font-bold">Giriş</CardTitle>
           <CardDescription>
-            Sisteme erişmek için giriş yapın
+            Sisteme erişmek için e-posta adresinizi girin
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -76,19 +74,8 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Şifre</label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
               <p className="text-xs text-gray-500">
-                Test için herhangi bir şifre girilebilir: admin@example.com, manager@example.com, staff@example.com
+                Test için: admin@example.com, manager@example.com, staff@example.com
               </p>
             </div>
           </CardContent>

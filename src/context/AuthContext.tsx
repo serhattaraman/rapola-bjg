@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define user roles
@@ -21,23 +22,25 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  password: string;
+  // password alanı artık opsiyonel
+  password?: string;
   role: UserRole;
   authorizedStages?: StageKey[];
 }
 
 // Initialize a mock users array
 const initialUsers: User[] = [
-  { id: '1', name: 'Admin User', email: 'admin@example.com', phone: '5551112233', password: 'admin123', role: 'admin', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi', 'Evrak Toplama', 'Sisteme Evrak Girişi', 'Sınıf Yerleştirme', 'Denklik Süreci', 'Vize Süreci', 'Sertifika Süreci'] },
-  { id: '2', name: 'Manager User', email: 'manager@example.com', phone: '5552223344', password: 'manager123', role: 'manager', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi'] },
-  { id: '3', name: 'Staff User', email: 'staff@example.com', phone: '5553334455', password: 'staff123', role: 'staff', authorizedStages: ['Başvuru Alındı'] }
+  { id: '1', name: 'Admin User', email: 'admin@example.com', phone: '5551112233', password: '', role: 'admin', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi', 'Evrak Toplama', 'Sisteme Evrak Girişi', 'Sınıf Yerleştirme', 'Denklik Süreci', 'Vize Süreci', 'Sertifika Süreci'] },
+  { id: '2', name: 'Manager User', email: 'manager@example.com', phone: '5552223344', password: '', role: 'manager', authorizedStages: ['Başvuru Alındı', 'Telefon Görüşmesi', 'İK Görüşmesi'] },
+  { id: '3', name: 'Staff User', email: 'staff@example.com', phone: '5553334455', password: '', role: 'staff', authorizedStages: ['Başvuru Alındı'] }
 ];
 
 interface AuthContextType {
   currentUser: User | null;
   users: User[];
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  // login artık sadece email istiyor
+  login: (email: string) => Promise<boolean>;
   logout: () => void;
   addUser: (user: Omit<User, 'id'>) => void;
   updateUserStages: (userId: string, authorizedStages: StageKey[]) => void;
@@ -64,8 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const user = users.find(u => u.email === email && u.password === password);
+  // login fonksiyonu sadece email ile çalışıyor
+  const login = async (email: string): Promise<boolean> => {
+    const user = users.find(u => u.email === email);
     if (user) {
       setCurrentUser(user);
       setIsAuthenticated(true);
@@ -85,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const user: User = {
       ...newUser,
       id: String(users.length + 1)
+      // password alanı olmadan eklenir
     };
     setUsers(prev => [...prev, user]);
   };
