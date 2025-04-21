@@ -25,17 +25,18 @@ type Group = {
 const Groups = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [selectedInstructor, setSelectedInstructor] = useState<string | null>(null);
 
   // Generate groups from candidates
   const groups = useMemo(() => {
     const groupMap = new Map<string, Group>();
-    
+
     mockCandidates.forEach(candidate => {
       if (!candidate.group) return;
-      
+
       const groupId = candidate.group;
       const level = groupId.split('-')[0]; // e.g., A1, B2
-      
+
       if (!groupMap.has(groupId)) {
         groupMap.set(groupId, {
           id: groupId,
@@ -53,11 +54,11 @@ const Groups = () => {
         const group = groupMap.get(groupId)!;
         group.candidateCount++;
       }
-      
+
       // Update exam stats
       const group = groupMap.get(groupId)!;
       const levelExam = candidate.examResults?.find(e => e.level === level);
-      
+
       if (levelExam) {
         if (levelExam.passed) {
           group.examStats.passed++;
@@ -68,27 +69,58 @@ const Groups = () => {
         group.examStats.notTaken++;
       }
     });
-    
+
     return Array.from(groupMap.values());
   }, []);
-  
+
   // Get unique levels
   const levels = useMemo(() => {
     return [...new Set(groups.map(g => g.level))].sort();
   }, [groups]);
-  
-  // Filter groups by search query and level
+
+  // Get unique instructors for filter
+  const instructors = useMemo(
+    () =>
+      Array.from(
+        new Set(groups.map(group => group.instructor || "Atanmamış"))
+      ).sort(),
+    [groups]
+  );
+
+  // Hesap: Eğitmen başına başarı oranı
+  const instructorSuccessStats = useMemo(() => {
+    // { instructor: { total: number, passed: number } }
+    const stats: Record<string, { total: number; passed: number }> = {};
+    groups.forEach(group => {
+      if (!group.instructor) return;
+      if (!stats[group.instructor]) stats[group.instructor] = { total: 0, passed: 0 };
+      stats[group.instructor].total += group.candidateCount;
+      stats[group.instructor].passed += group.examStats.passed;
+    });
+    // Başarı oranını yüzde olarak hesapla
+    const ratio: Record<string, number> = {};
+    for (const [instructor, s] of Object.entries(stats)) {
+      ratio[instructor] = s.total === 0 ? 0 : (s.passed / s.total) * 100;
+    }
+    return ratio;
+  }, [groups]);
+
+  // Filter groups by search query, level and instructor
   const filteredGroups = useMemo(() => {
     return groups.filter(group => {
-      const matchesSearch = !searchQuery || 
+      const matchesSearch =
+        !searchQuery ||
         group.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         group.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-        
+
       const matchesLevel = !selectedLevel || group.level === selectedLevel;
-      
-      return matchesSearch && matchesLevel;
+
+      const matchesInstructor =
+        !selectedInstructor || group.instructor === selectedInstructor;
+
+      return matchesSearch && matchesLevel && matchesInstructor;
     });
-  }, [groups, searchQuery, selectedLevel]);
+  }, [groups, searchQuery, selectedLevel, selectedInstructor]);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -96,10 +128,12 @@ const Groups = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Gruplar</h1>
-            <p className="text-gray-500 mt-1">Tüm sınıf gruplarını görüntüleyin ve yönetin</p>
+            <p className="text-gray-500 mt-1">
+              Tüm sınıf gruplarını görüntüleyin ve yönetin
+            </p>
           </div>
         </div>
-        
+
         {/* Search and Filters */}
         <div className="mb-8 flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -107,11 +141,12 @@ const Groups = () => {
             <Input
               placeholder="Grup ara..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-8"
             />
           </div>
-          
+
+          {/* Level Filter */}
           <Menubar className="border-none p-0 bg-transparent shadow-none">
             <MenubarMenu>
               <MenubarTrigger className="bg-white border dark:bg-slate-900 px-4 py-2 rounded-md h-10">
@@ -122,15 +157,42 @@ const Groups = () => {
                   Tüm Seviyeler
                 </MenubarItem>
                 {levels.map(level => (
-                  <MenubarItem key={level} onClick={() => setSelectedLevel(level)}>
+                  <MenubarItem
+                    key={level}
+                    onClick={() => setSelectedLevel(level)}
+                  >
                     {level}
                   </MenubarItem>
                 ))}
               </MenubarContent>
             </MenubarMenu>
           </Menubar>
+
+          {/* Instructor Filter */}
+          <Menubar className="border-none p-0 bg-transparent shadow-none">
+            <MenubarMenu>
+              <MenubarTrigger className="bg-white border dark:bg-slate-900 px-4 py-2 rounded-md h-10">
+                {selectedInstructor
+                  ? `Eğitmen: ${selectedInstructor}`
+                  : "Tüm Eğitmenler"}
+              </MenubarTrigger>
+              <MenubarContent>
+                <MenubarItem onClick={() => setSelectedInstructor(null)}>
+                  Tüm Eğitmenler
+                </MenubarItem>
+                {instructors.map(instructor => (
+                  <MenubarItem
+                    key={instructor}
+                    onClick={() => setSelectedInstructor(instructor)}
+                  >
+                    {instructor}
+                  </MenubarItem>
+                ))}
+              </MenubarContent>
+            </MenubarMenu>
+          </Menubar>
         </div>
-        
+
         {/* Groups Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredGroups.map(group => (
@@ -139,11 +201,17 @@ const Groups = () => {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-lg flex items-center">
-                      <span className={`w-2 h-2 rounded-full mr-2 ${
-                        group.level.startsWith('A1') ? 'bg-green-500' :
-                        group.level.startsWith('A2') ? 'bg-blue-500' :
-                        group.level.startsWith('B1') ? 'bg-violet-500' : 'bg-amber-500'
-                      }`}></span>
+                      <span
+                        className={`w-2 h-2 rounded-full mr-2 ${
+                          group.level.startsWith('A1')
+                            ? 'bg-green-500'
+                            : group.level.startsWith('A2')
+                            ? 'bg-blue-500'
+                            : group.level.startsWith('B1')
+                            ? 'bg-violet-500'
+                            : 'bg-amber-500'
+                        }`}
+                      ></span>
                       {group.name}
                     </CardTitle>
                     <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -153,10 +221,12 @@ const Groups = () => {
                   <div className="space-y-4">
                     <div className="flex items-center text-sm">
                       <Users className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="font-medium">{group.candidateCount}</span>
+                      <span className="font-medium">
+                        {group.candidateCount}
+                      </span>
                       <span className="text-gray-500 ml-1">kişi</span>
                     </div>
-                    
+
                     <div className="text-sm">
                       <div className="text-gray-500 mb-1 flex items-center">
                         <BarChart className="h-4 w-4 mr-2" />
@@ -168,16 +238,36 @@ const Groups = () => {
                           <span>Kalan: {group.examStats.failed}</span>
                           <span>Girmemiş: {group.examStats.notTaken}</span>
                         </div>
-                        <Progress 
-                          value={group.candidateCount > 0 ? (group.examStats.passed / group.candidateCount) * 100 : 0}
+                        <Progress
+                          value={
+                            group.candidateCount > 0
+                              ? (group.examStats.passed / group.candidateCount) *
+                                100
+                              : 0
+                          }
                           className="h-2"
                         />
                       </div>
                     </div>
-                    
-                    <div className="text-sm pt-2 border-t">
-                      <span className="text-gray-500">Eğitmen:</span> 
-                      <span className="font-medium ml-1">{group.instructor}</span>
+
+                    <div className="text-sm pt-2 border-t flex flex-col gap-1">
+                      <span>
+                        <span className="text-gray-500">Eğitmen:</span>
+                        <span className="font-medium ml-1">
+                          {group.instructor}
+                        </span>
+                      </span>
+                      {/* Eğitmen başarı oranı */}
+                      <span className="text-xs text-gray-600">
+                        Başarı Oranı:{" "}
+                        <span className="font-semibold text-green-700">
+                          {instructorSuccessStats[group.instructor]
+                            ? `${instructorSuccessStats[
+                                group.instructor
+                              ].toFixed(1)}%`
+                            : "0%"}
+                        </span>
+                      </span>
                     </div>
                   </div>
                 </CardContent>
@@ -185,10 +275,12 @@ const Groups = () => {
             </Link>
           ))}
         </div>
-        
+
         {filteredGroups.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500">Arama kriterlerinize uygun grup bulunamadı.</p>
+            <p className="text-gray-500">
+              Arama kriterlerinize uygun grup bulunamadı.
+            </p>
           </div>
         )}
       </div>
