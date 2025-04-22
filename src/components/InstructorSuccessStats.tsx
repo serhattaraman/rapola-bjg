@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { ChartBar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ChartBar } from 'lucide-react';
 
 type InstructorSuccessProps = {
   data: Record<string, { instructor: string; rate: number; candidateCount: number }>;
