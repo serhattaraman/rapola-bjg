@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockCandidates } from '@/lib/mock-data';
@@ -25,9 +26,11 @@ const CandidateDetails = () => {
   const [lastName, setLastName] = useState(candidate?.lastName || '');
   const [email, setEmail] = useState(candidate?.email || '');
   const [phone, setPhone] = useState(candidate?.phone || '');
-  const [address, setAddress] = useState(candidate?.address || '');
+  // Since address is not in the Candidate type, we'll store it separately
+  const [address, setAddress] = useState('');
   const [position, setPosition] = useState(candidate?.position || '');
-  const [notes, setNotes] = useState(candidate?.notes || '');
+  // Ensure notes is always an array
+  const [notes, setNotes] = useState<string[]>(['']);
   const [appliedAt, setAppliedAt] = useState<Date | undefined>(candidate?.appliedAt ? new Date(candidate.appliedAt) : undefined);
 
   useEffect(() => {
@@ -39,9 +42,11 @@ const CandidateDetails = () => {
         setLastName(foundCandidate.lastName);
         setEmail(foundCandidate.email);
         setPhone(foundCandidate.phone);
-        setAddress(foundCandidate.address);
+        // For address, use an empty string if it doesn't exist
+        setAddress('');
         setPosition(foundCandidate.position);
-        setNotes(foundCandidate.notes);
+        // Ensure notes is treated as an array
+        setNotes(foundCandidate.notes || []);
         setAppliedAt(foundCandidate.appliedAt ? new Date(foundCandidate.appliedAt) : undefined);
       } else {
         toast({
@@ -69,9 +74,11 @@ const CandidateDetails = () => {
       setLastName(candidate.lastName);
       setEmail(candidate.email);
       setPhone(candidate.phone);
-      setAddress(candidate.address);
+      // Reset address to empty string
+      setAddress('');
       setPosition(candidate.position);
-      setNotes(candidate.notes);
+      // Ensure notes is treated as an array
+      setNotes(candidate.notes || []);
       setAppliedAt(candidate.appliedAt ? new Date(candidate.appliedAt) : undefined);
     }
   };
@@ -86,7 +93,6 @@ const CandidateDetails = () => {
       lastName,
       email,
       phone,
-      address,
       position,
       notes,
       appliedAt: appliedAt ? appliedAt.toISOString() : new Date().toISOString(),
@@ -228,8 +234,8 @@ const CandidateDetails = () => {
                     <Label htmlFor="notes">Notlar</Label>
                     <Textarea
                       id="notes"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
+                      value={notes.join('\n')}
+                      onChange={(e) => setNotes(e.target.value.split('\n'))}
                     />
                   </div>
                 </div>
@@ -253,7 +259,7 @@ const CandidateDetails = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-gray-500" />
-                    <span>{candidate.address}</span>
+                    <span>{address || '-'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Briefcase className="h-4 w-4 text-gray-500" />
@@ -265,7 +271,7 @@ const CandidateDetails = () => {
                   </div>
                   <div>
                     <p className="font-semibold">Notlar:</p>
-                    <p>{candidate.notes || 'Yok'}</p>
+                    <p>{candidate.notes?.join('\n') || 'Yok'}</p>
                   </div>
                 </div>
                 <Button className="mt-4" onClick={handleEditClick}>
