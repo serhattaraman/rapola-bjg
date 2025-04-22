@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartBar } from 'lucide-react';
 
 type InstructorSuccessProps = {
@@ -17,13 +17,6 @@ export const InstructorSuccessStats = ({ data, level }: InstructorSuccessProps) 
       candidateCount: stats.candidateCount
     }))
     .sort((a, b) => b.successRate - a.successRate); // Sort by success rate descending
-
-  const getBarColor = (rate: number) => {
-    if (rate >= 85) return '#2ecc71'; // Green
-    if (rate >= 60) return '#f1c40f'; // Yellow
-    if (rate >= 40) return '#f97316'; // Orange
-    return '#ea384c'; // Red
-  };
 
   return (
     <Card>
@@ -42,14 +35,12 @@ export const InstructorSuccessStats = ({ data, level }: InstructorSuccessProps) 
               <Tooltip 
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
-                    const data = payload[0].payload;
-                    const color = getBarColor(data.successRate);
                     return (
                       <div className="bg-white p-2 border rounded-lg shadow-lg">
-                        <p className="font-medium">{data.instructor}</p>
-                        <p className="text-sm" style={{ color }}>Başarı: {data.successRate}%</p>
+                        <p className="font-medium">{payload[0].payload.instructor}</p>
+                        <p className="text-sm">Başarı: {payload[0].value}%</p>
                         <p className="text-sm text-gray-500">
-                          {data.candidateCount} öğrenci
+                          {payload[0].payload.candidateCount} öğrenci
                         </p>
                       </div>
                     );
@@ -59,12 +50,9 @@ export const InstructorSuccessStats = ({ data, level }: InstructorSuccessProps) 
               />
               <Bar 
                 dataKey="successRate" 
+                fill="#8b5cf6" 
                 radius={[4, 4, 0, 0]}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getBarColor(entry.successRate)} />
-                ))}
-              </Bar>
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
