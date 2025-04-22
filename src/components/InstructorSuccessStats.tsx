@@ -10,11 +10,13 @@ type InstructorSuccessProps = {
 };
 
 export const InstructorSuccessStats = ({ data, level }: InstructorSuccessProps) => {
-  const chartData = Object.entries(data).map(([instructor, stats]) => ({
-    instructor,
-    successRate: Math.round(stats.rate),
-    candidateCount: stats.candidateCount
-  }));
+  const chartData = Object.entries(data)
+    .map(([instructor, stats]) => ({
+      instructor,
+      successRate: Math.round(stats.rate),
+      candidateCount: stats.candidateCount
+    }))
+    .sort((a, b) => b.successRate - a.successRate); // Sort by success rate descending
 
   return (
     <Card>
