@@ -603,7 +603,8 @@ const CandidateDetails = () => {
                     <p className="text-sm font-medium">Bu aday reddedildi</p>
                   </div>
                   <p className="mt-1 text-xs text-red-600">
-                    Reddedilmiş adaylar için işlem yapılamaz. İşleme devam etmek için adayın durumunu değiştirin.\n                  </p>
+                    Reddedilmiş adaylar için işlem yapılamaz. İşleme devam etmek için adayın durumunu değiştirin.
+                  </p>
                 </div>
               )}
               
