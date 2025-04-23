@@ -9,7 +9,6 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarTrigger } fro
 import StatCard from "@/components/StatCard";
 import { useToast } from "@/hooks/use-toast"; // Bildirim sistemi eklendi
 import { AddGroupDialog } from "@/components/AddGroupDialog";
-import { InstructorSuccessStats } from '@/components/InstructorSuccessStats';
 
 // Group types
 type Group = {
@@ -174,53 +173,6 @@ const Groups = () => {
     });
   };
 
-  // Calculate instructor success rates per level
-  const instructorSuccessPerLevel = useMemo(() => {
-    const stats: Record<string, Record<string, { success: number; total: number; rate: number; candidateCount: number }>> = {};
-    
-    // Initialize stats for each level
-    levels.forEach(level => {
-      stats[level] = {};
-      instructors.forEach(instructor => {
-        stats[level][instructor] = { success: 0, total: 0, rate: 0, candidateCount: 0 };
-      });
-    });
-    
-    // Calculate stats
-    groups.forEach(group => {
-      const level = group.level;
-      const instructor = group.instructor;
-      if (instructor && level) {
-        if (!stats[level][instructor]) {
-          stats[level][instructor] = { success: 0, total: 0, rate: 0, candidateCount: 0 };
-        }
-        stats[level][instructor].success += group.examStats.passed;
-        stats[level][instructor].total += (group.examStats.passed + group.examStats.failed);
-        stats[level][instructor].candidateCount += group.candidateCount;
-        stats[level][instructor].rate = stats[level][instructor].total > 0 
-          ? (stats[level][instructor].success / stats[level][instructor].total) * 100 
-          : 0;
-      }
-    });
-
-    // Convert to final format
-    const result: Record<string, Record<string, { instructor: string; rate: number; candidateCount: number }>> = {};
-    Object.entries(stats).forEach(([level, instructorStats]) => {
-      result[level] = {};
-      Object.entries(instructorStats).forEach(([instructor, stats]) => {
-        if (stats.total > 0) {
-          result[level][instructor] = {
-            instructor,
-            rate: stats.rate,
-            candidateCount: stats.candidateCount
-          };
-        }
-      });
-    });
-
-    return result;
-  }, [groups, levels, instructors]);
-
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-5xl mx-auto">
@@ -251,20 +203,6 @@ const Groups = () => {
               className="bg-white"
             />
           ))}
-        </div>
-
-        {/* Instructor Success Statistics Per Level */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold mb-4">Seviye Bazlı Eğitmen Başarı Oranları</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {levels.map(level => (
-              <InstructorSuccessStats 
-                key={level} 
-                data={instructorSuccessPerLevel[level] || {}}
-                level={level}
-              />
-            ))}
-          </div>
         </div>
 
         {/* Search and Filters */}
