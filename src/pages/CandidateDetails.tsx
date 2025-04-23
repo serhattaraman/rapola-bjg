@@ -112,7 +112,7 @@ const CandidateDetails = () => {
       
       return {
         ...prev,
-        notes: [newNote, ...prev.notes]
+        notes: [newNote, ...(prev.notes || [])]
       };
     });
 
@@ -642,7 +642,7 @@ const CandidateDetails = () => {
         </div>
       </div>
 
-      {/* Update Stage Dialog */}
+      {/* Dialogs */}
       <UpdateStageDialog
         isOpen={isUpdateStageDialogOpen}
         onClose={() => setIsUpdateStageDialogOpen(false)}
