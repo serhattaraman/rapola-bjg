@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
@@ -19,6 +18,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
+import { FileCertificate } from 'lucide-react'; // Add this import
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -248,6 +248,62 @@ const CandidateDetails = () => {
 
   const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
 
+  const generateCertificate = (exam: any) => {
+    const certificateData = {
+      candidateName: `${candidate.firstName} ${candidate.lastName}`,
+      level: exam.level,
+      score: exam.score,
+      date: formatDate(exam.date),
+      instructor: exam.instructor || candidate.responsiblePerson || 'İK Uzmanı'
+    };
+
+    const certificateHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
+          .certificate { border: 2px solid #8b5cf6; padding: 40px; max-width: 800px; margin: 0 auto; }
+          .header { color: #8b5cf6; font-size: 24px; margin-bottom: 20px; }
+          .content { margin: 20px 0; }
+          .signature { margin-top: 40px; }
+        </style>
+      </head>
+      <body>
+        <div class="certificate">
+          <div class="header">DİL YETERLİLİK SERTİFİKASI</div>
+          <div class="content">
+            Bu belge ile<br><br>
+            <strong>${certificateData.candidateName}</strong><br><br>
+            ${certificateData.level} seviyesi dil sınavını<br>
+            ${certificateData.score}% başarı ile geçmiştir.<br><br>
+            Sınav Tarihi: ${certificateData.date}
+          </div>
+          <div class="signature">
+            <p>Eğitmen: ${certificateData.instructor}</p>
+            <p>İmza: _________________</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([certificateHtml], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${candidate.firstName}_${candidate.lastName}_${exam.level}_Sertifika.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Sertifika oluşturuldu",
+      description: "Sertifika başarıyla indirildi.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-7xl mx-auto">
@@ -416,6 +472,7 @@ const CandidateDetails = () => {
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eğitmen</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -440,6 +497,19 @@ const CandidateDetails = () => {
                                 )}>
                                   {exam.passed ? 'Geçti' : 'Kaldı'}
                                 </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {exam.passed && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-primary hover:text-primary/80"
+                                    onClick={() => generateCertificate(exam)}
+                                  >
+                                    <FileCertificate className="mr-2 h-4 w-4" />
+                                    Sertifika Oluştur
+                                  </Button>
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -661,192 +731,4 @@ const CandidateDetails = () => {
               placeholder="Not yazın..." 
               className="min-h-32"
               value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-            />
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button variant="outline" onClick={() => setIsAddNoteDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button type="button" onClick={handleAddNote}>
-              Not Ekle
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Waiting Mode Dialog with Date Picker */}
-      <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Bekleme Moduna Al</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Dönüş Tarihi Seçin</label>
-              <div className="flex flex-col items-center">
-                <CalendarComponent
-                  mode="single"
-                  selected={waitingDate}
-                  onSelect={setWaitingDate}
-                  className="border rounded-md"
-                  initialFocus
-                  disabled={(date) => date < new Date()}
-                />
-              </div>
-            </div>
-            <div className="text-sm text-center text-gray-500">
-              {waitingDate ? (
-                <span>Seçilen dönüş tarihi: {format(waitingDate, "dd.MM.yyyy")}</span>
-              ) : (
-                <span>Lütfen bir dönüş tarihi seçin</span>
-              )}
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              type="button" 
-              onClick={() => updateWaitingStatus(true, waitingDate)}
-              disabled={!waitingDate}
-            >
-              Bekleme Moduna Al
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Class Confirmation Dialog */}
-      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <div className="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Aday: {candidate.firstName} {candidate.lastName}</span>
-                  <span className="text-xs text-gray-500">Aşama: {candidate.stage}</span>
-                </div>
-              </div>
-              
-              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
-                <p className="text-sm">
-                  Sınıf yerleştirmeyi onaylamak, adayın sınıf seçiminin tamamlandığı anlamına gelir. Bu işlem geri alınabilir.
-                </p>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="font-medium text-sm mb-2">Onay durumu:</div>
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    className={`flex-1 ${classConfirmation === 'pending' ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
-                    onClick={() => updateClassConfirmation(false)}
-                  >
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Beklemede
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className={`flex-1 ${classConfirmation === 'confirmed' ? 'border-green-500 bg-green-50 text-green-700' : ''}`}
-                    onClick={() => updateClassConfirmation(true)}
-                  >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Onaylandı
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
-              Kapat
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Rejection Dialog */}
-      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Adayı Reddet</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              <div className="flex items-center p-3 rounded-lg bg-red-50 border border-red-200">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-red-700">Aday: {candidate.firstName} {candidate.lastName}</span>
-                  <span className="text-xs text-red-500">ID: {candidate.id}</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="reject-reason" className="text-sm font-medium">
-                  Red Nedeni
-                </Label>
-                <RadioGroup 
-                  value={rejectionReason} 
-                  onValueChange={setRejectionReason}
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="iletişim_kurulamadı" id="r1" />
-                    <Label htmlFor="r1">İletişim kurulamadı</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="adayla_anlaşılamadı" id="r2" />
-                    <Label htmlFor="r2">Adayla anlaşılamadı</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ücret_anlaşmazlığı" id="r3" />
-                    <Label htmlFor="r3">Ücret anlaşmazlığı</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="aday_vazgeçti" id="r4" />
-                    <Label htmlFor="r4">Aday vazgeçti</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="diğer" id="r5" />
-                    <Label htmlFor="r5">Diğer</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="reject-note" className="text-sm font-medium">
-                  Not (Opsiyonel)
-                </Label>
-                <Textarea
-                  id="reject-note"
-                  placeholder="Red nedeni hakkında detaylı bilgi..."
-                  value={rejectionNote}
-                  onChange={(e) => setRejectionNote(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter className="sm:justify-end">
-            <Button variant="outline" onClick={() => setIsRejectDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={handleRejectCandidate}
-              disabled={!rejectionReason}
-            >
-              Adayı Reddet
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default CandidateDetails;
+              onChange={(e) => setNew
