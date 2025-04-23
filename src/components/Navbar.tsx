@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -59,7 +60,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
               alt="Rapola Logo" 
-              className="h-12 w-12 object-contain" 
+              className="h-24 w-24 object-contain" 
             />
           </Link>
 
