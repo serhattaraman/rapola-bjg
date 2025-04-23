@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+    
+    body {
+      font-family: 'Open Sans', sans-serif;
+      text-align: left;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #333;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .logo {
+      max-width: 200px;
+      margin-bottom: 40px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 40px;
+    }
+    
+    .content {
+      margin: 40px 0;
+    }
+    
+    .personal-info {
+      margin-bottom: 40px;
+    }
+    
+    .scores {
+      margin: 30px 0;
+    }
+    
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      max-width: 400px;
+      margin: 10px 0;
+    }
+    
+    .score-label {
+      font-weight: 600;
+    }
+    
+    .total-score {
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    
+    .footer {
+      margin-top: 60px;
+    }
+    
+    .company-info {
+      position: fixed;
+      bottom: 40px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .yellow-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background-color: #FFD700;
+    }
+    
+    .red-box {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 40px;
+      height: 40px;
+      background-color: #FF0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="yellow-bar"></div>
+  <div class="red-box"></div>
+  
+  <div class="header">
+    <img src="/lovable-uploads/262e32ca-c0a0-459e-a9bb-547d5675b2ae.png" alt="Logo" class="logo">
+  </div>
+  
+  <div class="content">
+    <h1 class="title">Ergebnis der Abschlussprüfung A1</h1>
+    
+    <div class="personal-info">
+      <div>Name, Vorname: {{candidateName}}</div>
+      <div style="margin-top: 20px;">
+        <div>Geburtsdatum: {{birthDate}}</div>
+        <div>Geburtsort: {{birthPlace}}</div>
+      </div>
+    </div>
+    
+    <div class="scores">
+      <div class="score-row">
+        <span class="score-label">Hören</span>
+        <span>{{listeningScore}} / 15 Punkte</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Lesen</span>
+        <span>{{readingScore}} / 15 Punkte</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Schreiben</span>
+        <span>{{writingScore}} / 15 Punkte</span>
+      </div>
+      <div class="score-row">
+        <span class="score-label">Sprechen</span>
+        <span>{{speakingScore}} / 15 Punkte</span>
+      </div>
+      
+      <div class="total-score score-row">
+        <span>Summe</span>
+        <span>{{totalScore}} / 60 Punkte</span>
+      </div>
+      
+      <div style="margin-top: 30px;">
+        <div>Prädikat: {{grade}}</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <div>Datum der Prüfung: {{examDate}}</div>
+    </div>
+  </div>
+  
+  <div class="company-info">
+    <div>www.bestjobsgermany.com</div>
+    <div>info@bestjobsgermany.com</div>
+  </div>
+</body>
+</html>

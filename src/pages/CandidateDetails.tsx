@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText } from 'lucide-react';
@@ -251,58 +250,45 @@ const CandidateDetails = () => {
   const generateCertificate = (exam: any) => {
     const certificateData = {
       candidateName: `${candidate.firstName} ${candidate.lastName}`,
-      level: exam.level,
-      score: exam.score,
-      date: formatDate(exam.date),
-      instructor: (exam as any).instructor || candidate.responsiblePerson || 'İK Uzmanı'
+      birthDate: candidate.birthDate || "___.___.______",
+      birthPlace: candidate.birthPlace || "________________",
+      listeningScore: exam.listeningScore || "0",
+      readingScore: exam.readingScore || "0",
+      writingScore: exam.writingScore || "0",
+      speakingScore: exam.speakingScore || "0",
+      totalScore: exam.score || "0",
+      grade: exam.grade || "Bestanden",
+      examDate: formatDate(exam.date),
     };
 
-    const certificateHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 40px; }
-          .certificate { border: 2px solid #8b5cf6; padding: 40px; max-width: 800px; margin: 0 auto; }
-          .header { color: #8b5cf6; font-size: 24px; margin-bottom: 20px; }
-          .content { margin: 20px 0; }
-          .signature { margin-top: 40px; }
-        </style>
-      </head>
-      <body>
-        <div class="certificate">
-          <div class="header">DİL YETERLİLİK SERTİFİKASI</div>
-          <div class="content">
-            Bu belge ile<br><br>
-            <strong>${certificateData.candidateName}</strong><br><br>
-            ${certificateData.level} seviyesi dil sınavını<br>
-            ${certificateData.score}% başarı ile geçmiştir.<br><br>
-            Sınav Tarihi: ${certificateData.date}
-          </div>
-          <div class="signature">
-            <p>Eğitmen: ${certificateData.instructor}</p>
-            <p>İmza: _________________</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+  // Read the template and replace placeholders
+  fetch('/src/components/GermanCertificateTemplate.html')
+    .then(response => response.text())
+    .then(template => {
+      let certificateHtml = template;
+      
+      // Replace all placeholders with actual data
+      Object.entries(certificateData).forEach(([key, value]) => {
+        certificateHtml = certificateHtml.replace(new RegExp(`{{${key}}}`, 'g'), value.toString());
+      });
 
-    const blob = new Blob([certificateHtml], { type: 'text/html' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${candidate.firstName}_${candidate.lastName}_${exam.level}_Sertifika.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+      // Create and download the file
+      const blob = new Blob([certificateHtml], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${candidate.firstName}_${candidate.lastName}_A1_Zertifikat.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-    toast({
-      title: "Sertifika oluşturuldu",
-      description: "Sertifika başarıyla indirildi.",
+      toast({
+        title: "Sertifika oluşturuldu",
+        description: "Sertifika başarıyla indirildi.",
+      });
     });
-  };
+};
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
@@ -751,144 +737,4 @@ const CandidateDetails = () => {
           <DialogHeader>
             <DialogTitle>Bekleme Moduna Al</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Dönüş Tarihi</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !waitingDate && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {waitingDate ? format(waitingDate, "PPP") : "Tarih seçin"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={waitingDate}
-                    onSelect={setWaitingDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button onClick={() => updateWaitingStatus(true, waitingDate)}>
-              Bekleme Moduna Al
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Class Confirmation Dialog */}
-      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Sınıf yerleştirme durumu</Label>
-              <RadioGroup 
-                value={classConfirmation}
-                onValueChange={(value) => setClassConfirmation(value as 'confirmed' | 'pending')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="confirmed" id="confirmed" />
-                  <Label htmlFor="confirmed" className="flex items-center">
-                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                    Onaylandı
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pending" id="pending" />
-                  <Label htmlFor="pending" className="flex items-center">
-                    <AlertCircle className="mr-2 h-4 w-4 text-amber-600" />
-                    Beklemede
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button onClick={() => updateClassConfirmation(classConfirmation === 'confirmed')}>
-              Kaydet
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Dialog */}
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu işlem geri alınamaz. Adayı reddetmek istediğinize emin misiniz?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="font-medium">Red Nedeni</Label>
-              <RadioGroup 
-                value={rejectionReason}
-                onValueChange={setRejectionReason}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Eksik Evrak" id="doc" />
-                  <Label htmlFor="doc">Eksik Evrak</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Sınav Başarısızlığı" id="exam" />
-                  <Label htmlFor="exam">Sınav Başarısızlığı</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="İletişim Problemi" id="comm" />
-                  <Label htmlFor="comm">İletişim Problemi</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Adayın Talebi" id="request" />
-                  <Label htmlFor="request">Adayın Talebi</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Diğer" id="other" />
-                  <Label htmlFor="other">Diğer</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="rejection-note">Not (İsteğe bağlı)</Label>
-              <Textarea 
-                id="rejection-note"
-                placeholder="Neden hakkında açıklama yazın..." 
-                className="min-h-20"
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-              />
-            </div>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRejectCandidate} className="bg-red-600 hover:bg-red-700">
-              Reddet
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default CandidateDetails;
+          <div className="space-y-4 py-
