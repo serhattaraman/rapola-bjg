@@ -56,7 +56,12 @@ const Navbar = () => {
     <nav className="main-navbar fixed top-0 left-0 w-full bg-white border-b z-50 dark:bg-slate-900 dark:border-slate-800">
       <div className="navbar-container">
         <div className="navbar-inner px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="navbar-logo flex items-center">
+          <Link to="/" className="navbar-logo flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
+              alt="Rapola Logo" 
+              className="h-8 w-8" 
+            />
             <span className="brand-name font-bold text-xl">CRM</span>
           </Link>
 
