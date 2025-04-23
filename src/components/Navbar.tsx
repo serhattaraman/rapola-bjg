@@ -59,7 +59,7 @@ const Navbar = () => {
             <img 
               src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
               alt="Rapola Logo" 
-              className="h-10 w-10 object-contain" 
+              className="h-12 w-12 object-contain" 
             />
           </Link>
 
