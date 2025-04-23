@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, FileCertificate } from 'lucide-react';
 import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,7 +19,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
-import { FileCertificate } from 'lucide-react'; // Add this import
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -731,4 +731,168 @@ const CandidateDetails = () => {
               placeholder="Not yazın..." 
               className="min-h-32"
               value={newNote}
-              onChange={(e) => setNew
+              onChange={(e) => setNewNote(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button variant="outline" onClick={() => setIsAddNoteDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button type="button" onClick={handleAddNote}>
+              Not Ekle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Waiting Mode Dialog with Date Picker */}
+      <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Bekleme Moduna Al</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Dönüş Tarihi Seçin</label>
+              <div className="flex flex-col items-center">
+                <CalendarComponent
+                  mode="single"
+                  selected={waitingDate}
+                  onSelect={setWaitingDate}
+                  className="border rounded-md"
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </div>
+            </div>
+            <div className="text-sm text-center text-gray-500">
+              {waitingDate ? (
+                <span>Seçilen dönüş tarihi: {format(waitingDate, "dd.MM.yyyy")}</span>
+              ) : (
+                <span>Lütfen bir dönüş tarihi seçin</span>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => updateWaitingStatus(true, waitingDate)}
+              disabled={!waitingDate}
+            >
+              Bekleme Moduna Al
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Class Confirmation Dialog */}
+      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div className="flex items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">Aday: {candidate.firstName} {candidate.lastName}</span>
+                  <span className="text-xs text-gray-500">Aşama: {candidate.stage}</span>
+                </div>
+              </div>
+              
+              <div className="p-4 rounded-lg border border-amber-200 bg-amber-50 text-amber-800">
+                <p className="text-sm">
+                  Sınıf yerleştirmesini onayladığınızda, aday sürecin devamına alınabilir. Onaylamadan önce tüm bilgilerin doğru olduğundan emin olun.
+                </p>
+              </div>
+              
+              <div className="flex gap-4 justify-center">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => updateClassConfirmation(false)}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Beklemede Bırak
+                </Button>
+                <Button 
+                  variant="default" 
+                  className="flex-1"
+                  onClick={() => updateClassConfirmation(true)}
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Onayla
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Reject Candidate Dialog */}
+      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aday Reddetme</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu işlem geri alınamaz. Aday reddedildiğinde sürece tekrar dahil edilebilmesi için manuel olarak durumunun değiştirilmesi gerekir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Red Nedeni</Label>
+              <RadioGroup value={rejectionReason} onValueChange={setRejectionReason}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Uygun Profil Değil" id="rejection-1" />
+                  <Label htmlFor="rejection-1">Uygun Profil Değil</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Yanıltıcı Bilgi" id="rejection-2" />
+                  <Label htmlFor="rejection-2">Yanıltıcı Bilgi</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="İletişim Kurulamadı" id="rejection-3" />
+                  <Label htmlFor="rejection-3">İletişim Kurulamadı</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Aday Vazgeçti" id="rejection-4" />
+                  <Label htmlFor="rejection-4">Aday Vazgeçti</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Diğer" id="rejection-5" />
+                  <Label htmlFor="rejection-5">Diğer</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">İlave Not (Opsiyonel)</Label>
+              <Textarea
+                placeholder="Red nedeniyle ilgili not ekleyin..."
+                className="min-h-20"
+                value={rejectionNote}
+                onChange={(e) => setRejectionNote(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRejectCandidate}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Adayı Reddet
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default CandidateDetails;
