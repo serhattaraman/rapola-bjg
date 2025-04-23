@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText } from 'lucide-react';
@@ -314,7 +313,16 @@ const CandidateDetails = () => {
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-gray-500">
                 <span>{candidate.position}</span>
                 <span className="hidden sm:inline">•</span>
-                <span>{candidate.email}</span>
+                <span>
+                  <a 
+                    href={`mailto:${candidate.email}?subject=Rapola%20-%20Başvurunuz%20Hakkında&body=Merhaba%20${candidate.firstName}%20${candidate.lastName},%0D%0A%0D%0A`}
+                    className="hover:text-primary transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {candidate.email}
+                  </a>
+                </span>
                 <span className="hidden sm:inline">•</span>
                 <div className="flex items-center">
                   <Phone className="h-4 w-4 mr-1" />
@@ -727,163 +735,3 @@ const CandidateDetails = () => {
             </Button>
             <Button onClick={handleAddNote}>
               Not Ekle
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Waiting Mode Dialog */}
-      <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Bekleme Moduna Al</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Dönüş Tarihi</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {waitingDate ? format(waitingDate, "PP") : "Tarih seçin"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <CalendarComponent
-                    mode="single"
-                    selected={waitingDate}
-                    onSelect={setWaitingDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              onClick={() => waitingDate ? updateWaitingStatus(true, waitingDate) : null}
-              disabled={!waitingDate}
-            >
-              Bekleme Moduna Al
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Class Confirmation Dialog */}
-      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <p className="text-sm text-gray-600">
-                Adayın sınıf yerleştirmesi için onay durumunu güncelleyin.
-              </p>
-              <RadioGroup 
-                value={classConfirmation} 
-                onValueChange={(value) => setClassConfirmation(value as 'pending' | 'confirmed')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pending" id="pending" />
-                  <Label htmlFor="pending" className="flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 text-amber-500" />
-                    Onay Bekliyor
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="confirmed" id="confirmed" />
-                  <Label htmlFor="confirmed" className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    Onaylandı
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
-              İptal
-            </Button>
-            <Button 
-              onClick={() => updateClassConfirmation(classConfirmation === 'confirmed')}
-            >
-              Onayla
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Candidate Dialog */}
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
-            <AlertDialogDescription>
-              Bu işlem adayı reddetmenize neden olacaktır. Bu işlem geri alınabilir.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Red Nedeni *</Label>
-              <RadioGroup 
-                value={rejectionReason} 
-                onValueChange={setRejectionReason}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Uygun Olmayan Profil" id="reason-profile" />
-                  <Label htmlFor="reason-profile">Uygun Olmayan Profil</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Belgeler Eksik" id="reason-documents" />
-                  <Label htmlFor="reason-documents">Belgeler Eksik</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Aday Vazgeçti" id="reason-candidate" />
-                  <Label htmlFor="reason-candidate">Aday Vazgeçti</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Dil Seviyesi Yetersiz" id="reason-language" />
-                  <Label htmlFor="reason-language">Dil Seviyesi Yetersiz</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Diğer" id="reason-other" />
-                  <Label htmlFor="reason-other">Diğer</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Açıklama (Opsiyonel)</Label>
-              <Textarea 
-                placeholder="Reddetmeyle ilgili açıklama yazın..." 
-                className="min-h-20"
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <AlertDialogFooter>
-            <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleRejectCandidate}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Adayı Reddet
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default CandidateDetails;
