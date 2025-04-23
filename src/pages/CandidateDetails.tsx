@@ -506,7 +506,7 @@ const CandidateDetails = () => {
                                     onClick={() => generateCertificate(exam)}
                                   >
                                     <Award className="mr-2 h-4 w-4" />
-                                    Sertifika Oluştur
+                                    Sertifika Hazırla
                                   </Button>
                                 )}
                               </td>
@@ -730,4 +730,4 @@ const CandidateDetails = () => {
               placeholder="Not yazın..." 
               className="min-h-32"
               value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
+              onChange={(e) => setNewNote(e.target.value
