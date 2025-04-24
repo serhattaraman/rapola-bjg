@@ -18,21 +18,10 @@ import UserReports from "./pages/UserReports";
 import RouteGuard from "./components/RouteGuard";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Check for system dark mode preference
-  useEffect(() => {
-    const isDarkMode = localStorage.getItem("dark-mode") === "true";
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
