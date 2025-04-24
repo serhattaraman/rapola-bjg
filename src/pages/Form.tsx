@@ -9,15 +9,6 @@ const Form = () => {
           <h1 className="text-3xl font-bold">Form</h1>
           <p className="text-gray-500 mt-1">Lütfen formu doldurunuz</p>
         </div>
-
-        {/* Statistics Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h3 className="text-sm font-medium text-gray-500 mb-2">Ortalama Tecrübe</h3>
-            <p className="text-2xl font-semibold text-gray-900">4.5 Yıl</p>
-            <p className="text-sm text-gray-600 mt-1">Başvuranların ortalama tecrübesi</p>
-          </div>
-        </div>
         
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 form-embed-container">
           <iframe 
