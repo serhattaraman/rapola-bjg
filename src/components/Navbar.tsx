@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +14,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
+  NavigationMenuLink
+} from "@/components/ui/navigation-menu";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -95,10 +102,28 @@ const Navbar = () => {
               <span className="nav-text">Form</span>
             </Link>
             {(user?.role === 'admin' || user?.role === 'manager') && (
-              <Link to="/reports" className={`nav-item ${isActive('/reports')}`}>
-                <Settings className="h-5 w-5" />
-                <span className="nav-text">Raporlar</span>
-              </Link>
+              <NavigationMenu>
+                <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger>
+                      <Settings className="h-5 w-5 mr-2" />
+                      Raporlar
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <div className="grid w-[200px] gap-2 p-2">
+                        <Link to="/reports" className="nav-item-mobile">
+                          <Settings className="h-5 w-5 mr-2" />
+                          Genel Raporlar
+                        </Link>
+                        <Link to="/reports/advertising" className="nav-item-mobile">
+                          <Settings className="h-5 w-5 mr-2" />
+                          Reklam Raporları
+                        </Link>
+                      </div>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
             )}
 
             {/* Notification Bell */}
