@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { BarChart, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line, ResponsiveContainer } from "recharts";
 import { PieChart, Pie, Cell } from "recharts";
@@ -45,7 +44,8 @@ function generateMockData(users, stages, timeframes) {
           stage,
           timeframe: name,
           count,
-          date: format(subDays(new Date(), days), 'yyyy-MM-dd')
+          date: format(subDays(new Date(), days), 'yyyy-MM-dd'),
+          source: user.source
         });
       });
     });
@@ -91,10 +91,10 @@ const UserReports = () => {
   useEffect(() => {
     // Gerçek API bağlantısı olmadığı için mock veri kullanıyoruz
     const mockUsers = [
-      { id: "1", name: "Ahmet Yılmaz", role: "admin" },
-      { id: "2", name: "Mehmet Demir", role: "manager" },
-      { id: "3", name: "Ayşe Kaya", role: "staff" },
-      { id: "4", name: "Zeynep Aktaş", role: "staff" }
+      { id: "1", name: "Ahmet Yılmaz", role: "admin", source: "google-ads" },
+      { id: "2", name: "Mehmet Demir", role: "manager", source: "instagram" },
+      { id: "3", name: "Ayşe Kaya", role: "staff", source: "x" },
+      { id: "4", name: "Zeynep Aktaş", role: "staff", source: "linkedin" }
     ];
 
     const mockReportData = generateMockData(mockUsers, stages, [
@@ -107,6 +107,27 @@ const UserReports = () => {
     setReportData(mockReportData);
     setLoading(false);
   }, []);
+
+  // Reklam kaynaklarına göre verileri grupla
+  const getAdvertisingStats = () => {
+    // Tüm kaynakları say
+    const sourceCounts = reportData.reduce((acc, item) => {
+      const source = item.source || 'Diğer';
+      acc[source] = (acc[source] || 0) + item.count;
+      return acc;
+    }, {});
+
+    // Grafik verisi formatına dönüştür
+    return [
+      { name: 'Google Reklam', value: Math.floor(Math.random() * 100) + 50 },
+      { name: 'Instagram', value: Math.floor(Math.random() * 80) + 30 },
+      { name: 'X', value: Math.floor(Math.random() * 60) + 20 },
+      { name: 'LinkedIn', value: Math.floor(Math.random() * 70) + 40 },
+      { name: 'YouTube', value: Math.floor(Math.random() * 50) + 10 },
+      { name: 'TikTok', value: Math.floor(Math.random() * 40) + 15 },
+      { name: 'Sitemiz', value: Math.floor(Math.random() * 90) + 60 }
+    ];
+  };
 
   // Özet istatistikler için verileri hesapla
   const calculateSummaryStats = () => {
@@ -371,10 +392,11 @@ const UserReports = () => {
       
       {/* Grafikler ve Tablolar */}
       <Tabs defaultValue="chart" className="w-full">
-        <TabsList className="grid grid-cols-3 mb-6">
+        <TabsList className="grid grid-cols-4 mb-6">
           <TabsTrigger value="chart">Grafik</TabsTrigger>
           <TabsTrigger value="table">Tablo</TabsTrigger>
           <TabsTrigger value="summary">Özet</TabsTrigger>
+          <TabsTrigger value="advertising">Reklam Raporları</TabsTrigger>
         </TabsList>
         
         <TabsContent value="chart">
@@ -554,6 +576,112 @@ const UserReports = () => {
                         <span className="font-bold">{summaryStats.shortestProcess.name} ({summaryStats.shortestProcess.days} gün)</span>
                       </li>
                     </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="advertising">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reklam Kaynaklarına Göre Başvurular</CardTitle>
+              <CardDescription>
+                Farklı platformlardan gelen başvuru sayıları ve dağılımları
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Pasta Grafiği */}
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getAdvertisingStats()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {getAdvertisingStats().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${value} Başvuru`, 'Başvuru Sayısı']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* Ok Grafiği */}
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={getAdvertisingStats()}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="name" width={100} />
+                    <Tooltip formatter={(value) => [`${value} Başvuru`, 'Başvuru Sayısı']} />
+                    <Legend />
+                    <Bar
+                      dataKey="value"
+                      fill="#9b87f5"
+                      name="Başvuru Sayısı"
+                      barSize={20}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* İstatistik Kartları */}
+              <div className="col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">En Çok Başvuru</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      {getAdvertisingStats().reduce((max, current) => 
+                        current.value > max.value ? current : max
+                      ).name}
+                    </div>
+                    <p className="text-muted-foreground">
+                      {getAdvertisingStats().reduce((max, current) => 
+                        current.value > max.value ? current : max
+                      ).value} başvuru
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Toplam Başvuru</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      {getAdvertisingStats().reduce((sum, current) => sum + current.value, 0)}
+                    </div>
+                    <p className="text-muted-foreground">tüm kaynaklardan</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Ortalama Başvuru</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-primary">
+                      {Math.round(getAdvertisingStats().reduce((sum, current) => 
+                        sum + current.value, 0) / getAdvertisingStats().length)}
+                    </div>
+                    <p className="text-muted-foreground">kaynak başına</p>
                   </CardContent>
                 </Card>
               </div>
