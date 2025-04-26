@@ -63,7 +63,7 @@ const ProfessionDistributionChart = () => {
   return (
     <Card className="p-6 mb-8">
       <h2 className="text-xl font-semibold mb-4">Platformlara Göre Meslek Dağılımı</h2>
-      <div className="h-[500px]">
+      <div className="h-[600px] w-full overflow-x-auto">
         <ChartContainer
           config={{
             nursing: { color: colors.nursing },
@@ -81,30 +81,33 @@ const ProfessionDistributionChart = () => {
                 dataKey="platform"
                 angle={-45}
                 textAnchor="end"
-                height={100}
+                height={80}
                 interval={0}
                 tick={{ fontSize: 12 }}
               />
               <YAxis />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Legend />
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
               <Bar
                 dataKey="nursing"
                 name="Hemşirelik"
                 fill={colors.nursing}
                 stackId="a"
+                maxBarSize={50}
               />
               <Bar
                 dataKey="automotive"
                 name="Otomotiv"
                 fill={colors.automotive}
                 stackId="a"
+                maxBarSize={50}
               />
               <Bar
                 dataKey="electrical"
                 name="Elektrik"
                 fill={colors.electrical}
                 stackId="a"
+                maxBarSize={50}
               />
             </BarChart>
           </ResponsiveContainer>
