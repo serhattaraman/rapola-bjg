@@ -144,26 +144,26 @@ const AdvertisingReports = () => {
         </div>
 
         {/* Platform Bazlı Başvuru Durumları */}
-        <Card className="p-6 mb-8">
+        <Card className="p-6 mb-12"> {/* Increased bottom margin to prevent overlap */}
           <h2 className="text-xl font-semibold mb-4">Platform Bazlı Başvuru Durumları</h2>
-          <div className="h-[500px] w-full"> {/* Fixed height and width to ensure proper rendering */}
+          <div className="h-[550px] w-full"> {/* Increased height for better spacing */}
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 
                   data={statusData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 100 }} /* Increased bottom margin for labels */
-                  barSize={30} /* Control the width of bars */
-                  barGap={3} /* Gap between bars in the same category */
+                  margin={{ top: 20, right: 30, left: 20, bottom: 120 }} /* Further increased bottom margin */
+                  barSize={28} /* Adjusted bar size */
+                  barGap={5} /* Increased gap between bars */
                 >
                   <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
                   <XAxis 
                     dataKey="name" 
                     angle={-45}
                     textAnchor="end"
-                    height={100} /* Increased height for angled labels */
+                    height={120} /* Increased height for angled labels */
                     interval={0}
                     tick={{fontSize: 12}}
-                    tickMargin={10} /* Space between labels and axis */
+                    tickMargin={15} /* Increased space between labels and axis */
                   />
                   <YAxis 
                     axisLine={true}
@@ -172,13 +172,19 @@ const AdvertisingReports = () => {
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
                     cursor={{fill: 'transparent'}}
-                    wrapperStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}
+                    wrapperStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: '8px', 
+                      padding: '8px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+                    }}
                   />
                   <Legend 
                     verticalAlign="top" 
-                    height={36}
-                    wrapperStyle={{ paddingBottom: '15px' }}
-                    iconSize={12}
+                    height={40} /* Increased legend height */
+                    wrapperStyle={{ paddingBottom: '20px' }} /* Added more padding */
+                    iconSize={14}
                     iconType="circle"
                   />
                   <Bar 
@@ -187,7 +193,7 @@ const AdvertisingReports = () => {
                     stackId="a" 
                     fill="#4ade80" 
                     radius={[4, 4, 0, 0]}
-                    maxBarSize={50}
+                    maxBarSize={45}
                   />
                   <Bar 
                     dataKey="discontinued" 
@@ -195,7 +201,7 @@ const AdvertisingReports = () => {
                     stackId="a" 
                     fill="#f87171" 
                     radius={[0, 0, 0, 0]}
-                    maxBarSize={50}
+                    maxBarSize={45}
                   />
                   <Bar 
                     dataKey="notSuitable" 
@@ -203,7 +209,7 @@ const AdvertisingReports = () => {
                     stackId="a" 
                     fill="#fbbf24" 
                     radius={[0, 0, 4, 4]}
-                    maxBarSize={50}
+                    maxBarSize={45}
                   />
                 </BarChart>
               </ResponsiveContainer>
