@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import {
@@ -7,6 +6,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import ProfessionDistributionChart from '@/components/ProfessionDistributionChart';
 
 // Platform application data
 const platformData = [
@@ -216,6 +216,9 @@ const AdvertisingReports = () => {
             </ChartContainer>
           </div>
         </Card>
+
+        {/* New Profession Distribution Chart */}
+        <ProfessionDistributionChart />
 
         {/* Özet Kartları */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
