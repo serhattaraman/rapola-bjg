@@ -1,7 +1,8 @@
+
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import DarkModeToggle from "./DarkModeToggle";
+import { DarkModeToggle } from "./DarkModeToggle";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,9 +13,9 @@ import {
 } from "@/components/ui/navigation-menu";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
-  const isAdmin = user?.role === "admin";
-  const isAdminOrManager = isAdmin || user?.role === "manager";
+  const { currentUser, isAuthenticated, logout } = useAuth();
+  const isAdmin = currentUser?.role === "admin";
+  const isAdminOrManager = isAdmin || currentUser?.role === "manager";
 
   return (
     <nav className="bg-background sticky top-0 z-50 w-full border-b">
@@ -25,7 +26,7 @@ const Navbar = () => {
           </Link>
           
           <NavigationMenuList>
-            {user && (
+            {isAuthenticated && (
               <>
                 <NavigationMenuItem>
                   <Link to="/" className="nav-link">
@@ -80,7 +81,7 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-2">
             <DarkModeToggle />
-            {user ? (
+            {isAuthenticated ? (
               <Button variant="destructive" size="sm" onClick={logout}>
                 Çıkış Yap
               </Button>
