@@ -16,6 +16,7 @@ type CandidateFormData = {
   stage: string;
   notes: string;
   documents?: FileList;
+  source: string; // New field for tracking where the candidate found us
 };
 
 const AddCandidate = () => {
@@ -28,7 +29,8 @@ const AddCandidate = () => {
     defaultValues: {
       applicationDate: new Date().toISOString().split('T')[0],
       status: 'pending',
-      stage: 'Başvuru'
+      stage: 'Başvuru',
+      source: '' // Default empty source
     }
   });
   
@@ -201,6 +203,28 @@ const AddCandidate = () => {
                 </select>
                 {errors.stage && (
                   <p className="text-red-500 text-xs mt-1">{errors.stage.message}</p>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bize nereden ulaştınız? <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className={`w-full px-4 py-2 border ${errors.source ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all`}
+                  {...register('source', { required: 'Başvuru kaynağı seçilmelidir' })}
+                >
+                  <option value="">Seçiniz</option>
+                  <option value="google-ads">Google Reklam</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="x">X</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="website">Sitemiz</option>
+                </select>
+                {errors.source && (
+                  <p className="text-red-500 text-xs mt-1">{errors.source.message}</p>
                 )}
               </div>
             </div>
