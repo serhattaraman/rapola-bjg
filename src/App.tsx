@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,7 +18,6 @@ import UserReports from "./pages/UserReports";
 import RouteGuard from "./components/RouteGuard";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
-import AdvertisingReports from "./pages/AdvertisingReports";
 
 const queryClient = new QueryClient();
 
@@ -48,7 +48,6 @@ const App = () => {
               <Route element={<RouteGuard allowedRoles={['admin', 'manager']} />}>
                 <Route path="/add-candidate" element={<AddCandidate />} />
                 <Route path="/reports" element={<UserReports />} />
-                <Route path="/advertising-reports" element={<AdvertisingReports />} />
               </Route>
               
               {/* Admin only routes */}
