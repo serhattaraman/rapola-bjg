@@ -11,68 +11,52 @@ import {
 const professionData = [
   {
     platform: 'Google Ads',
-    developer: 25,
-    teacher: 15,
-    doctor: 10,
-    engineer: 20,
-    lawyer: 8
+    nursing: 45,
+    automotive: 25,
+    electrical: 30
   },
   {
     platform: 'Instagram',
-    developer: 18,
-    teacher: 12,
-    doctor: 8,
-    engineer: 15,
-    lawyer: 10
+    nursing: 38,
+    automotive: 22,
+    electrical: 28
   },
   {
     platform: 'X',
-    developer: 12,
-    teacher: 8,
-    doctor: 5,
-    engineer: 10,
-    lawyer: 6
+    nursing: 25,
+    automotive: 15,
+    electrical: 20
   },
   {
     platform: 'LinkedIn',
-    developer: 30,
-    teacher: 10,
-    doctor: 12,
-    engineer: 25,
-    lawyer: 15
+    nursing: 50,
+    automotive: 35,
+    electrical: 40
   },
   {
     platform: 'YouTube',
-    developer: 15,
-    teacher: 20,
-    doctor: 8,
-    engineer: 12,
-    lawyer: 5
+    nursing: 30,
+    automotive: 28,
+    electrical: 25
   },
   {
     platform: 'TikTok',
-    developer: 10,
-    teacher: 25,
-    doctor: 15,
-    engineer: 8,
-    lawyer: 12
+    nursing: 35,
+    automotive: 20,
+    electrical: 15
   },
   {
     platform: 'Website',
-    developer: 22,
-    teacher: 18,
-    doctor: 20,
-    engineer: 16,
-    lawyer: 14
+    nursing: 42,
+    automotive: 32,
+    electrical: 35
   }
 ];
 
 const colors = {
-  developer: '#9b87f5',
-  teacher: '#0EA5E9',
-  doctor: '#F97316',
-  engineer: '#D946EF',
-  lawyer: '#82ca9d'
+  nursing: '#F97316',    // Bright Orange
+  automotive: '#0EA5E9', // Ocean Blue
+  electrical: '#9b87f5'  // Primary Purple
 };
 
 const ProfessionDistributionChart = () => {
@@ -82,11 +66,9 @@ const ProfessionDistributionChart = () => {
       <div className="h-[500px]">
         <ChartContainer
           config={{
-            developer: { color: colors.developer },
-            teacher: { color: colors.teacher },
-            doctor: { color: colors.doctor },
-            engineer: { color: colors.engineer },
-            lawyer: { color: colors.lawyer }
+            nursing: { color: colors.nursing },
+            automotive: { color: colors.automotive },
+            electrical: { color: colors.electrical }
           }}
         >
           <ResponsiveContainer width="100%" height="100%">
@@ -107,33 +89,21 @@ const ProfessionDistributionChart = () => {
               <ChartTooltip content={<ChartTooltipContent />} />
               <Legend />
               <Bar
-                dataKey="developer"
-                name="Yazılımcı"
-                fill={colors.developer}
+                dataKey="nursing"
+                name="Hemşirelik"
+                fill={colors.nursing}
                 stackId="a"
               />
               <Bar
-                dataKey="teacher"
-                name="Öğretmen"
-                fill={colors.teacher}
+                dataKey="automotive"
+                name="Otomotiv"
+                fill={colors.automotive}
                 stackId="a"
               />
               <Bar
-                dataKey="doctor"
-                name="Doktor"
-                fill={colors.doctor}
-                stackId="a"
-              />
-              <Bar
-                dataKey="engineer"
-                name="Mühendis"
-                fill={colors.engineer}
-                stackId="a"
-              />
-              <Bar
-                dataKey="lawyer"
-                name="Avukat"
-                fill={colors.lawyer}
+                dataKey="electrical"
+                name="Elektrik"
+                fill={colors.electrical}
                 stackId="a"
               />
             </BarChart>
