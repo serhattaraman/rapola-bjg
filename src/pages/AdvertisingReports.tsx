@@ -142,21 +142,55 @@ const AdvertisingReports = () => {
           </Card>
         </div>
 
-        {/* Yeni Durum Grafiği */}
+        {/* Platform Bazlı Başvuru Durumları */}
         <Card className="p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Platform Bazlı Başvuru Durumları</h2>
-          <div className="h-[400px]">
+          <div className="h-[500px]"> {/* Increased height for better visibility */}
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={statusData}>
+                <BarChart 
+                  data={statusData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                    tick={{fontSize: 12}}
+                  />
                   <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                  <Bar dataKey="ongoing" name="Devam Eden" stackId="a" fill="#4ade80" />
-                  <Bar dataKey="discontinued" name="Vazgeçen" stackId="a" fill="#f87171" />
-                  <Bar dataKey="notSuitable" name="Uygun Değil" stackId="a" fill="#fbbf24" />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    cursor={{fill: 'transparent'}}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    height={36}
+                  />
+                  <Bar 
+                    dataKey="ongoing" 
+                    name="Devam Eden" 
+                    stackId="a" 
+                    fill="#4ade80" 
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="discontinued" 
+                    name="Vazgeçen" 
+                    stackId="a" 
+                    fill="#f87171" 
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar 
+                    dataKey="notSuitable" 
+                    name="Uygun Değil" 
+                    stackId="a" 
+                    fill="#fbbf24" 
+                    radius={[4, 4, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
