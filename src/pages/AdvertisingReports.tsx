@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import {
@@ -64,13 +65,13 @@ const statusData = [
   }
 ];
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
+const COLORS = ['#9b87f5', '#0EA5E9', '#F97316', '#D946EF', '#8884d8', '#82ca9d', '#ffc658'];
 
 const chartConfig = {
-  google: { color: '#0088FE' },
-  instagram: { color: '#00C49F' },
-  x: { color: '#FFBB28' },
-  linkedin: { color: '#FF8042' },
+  google: { color: '#9b87f5' },
+  instagram: { color: '#0EA5E9' },
+  x: { color: '#F97316' },
+  linkedin: { color: '#D946EF' },
   youtube: { color: '#8884d8' },
   tiktok: { color: '#82ca9d' },
   website: { color: '#ffc658' },
@@ -88,7 +89,7 @@ const AdvertisingReports = () => {
           <p className="text-gray-500 mt-1">Platformlara göre başvuru istatistikleri</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Pasta Grafiği */}
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4">Kaynaklara Göre Başvuru Dağılımı</h2>
@@ -143,32 +144,42 @@ const AdvertisingReports = () => {
         </div>
 
         {/* Platform Bazlı Başvuru Durumları */}
-        <Card className="p-6 mb-6">
+        <Card className="p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Platform Bazlı Başvuru Durumları</h2>
-          <div className="h-[500px]"> {/* Increased height for better visibility */}
+          <div className="h-[500px] w-full"> {/* Fixed height and width to ensure proper rendering */}
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart 
                   data={statusData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 100 }} /* Increased bottom margin for labels */
+                  barSize={30} /* Control the width of bars */
+                  barGap={3} /* Gap between bars in the same category */
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
                   <XAxis 
                     dataKey="name" 
                     angle={-45}
                     textAnchor="end"
-                    height={80}
+                    height={100} /* Increased height for angled labels */
                     interval={0}
                     tick={{fontSize: 12}}
+                    tickMargin={10} /* Space between labels and axis */
                   />
-                  <YAxis />
+                  <YAxis 
+                    axisLine={true}
+                    tickLine={true}
+                  />
                   <ChartTooltip 
                     content={<ChartTooltipContent />}
                     cursor={{fill: 'transparent'}}
+                    wrapperStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px' }}
                   />
                   <Legend 
                     verticalAlign="top" 
                     height={36}
+                    wrapperStyle={{ paddingBottom: '15px' }}
+                    iconSize={12}
+                    iconType="circle"
                   />
                   <Bar 
                     dataKey="ongoing" 
@@ -176,20 +187,23 @@ const AdvertisingReports = () => {
                     stackId="a" 
                     fill="#4ade80" 
                     radius={[4, 4, 0, 0]}
+                    maxBarSize={50}
                   />
                   <Bar 
                     dataKey="discontinued" 
                     name="Vazgeçen" 
                     stackId="a" 
                     fill="#f87171" 
-                    radius={[4, 4, 0, 0]}
+                    radius={[0, 0, 0, 0]}
+                    maxBarSize={50}
                   />
                   <Bar 
                     dataKey="notSuitable" 
                     name="Uygun Değil" 
                     stackId="a" 
                     fill="#fbbf24" 
-                    radius={[4, 4, 0, 0]}
+                    radius={[0, 0, 4, 4]}
+                    maxBarSize={50}
                   />
                 </BarChart>
               </ResponsiveContainer>
