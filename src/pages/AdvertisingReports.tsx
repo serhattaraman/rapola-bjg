@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import {
@@ -80,22 +81,6 @@ const chartConfig = {
 };
 
 const AdvertisingReports = () => {
-  // Extract data for separate charts
-  const ongoingData = statusData.map(item => ({
-    name: item.name,
-    value: item.ongoing
-  }));
-
-  const discontinuedData = statusData.map(item => ({
-    name: item.name,
-    value: item.discontinued
-  }));
-
-  const notSuitableData = statusData.map(item => ({
-    name: item.name,
-    value: item.notSuitable
-  }));
-
   return (
     <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-7xl mx-auto">
@@ -158,110 +143,79 @@ const AdvertisingReports = () => {
           </Card>
         </div>
 
-        {/* Platform Based Application Status - Split into 3 Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          {/* Ongoing Applications */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Devam Eden Başvurular</h2>
-            <div className="h-[400px]">
-              <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={ongoingData}
-                    margin={{ top: 20, right: 10, left: 10, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={{fontSize: 11}}
-                      tickMargin={10}
-                    />
-                    <YAxis axisLine={true} tickLine={true} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar 
-                      dataKey="value" 
-                      name="Devam Eden" 
-                      fill="#4ade80"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          </Card>
-
-          {/* Discontinued Applications */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Vazgeçen Başvurular</h2>
-            <div className="h-[400px]">
-              <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={discontinuedData}
-                    margin={{ top: 20, right: 10, left: 10, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={{fontSize: 11}}
-                      tickMargin={10}
-                    />
-                    <YAxis axisLine={true} tickLine={true} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar 
-                      dataKey="value" 
-                      name="Vazgeçen" 
-                      fill="#f87171"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          </Card>
-
-          {/* Not Suitable Applications */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Uygun Olmayan Başvurular</h2>
-            <div className="h-[400px]">
-              <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={notSuitableData}
-                    margin={{ top: 20, right: 10, left: 10, bottom: 60 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
-                    <XAxis 
-                      dataKey="name" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      interval={0}
-                      tick={{fontSize: 11}}
-                      tickMargin={10}
-                    />
-                    <YAxis axisLine={true} tickLine={true} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar 
-                      dataKey="value" 
-                      name="Uygun Değil" 
-                      fill="#fbbf24"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          </Card>
-        </div>
+        {/* Platform Bazlı Başvuru Durumları */}
+        <Card className="p-6 mb-12"> {/* Increased bottom margin to prevent overlap */}
+          <h2 className="text-xl font-semibold mb-4">Platform Bazlı Başvuru Durumları</h2>
+          <div className="h-[550px] w-full"> {/* Increased height for better spacing */}
+            <ChartContainer config={chartConfig}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={statusData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 120 }} /* Further increased bottom margin */
+                  barSize={28} /* Adjusted bar size */
+                  barGap={5} /* Increased gap between bars */
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={120} /* Increased height for angled labels */
+                    interval={0}
+                    tick={{fontSize: 12}}
+                    tickMargin={15} /* Increased space between labels and axis */
+                  />
+                  <YAxis 
+                    axisLine={true}
+                    tickLine={true}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    cursor={{fill: 'transparent'}}
+                    wrapperStyle={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e2e8f0', 
+                      borderRadius: '8px', 
+                      padding: '8px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+                    }}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    height={40} /* Increased legend height */
+                    wrapperStyle={{ paddingBottom: '20px' }} /* Added more padding */
+                    iconSize={14}
+                    iconType="circle"
+                  />
+                  <Bar 
+                    dataKey="ongoing" 
+                    name="Devam Eden" 
+                    stackId="a" 
+                    fill="#4ade80" 
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={45}
+                  />
+                  <Bar 
+                    dataKey="discontinued" 
+                    name="Vazgeçen" 
+                    stackId="a" 
+                    fill="#f87171" 
+                    radius={[0, 0, 0, 0]}
+                    maxBarSize={45}
+                  />
+                  <Bar 
+                    dataKey="notSuitable" 
+                    name="Uygun Değil" 
+                    stackId="a" 
+                    fill="#fbbf24" 
+                    radius={[0, 0, 4, 4]}
+                    maxBarSize={45}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </Card>
 
         {/* Özet Kartları */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
