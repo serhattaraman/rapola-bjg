@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/chart';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import ProfessionDistributionChart from '@/components/ProfessionDistributionChart';
+import TimeBasedDensityChart from '@/components/TimeBasedDensityChart';
 
 // Platform application data
 const platformData = [
@@ -217,7 +218,10 @@ const AdvertisingReports = () => {
           </div>
         </Card>
 
-        {/* New Profession Distribution Chart */}
+        {/* New Time Based Density Chart */}
+        <TimeBasedDensityChart />
+
+        {/* Existing Profession Distribution Chart */}
         <ProfessionDistributionChart />
 
         {/* Özet Kartları */}
