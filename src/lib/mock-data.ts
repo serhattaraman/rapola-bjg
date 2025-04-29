@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface Candidate {
@@ -827,4 +828,58 @@ export const mockCandidates: Candidate[] = [
     description: "Almanya'da yazılım geliştirici olarak çalışmak istiyor.",
     notes: [
       "Mülakat planlandı.",
-      "Teknik bilgisi değerlendirilecek
+      "Teknik bilgisi değerlendirilecek."
+    ],
+    source: "YazılımcıPlatformu.com",
+    responsiblePerson: "Deniz Yılmaz",
+    examResults: [
+      {
+        level: "C1",
+        date: "2024-03-05",
+        score: 90,
+        passed: true
+      }
+    ],
+    documents: [
+      {
+        type: "CV",
+        name: "gizem_arslan_cv.pdf",
+        uploadDate: "2024-04-05",
+        status: "approved"
+      },
+      {
+        type: "Kod Örnekleri",
+        name: "gizem_arslan_kodornekleri.pdf",
+        uploadDate: "2024-04-07",
+        status: "pending"
+      }
+    ],
+    visaStatus: "not_applied"
+  }
+];
+
+// Helper functions to format dates and calculate durations
+export const formatDate = (dateString: string | Date): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('tr-TR');
+};
+
+export const calculateDurationInDays = (startDate: string | Date, endDate: string | Date): number => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const differenceInTime = end.getTime() - start.getTime();
+  return Math.ceil(differenceInTime / (1000 * 3600 * 24));
+};
+
+export const formatDuration = (days: number): string => {
+  if (days === 0) return "Bugün";
+  if (days === 1) return "1 gün";
+  return `${days} gün`;
+};
+
+export const getDaysRemaining = (dateString: string | Date): number => {
+  const targetDate = new Date(dateString);
+  const today = new Date();
+  const differenceInTime = targetDate.getTime() - today.getTime();
+  return Math.ceil(differenceInTime / (1000 * 3600 * 24));
+};
