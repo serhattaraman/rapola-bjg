@@ -827,4 +827,4 @@ export const mockCandidates: Candidate[] = [
     description: "Almanya'da yazılım geliştirici olarak çalışmak istiyor.",
     notes: [
       "Mülakat planlandı.",
-      "Teknik bilgisi değerlendirilecek."
+      "Teknik bilgisi değerlendirilecek
