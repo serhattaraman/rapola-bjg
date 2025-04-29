@@ -1,5 +1,22 @@
-
 import { faker } from '@faker-js/faker';
+
+export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected' | 'waiting';
+export type ClassConfirmation = 'pending' | 'confirmed';
+
+export interface ExamResult {
+  level: string;
+  passed: boolean;
+  score?: number;
+  date?: Date | string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  date: Date | string;
+  title: string;
+  description: string;
+  staff?: string;
+}
 
 export interface Candidate {
   id: string;
@@ -7,879 +24,388 @@ export interface Candidate {
   lastName: string;
   email: string;
   phone: string;
-  appliedAt: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  birthDate?: string; // Tarih bilgisi için eklendi
-  birthPlace?: string; // Doğum yeri için eklendi
-  status: "active" | "inactive" | "pending";
-  group?: string;
+  position: string;
+  profession: string;
+  age: number;
+  experienceYears: number;
+  appliedAt: Date | string;
+  status: CandidateStatus;
   stage: string;
-  profession?: string;
-  followUpDate?: string;
-  description?: string;
-  notes?: string[];
-  source?: string;
+  processDays: number;
+  startDate: Date | string;
+  endDate: Date | string;
   responsiblePerson?: string;
-  examResults?: {
-    level: string;
-    date: string;
-    score?: number;
-    passed: boolean;
+  classConfirmation?: ClassConfirmation;
+  examResults?: ExamResult[];
+  returnDate?: Date | string;
+  rejectionReason?: string;
+  rejectionNote?: string;
+  notes?: string[];
+  timeline?: TimelineEvent[];
+  stageTimeline?: {
+    stage: string;
+    date: Date | string;
+    completedOn?: Date | string;
   }[];
-  documents?: {
-    type: string;
-    name: string;
-    uploadDate: string;
-    status: "approved" | "rejected" | "pending";
-  }[];
-  visaStatus?: "not_applied" | "in_progress" | "approved" | "rejected";
+  group?: string; // Add group field to Candidate interface
 }
 
-// Mock candidates data
-export const mockCandidates: Candidate[] = [
-  {
-    id: "1",
-    firstName: "Ahmet",
-    lastName: "Yılmaz",
-    email: "ahmet.yilmaz@example.com",
-    phone: "+90 532 123 4567",
-    appliedAt: "2023-05-15T10:30:00",
-    address: "Atatürk Cad. No:123",
-    city: "İstanbul",
-    country: "Türkiye",
-    birthDate: "1990-05-12", // Tarih bilgisi eklendi
-    birthPlace: "Ankara", // Doğum yeri eklendi
-    status: "active",
-    group: "A1-1",
-    stage: "Telefon Görüşmesi",
-    profession: "Hemşire",
-    followUpDate: "2023-06-01T14:00:00",
-    description: "Almanya'da hemşire olarak çalışmak istiyor.",
-    notes: [
-      "İlk görüşme olumlu geçti.",
-      "Almanca seviyesi B1 düzeyinde.",
-      "2 yıllık tecrübesi var."
-    ],
-    source: "Instagram",
-    responsiblePerson: "Mehmet Demir",
-    examResults: [
-      {
-        level: "A1",
-        date: "2023-04-20",
-        score: 85,
-        passed: true
+// Modified to ensure logical exam progression: You must pass previous level to take next exam
+const generateRandomExamResults = (): ExamResult[] => {
+  const levels = ['A1', 'A2', 'B1', 'B2'];
+  const results: ExamResult[] = [];
+  
+  // Start with A1
+  const a1Passed = faker.datatype.boolean();
+  results.push({
+    level: 'A1',
+    passed: a1Passed,
+    score: faker.number.int({ min: a1Passed ? 60 : 30, max: a1Passed ? 100 : 59 }),
+    date: faker.date.past(),
+  });
+  
+  // Only continue to A2 if A1 was passed
+  if (a1Passed) {
+    const a2Passed = faker.datatype.boolean();
+    results.push({
+      level: 'A2',
+      passed: a2Passed,
+      score: faker.number.int({ min: a2Passed ? 60 : 30, max: a2Passed ? 100 : 59 }),
+      date: faker.date.recent({ days: 60 }),
+    });
+    
+    // Only continue to B1 if A2 was passed
+    if (a2Passed) {
+      const b1Passed = faker.datatype.boolean();
+      results.push({
+        level: 'B1',
+        passed: b1Passed,
+        score: faker.number.int({ min: b1Passed ? 60 : 30, max: b1Passed ? 100 : 59 }),
+        date: faker.date.recent({ days: 30 }),
+      });
+      
+      // Only continue to B2 if B1 was passed
+      if (b1Passed) {
+        const b2Passed = faker.datatype.boolean();
+        results.push({
+          level: 'B2',
+          passed: b2Passed,
+          score: faker.number.int({ min: b2Passed ? 60 : 30, max: b2Passed ? 100 : 59 }),
+          date: faker.date.recent({ days: 15 }),
+        });
       }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "ahmet_yilmaz_cv.pdf",
-        uploadDate: "2023-05-15",
-        status: "approved"
-      },
-      {
-        type: "Diploma",
-        name: "ahmet_yilmaz_diploma.pdf",
-        uploadDate: "2023-05-16",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "2",
-    firstName: "Ayşe",
-    lastName: "Demir",
-    email: "ayse.demir@example.com",
-    phone: "+90 533 234 5678",
-    appliedAt: "2023-06-20T09:15:00",
-    address: "Cumhuriyet Meydanı No:45",
-    city: "İzmir",
-    country: "Türkiye",
-    birthDate: "1988-02-20", // Tarih bilgisi eklendi
-    birthPlace: "İstanbul", // Doğum yeri eklendi
-    status: "active",
-    group: "A1-1",
-    stage: "İK Görüşmesi",
-    profession: "Öğretmen",
-    followUpDate: "2023-07-05T11:30:00",
-    description: "İngilizce öğretmeni olarak çalışmak istiyor.",
-    notes: [
-      "Referansları kontrol edilecek.",
-      "Yüksek lisans diploması var."
-    ],
-    source: "LinkedIn",
-    responsiblePerson: "Zeynep Kaya",
-    examResults: [
-      {
-        level: "A1",
-        date: "2023-05-25",
-        score: 92,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "ayse_demir_cv.pdf",
-        uploadDate: "2023-06-20",
-        status: "approved"
-      },
-      {
-        type: "Transkript",
-        name: "ayse_demir_transkript.pdf",
-        uploadDate: "2023-06-22",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "3",
-    firstName: "Mehmet",
-    lastName: "Kaya",
-    email: "mehmet.kaya@example.com",
-    phone: "+90 534 345 6789",
-    appliedAt: "2023-07-10T14:45:00",
-    address: "İnönü Bulvarı No:67",
-    city: "Ankara",
-    country: "Türkiye",
-    birthDate: "1992-08-15", // Tarih bilgisi eklendi
-    birthPlace: "İzmir", // Doğum yeri eklendi
-    status: "pending",
-    group: "A1-2",
-    stage: "Mülakat",
-    profession: "Mühendis",
-    followUpDate: "2023-07-25T16:00:00",
-    description: "Almanya'da mühendis olarak çalışmak istiyor.",
-    notes: [
-      "Mülakat tarihi belirlendi.",
-      "Tecrübe alanları incelenecek."
-    ],
-    source: "Kariyer.net",
-    responsiblePerson: "Ali Can",
-    examResults: [
-      {
-        level: "A1",
-        date: "2023-06-15",
-        score: 78,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "mehmet_kaya_cv.pdf",
-        uploadDate: "2023-07-10",
-        status: "approved"
-      },
-      {
-        type: "Niyet Mektubu",
-        name: "mehmet_kaya_niyetmektubu.pdf",
-        uploadDate: "2023-07-12",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "4",
-    firstName: "Fatma",
-    lastName: "Şahin",
-    email: "fatma.sahin@example.com",
-    phone: "+90 535 456 7890",
-    appliedAt: "2023-08-01T11:00:00",
-    address: "Ziya Gökalp Caddesi No:89",
-    city: "Bursa",
-    country: "Türkiye",
-    birthDate: "1985-11-01", // Tarih bilgisi eklendi
-    birthPlace: "Adana", // Doğum yeri eklendi
-    status: "inactive",
-    group: "A1-2",
-    stage: "Evrak Toplama",
-    profession: "Doktor",
-    followUpDate: "2023-08-15T13:30:00",
-    description: "Almanya'da doktor olarak çalışmak istiyor.",
-    notes: [
-      "Gerekli evraklar listesi gönderildi.",
-      "Denklik işlemleri başlatılacak."
-    ],
-    source: "DoktorSitesi.com",
-    responsiblePerson: "Elif Yılmaz",
-    examResults: [
-      {
-        level: "A1",
-        date: "2023-07-01",
-        score: 65,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "fatma_sahin_cv.pdf",
-        uploadDate: "2023-08-01",
-        status: "approved"
-      },
-      {
-        type: "Tıp Diploması",
-        name: "fatma_sahin_tipdiplomasi.pdf",
-        uploadDate: "2023-08-03",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "5",
-    firstName: "Mustafa",
-    lastName: "Öztürk",
-    email: "mustafa.ozturk@example.com",
-    phone: "+90 536 567 8901",
-    appliedAt: "2023-09-05T16:15:00",
-    address: "Mithatpaşa Caddesi No:21",
-    city: "Adana",
-    country: "Türkiye",
-    birthDate: "1995-03-25", // Tarih bilgisi eklendi
-    birthPlace: "Gaziantep", // Doğum yeri eklendi
-    status: "active",
-    group: "A2-1",
-    stage: "Evrak Hazırlığı",
-    profession: "Diş Hekimi",
-    followUpDate: "2023-09-20T10:00:00",
-    description: "Almanya'da diş hekimi olarak çalışmak istiyor.",
-    notes: [
-      "Evrak hazırlık süreci başladı.",
-      "Gerekli tercümeler yapılacak."
-    ],
-    source: "LinkedIn",
-    responsiblePerson: "Burak Demir",
-    examResults: [
-      {
-        level: "A2",
-        date: "2023-08-05",
-        score: 70,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "mustafa_ozturk_cv.pdf",
-        uploadDate: "2023-09-05",
-        status: "approved"
-      },
-      {
-        type: "Diş Hekimliği Diploması",
-        name: "mustafa_ozturk_dishdiplomasi.pdf",
-        uploadDate: "2023-09-07",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "6",
-    firstName: "Elif",
-    lastName: "Yıldırım",
-    email: "elif.yildirim@example.com",
-    phone: "+90 537 678 9012",
-    appliedAt: "2023-10-10T08:30:00",
-    address: "Atatürk Bulvarı No:34",
-    city: "Gaziantep",
-    country: "Türkiye",
-    birthDate: "1991-07-04", // Tarih bilgisi eklendi
-    birthPlace: "Ankara", // Doğum yeri eklendi
-    status: "active",
-    group: "A2-1",
-    stage: "Belge Kontrol",
-    profession: "Avukat",
-    followUpDate: "2023-10-25T14:15:00",
-    description: "Almanya'da avukat olarak çalışmak istiyor.",
-    notes: [
-      "Belge kontrol süreci devam ediyor.",
-      "Eksik belgeler tamamlanacak."
-    ],
-    source: "AvukatSitesi.com",
-    responsiblePerson: "Ayşe Kaya",
-    examResults: [
-      {
-        level: "A2",
-        date: "2023-09-10",
-        score: 88,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "elif_yildirim_cv.pdf",
-        uploadDate: "2023-10-10",
-        status: "approved"
-      },
-      {
-        type: "Hukuk Fakültesi Diploması",
-        name: "elif_yildirim_hukukdiplomasi.pdf",
-        uploadDate: "2023-10-12",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "7",
-    firstName: "Serkan",
-    lastName: "Kara",
-    email: "serkan.kara@example.com",
-    phone: "+90 538 789 0123",
-    appliedAt: "2023-11-15T12:45:00",
-    address: "İnönü Caddesi No:56",
-    city: "Konya",
-    country: "Türkiye",
-    birthDate: "1987-12-24", // Tarih bilgisi eklendi
-    birthPlace: "Sivas", // Doğum yeri eklendi
-    status: "pending",
-    group: "A2-2",
-    stage: "Sisteme Evrak Girişi",
-    profession: "Mimar",
-    followUpDate: "2023-11-30T11:00:00",
-    description: "Almanya'da mimar olarak çalışmak istiyor.",
-    notes: [
-      "Evraklar sisteme giriliyor.",
-      "Onay süreci başlayacak."
-    ],
-    source: "MimarPlatformu.com",
-    responsiblePerson: "Cemil Demir",
-    examResults: [
-      {
-        level: "A2",
-        date: "2023-10-15",
-        score: 95,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "serkan_kara_cv.pdf",
-        uploadDate: "2023-11-15",
-        status: "approved"
-      },
-      {
-        type: "Mimarlık Diploması",
-        name: "serkan_kara_mimarlikdiplomasi.pdf",
-        uploadDate: "2023-11-17",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "8",
-    firstName: "Gülcan",
-    lastName: "Arslan",
-    email: "gulcan.arslan@example.com",
-    phone: "+90 539 890 1234",
-    appliedAt: "2023-12-01T09:00:00",
-    address: "Cumhuriyet Caddesi No:78",
-    city: "Sivas",
-    country: "Türkiye",
-    birthDate: "1993-09-18", // Tarih bilgisi eklendi
-    birthPlace: "Konya", // Doğum yeri eklendi
-    status: "active",
-    group: "A2-2",
-    stage: "Sınıf Yerleştirme",
-    profession: "Müzisyen",
-    followUpDate: "2023-12-15T15:30:00",
-    description: "Almanya'da müzisyen olarak çalışmak istiyor.",
-    notes: [
-      "Sınıf yerleştirme işlemleri yapılıyor.",
-      "Müzik yeteneği değerlendirilecek."
-    ],
-    source: "MüzikOkulu.com",
-    responsiblePerson: "Deniz Yılmaz",
-    examResults: [
-      {
-        level: "A2",
-        date: "2023-11-01",
-        score: 60,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "gulcan_arslan_cv.pdf",
-        uploadDate: "2023-12-01",
-        status: "approved"
-      },
-      {
-        type: "Müzik Diploması",
-        name: "gulcan_arslan_muzikdiplomasi.pdf",
-        uploadDate: "2023-12-03",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "9",
-    firstName: "Umut",
-    lastName: "Can",
-    email: "umut.can@example.com",
-    phone: "+90 540 901 2345",
-    appliedAt: "2024-01-05T14:30:00",
-    address: "Ziya Gökalp Bulvarı No:90",
-    city: "Eskişehir",
-    country: "Türkiye",
-    birthDate: "1989-06-10", // Tarih bilgisi eklendi
-    birthPlace: "Bursa", // Doğum yeri eklendi
-    status: "active",
-    group: "B1-1",
-    stage: "Denklik Süreci",
-    profession: "Öğretim Görevlisi",
-    followUpDate: "2024-01-20T10:45:00",
-    description: "Almanya'da öğretim görevlisi olarak çalışmak istiyor.",
-    notes: [
-      "Denklik süreci başlatıldı.",
-      "Gerekli belgeler hazırlanıyor."
-    ],
-    source: "ÜniversiteKariyer.com",
-    responsiblePerson: "Fırat Arslan",
-    examResults: [
-      {
-        level: "B1",
-        date: "2023-12-05",
-        score: 75,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "umut_can_cv.pdf",
-        uploadDate: "2024-01-05",
-        status: "approved"
-      },
-      {
-        type: "Akademik Transkript",
-        name: "umut_can_akademiktranskript.pdf",
-        uploadDate: "2024-01-07",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "10",
-    firstName: "Pınar",
-    lastName: "Aydın",
-    email: "pinar.aydin@example.com",
-    phone: "+90 541 012 3456",
-    appliedAt: "2024-02-10T11:15:00",
-    address: "Mithatpaşa Caddesi No:12",
-    city: "Antalya",
-    country: "Türkiye",
-    birthDate: "1994-04-02", // Tarih bilgisi eklendi
-    birthPlace: "Eskişehir", // Doğum yeri eklendi
-    status: "pending",
-    group: "B1-1",
-    stage: "Sertifika Süreci",
-    profession: "Yazılımcı",
-    followUpDate: "2024-02-25T16:00:00",
-    description: "Almanya'da yazılımcı olarak çalışmak istiyor.",
-    notes: [
-      "Sertifika süreci başlatılacak.",
-      "Gerekli sınavlara hazırlanılıyor."
-    ],
-    source: "YazılımcıKariyer.com",
-    responsiblePerson: "Gamze Demir",
-    examResults: [
-      {
-        level: "B1",
-        date: "2024-01-10",
-        score: 82,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "pinar_aydin_cv.pdf",
-        uploadDate: "2024-02-10",
-        status: "approved"
-      },
-      {
-        type: "Yazılım Sertifikaları",
-        name: "pinar_aydin_yazilimsertifikalari.pdf",
-        uploadDate: "2024-02-12",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "11",
-    firstName: "Canan",
-    lastName: "Güneş",
-    email: "canan.gunes@example.com",
-    phone: "+90 542 123 4567",
-    appliedAt: "2024-03-01T09:45:00",
-    address: "Atatürk Caddesi No:45",
-    city: "İzmir",
-    country: "Türkiye",
-    birthDate: "1990-08-15",
-    birthPlace: "İstanbul",
-    status: "active",
-    group: "B1-2",
-    stage: "Vize Süreci",
-    profession: "Grafik Tasarımcı",
-    followUpDate: "2024-03-15T14:30:00",
-    description: "Almanya'da grafik tasarımcı olarak çalışmak istiyor.",
-    notes: [
-      "Vize başvuru süreci başladı.",
-      "Gerekli evraklar hazırlanıyor."
-    ],
-    source: "TasarımcılarPlatformu.com",
-    responsiblePerson: "Hakan Yılmaz",
-    examResults: [
-      {
-        level: "B1",
-        date: "2024-02-01",
-        score: 78,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "canan_gunes_cv.pdf",
-        uploadDate: "2024-03-01",
-        status: "approved"
-      },
-      {
-        type: "Portfolyo",
-        name: "canan_gunes_portfolyo.pdf",
-        uploadDate: "2024-03-03",
-        status: "pending"
-      }
-    ],
-    visaStatus: "in_progress"
-  },
-  {
-    id: "12",
-    firstName: "Murat",
-    lastName: "Ersoy",
-    email: "murat.ersoy@example.com",
-    phone: "+90 543 234 5678",
-    appliedAt: "2024-03-10T16:00:00",
-    address: "İnönü Bulvarı No:67",
-    city: "Ankara",
-    country: "Türkiye",
-    birthDate: "1988-05-20",
-    birthPlace: "İzmir",
-    status: "pending",
-    group: "B1-2",
-    stage: "Vize Onayı",
-    profession: "Pazarlama Uzmanı",
-    followUpDate: "2024-03-25T11:00:00",
-    description: "Almanya'da pazarlama uzmanı olarak çalışmak istiyor.",
-    notes: [
-      "Vize onayı bekleniyor.",
-      "Gerekli tüm belgeler tamamlandı."
-    ],
-    source: "PazarlamaKariyer.com",
-    responsiblePerson: "Selen Kaya",
-    examResults: [
-      {
-        level: "B1",
-        date: "2024-03-10",
-        score: 92,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "murat_ersoy_cv.pdf",
-        uploadDate: "2024-03-10",
-        status: "approved"
-      },
-      {
-        type: "Referans Mektupları",
-        name: "murat_ersoy_referansmektuplari.pdf",
-        uploadDate: "2024-03-12",
-        status: "pending"
-      }
-    ],
-    visaStatus: "approved"
-  },
-  {
-    id: "13",
-    firstName: "Zeynep",
-    lastName: "Demirci",
-    email: "zeynep.demirci@example.com",
-    phone: "+90 544 345 6789",
-    appliedAt: "2024-03-15T10:30:00",
-    address: "Cumhuriyet Meydanı No:89",
-    city: "Bursa",
-    country: "Türkiye",
-    birthDate: "1992-12-01",
-    birthPlace: "Adana",
-    status: "active",
-    group: "B2-1",
-    stage: "Final Değerlendirme",
-    profession: "İnsan Kaynakları Uzmanı",
-    followUpDate: "2024-03-30T15:45:00",
-    description: "Almanya'da insan kaynakları uzmanı olarak çalışmak istiyor.",
-    notes: [
-      "Final değerlendirme yapılacak.",
-      "Mülakat sonuçları incelenecek."
-    ],
-    source: "İKPlatformu.com",
-    responsiblePerson: "Ali Can",
-    examResults: [
-      {
-        level: "B2",
-        date: "2024-03-15",
-        score: 85,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "zeynep_demirci_cv.pdf",
-        uploadDate: "2024-03-15",
-        status: "approved"
-      },
-      {
-        type: "Sertifikalar",
-        name: "zeynep_demirci_sertifikalar.pdf",
-        uploadDate: "2024-03-17",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "14",
-    firstName: "Emre",
-    lastName: "Kılıç",
-    email: "emre.kilic@example.com",
-    phone: "+90 545 456 7890",
-    appliedAt: "2024-03-20T14:00:00",
-    address: "Ziya Gökalp Caddesi No:21",
-    city: "Adana",
-    country: "Türkiye",
-    birthDate: "1985-03-25",
-    birthPlace: "Gaziantep",
-    status: "inactive",
-    group: "B2-1",
-    stage: "Başvuru Alındı",
-    profession: "Satış Temsilcisi",
-    followUpDate: "2024-04-05T10:00:00",
-    description: "Almanya'da satış temsilcisi olarak çalışmak istiyor.",
-    notes: [
-      "Başvurusu alındı.",
-      "İlk değerlendirme yapılacak."
-    ],
-    source: "SatışKariyer.com",
-    responsiblePerson: "Elif Yılmaz",
-    examResults: [
-      {
-        level: "B2",
-        date: "2024-03-20",
-        score: 70,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "emre_kilic_cv.pdf",
-        uploadDate: "2024-03-20",
-        status: "approved"
-      },
-      {
-        type: "Referanslar",
-        name: "emre_kilic_referanslar.pdf",
-        uploadDate: "2024-03-22",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "15",
-    firstName: "Selin",
-    lastName: "Öztürk",
-    email: "selin.ozturk@example.com",
-    phone: "+90 546 567 8901",
-    appliedAt: "2024-03-25T11:30:00",
-    address: "Mithatpaşa Caddesi No:34",
-    city: "Gaziantep",
-    country: "Türkiye",
-    birthDate: "1995-07-04",
-    birthPlace: "Ankara",
-    status: "active",
-    group: "B2-2",
-    stage: "Telefon Görüşmesi",
-    profession: "Proje Yöneticisi",
-    followUpDate: "2024-04-10T14:15:00",
-    description: "Almanya'da proje yöneticisi olarak çalışmak istiyor.",
-    notes: [
-      "Telefon görüşmesi planlandı.",
-      "Deneyimleri değerlendirilecek."
-    ],
-    source: "ProjeYöneticisiKariyer.com",
-    responsiblePerson: "Ayşe Kaya",
-    examResults: [
-      {
-        level: "B2",
-        date: "2024-03-25",
-        score: 88,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "selin_ozturk_cv.pdf",
-        uploadDate: "2024-03-25",
-        status: "approved"
-      },
-      {
-        type: "Projeler",
-        name: "selin_ozturk_projeler.pdf",
-        uploadDate: "2024-03-27",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "16",
-    firstName: "Burak",
-    lastName: "Yıldırım",
-    email: "burak.yildirim@example.com",
-    phone: "+90 547 678 9012",
-    appliedAt: "2024-03-30T08:00:00",
-    address: "Atatürk Bulvarı No:56",
-    city: "Konya",
-    country: "Türkiye",
-    birthDate: "1991-12-24",
-    birthPlace: "Sivas",
-    status: "active",
-    group: "B2-2",
-    stage: "İK Görüşmesi",
-    profession: "Veri Analisti",
-    followUpDate: "2024-04-15T11:00:00",
-    description: "Almanya'da veri analisti olarak çalışmak istiyor.",
-    notes: [
-      "İK görüşmesi yapılacak.",
-      "Analitik yetenekleri değerlendirilecek."
-    ],
-    source: "VeriAnalistiKariyer.com",
-    responsiblePerson: "Cemil Demir",
-    examResults: [
-      {
-        level: "B2",
-        date: "2024-03-30",
-        score: 95,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "burak_yildirim_cv.pdf",
-        uploadDate: "2024-03-30",
-        status: "approved"
-      },
-      {
-        type: "Analiz Raporları",
-        name: "burak_yildirim_analizraporlari.pdf",
-        uploadDate: "2024-04-01",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
-  },
-  {
-    id: "17",
-    firstName: "Gizem",
-    lastName: "Arslan",
-    email: "gizem.arslan@example.com",
-    phone: "+90 548 789 0123",
-    appliedAt: "2024-04-05T12:30:00",
-    address: "İnönü Caddesi No:78",
-    city: "Sivas",
-    country: "Türkiye",
-    birthDate: "1987-09-18",
-    birthPlace: "Konya",
-    status: "pending",
-    group: "C1-1",
-    stage: "Mülakat",
-    profession: "Yazılım Geliştirici",
-    followUpDate: "2024-04-20T15:30:00",
-    description: "Almanya'da yazılım geliştirici olarak çalışmak istiyor.",
-    notes: [
-      "Mülakat planlandı.",
-      "Teknik bilgisi değerlendirilecek."
-    ],
-    source: "YazılımcıPlatformu.com",
-    responsiblePerson: "Deniz Yılmaz",
-    examResults: [
-      {
-        level: "C1",
-        date: "2024-03-05",
-        score: 90,
-        passed: true
-      }
-    ],
-    documents: [
-      {
-        type: "CV",
-        name: "gizem_arslan_cv.pdf",
-        uploadDate: "2024-04-05",
-        status: "approved"
-      },
-      {
-        type: "Kod Örnekleri",
-        name: "gizem_arslan_kodornekleri.pdf",
-        uploadDate: "2024-04-07",
-        status: "pending"
-      }
-    ],
-    visaStatus: "not_applied"
+    }
   }
-];
-
-// Helper functions to format dates and calculate durations
-export const formatDate = (dateString: string | Date): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('tr-TR');
+  
+  return results;
 };
 
-export const calculateDurationInDays = (startDate: string | Date, endDate: string | Date): number => {
+// Generate random timeline events
+const generateRandomTimeline = (candidate: Partial<Candidate>): TimelineEvent[] => {
+  const stages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ];
+  
+  const currentStageIndex = stages.findIndex(stage => stage === candidate.stage);
+  const completedStages = stages.slice(0, currentStageIndex + 1);
+  
+  return completedStages.map((stage, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (completedStages.length - index) * 5);
+    
+    return {
+      id: `timeline-${faker.string.uuid()}`,
+      date,
+      title: stage,
+      description: `${stage} aşaması tamamlandı.`,
+      staff: faker.person.fullName()
+    };
+  }).reverse();
+};
+
+// Generate random stage timeline
+const generateStageTimeline = (candidate: Partial<Candidate>): any[] => {
+  const stages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ];
+  
+  const currentStageIndex = stages.findIndex(stage => stage === candidate.stage);
+  const completedStages = stages.slice(0, currentStageIndex + 1);
+  
+  return completedStages.map((stage, index) => {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (completedStages.length - index) * 10);
+    
+    const completedDate = index < currentStageIndex ? new Date(startDate) : undefined;
+    if (completedDate) {
+      completedDate.setDate(startDate.getDate() + faker.number.int({ min: 3, max: 8 }));
+    }
+    
+    return {
+      stage,
+      date: startDate,
+      completedOn: completedDate
+    };
+  });
+};
+
+const generateCandidate = (): Candidate => {
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();
+  const position = faker.person.jobTitle();
+  const profession = faker.helpers.arrayElement(['Hemşirelik', 'Öğretmen', 'Mühendis', 'Doktor', 'Avukat', 'Diğer']);
+  const status = faker.helpers.arrayElement<CandidateStatus>(['pending', 'inProgress', 'completed', 'rejected', 'waiting']);
+  const startDate = faker.date.past();
+  const endDate = faker.date.future();
+  const processDays = faker.number.int({ min: 5, max: 120 });
+  
+  const stage = faker.helpers.arrayElement<string>([
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ]);
+
+  // Randomly assign a group to some candidates
+  const group = faker.helpers.maybe(() => {
+    const level = faker.helpers.arrayElement(['A1', 'A2', 'B1', 'B2']);
+    const number = faker.number.int({ min: 1, max: 10 });
+    return `${level}-${number}`;
+  }, { probability: 0.8 });
+
+  const candidate: Candidate = {
+    id: faker.string.uuid(),
+    firstName,
+    lastName,
+    email: faker.internet.email({ firstName, lastName }),
+    phone: faker.phone.number(),
+    position,
+    profession,
+    age: faker.number.int({ min: 18, max: 65 }),
+    experienceYears: faker.number.int({ min: 0, max: 30 }),
+    appliedAt: faker.date.past(),
+    status,
+    stage,
+    processDays,
+    startDate,
+    endDate,
+    responsiblePerson: faker.person.fullName(),
+    classConfirmation: faker.helpers.arrayElement<ClassConfirmation>(['pending', 'confirmed']),
+    examResults: generateRandomExamResults(),
+    notes: faker.helpers.maybe(() => [
+      faker.lorem.paragraph(),
+      faker.lorem.paragraph(),
+    ], { probability: 0.7 }),
+    group // Add group field to candidate
+  };
+  
+  // Add timeline events
+  candidate.timeline = generateRandomTimeline(candidate);
+  // Add stage timeline
+  candidate.stageTimeline = generateStageTimeline(candidate);
+  
+  // Add waiting mode data if applicable
+  if (status === 'waiting') {
+    candidate.returnDate = faker.date.future();
+  }
+  
+  // Add rejection reason if applicable
+  if (status === 'rejected') {
+    candidate.rejectionReason = faker.helpers.arrayElement([
+      'Evrak Eksikliği',
+      'Uygun Olmayan Profil',
+      'Aday Vazgeçti',
+      'Başka Programı Seçti',
+      'Sağlık Sorunları'
+    ]);
+    candidate.rejectionNote = faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.6 });
+  }
+
+  return candidate;
+};
+
+export const mockCandidates: Candidate[] = Array.from({ length: 67 }, generateCandidate);
+
+export const getStatusCount = () => {
+  return {
+    total: mockCandidates.length,
+    pending: mockCandidates.filter(c => c.status === 'pending').length,
+    inProgress: mockCandidates.filter(c => c.status === 'inProgress').length,
+    completed: mockCandidates.filter(c => c.status === 'completed').length,
+    rejected: mockCandidates.filter(c => c.status === 'rejected').length,
+    waiting: mockCandidates.filter(c => c.status === 'waiting').length,
+  };
+};
+
+export const getRecentApplications = () => {
+  return mockCandidates.slice(0, 5).map(candidate => ({
+    id: candidate.id,
+    name: `${candidate.firstName} ${candidate.lastName}`,
+    position: candidate.position,
+    appliedAt: candidate.appliedAt,
+    status: candidate.status,
+  }));
+};
+
+export const getApplicationTrend = () => {
+  const today = new Date();
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+  }).reverse();
+
+  return last7Days.map(date => ({
+    date,
+    count: faker.number.int({ min: 5, max: 20 }),
+  }));
+};
+
+export const getStageDistribution = () => {
+  const stages = [
+    "Başvuru Alındı",
+    "Telefon Görüşmesi",
+    "İK Görüşmesi",
+    "Evrak Toplama",
+    "Sisteme Evrak Girişi",
+    "Sınıf Yerleştirme",
+    "Denklik Süreci",
+    "Vize Süreci",
+    "Sertifika Süreci"
+  ];
+
+  return stages.map(stage => ({
+    name: stage,
+    value: mockCandidates.filter(c => c.stage === stage).length,
+  }));
+};
+
+export const getProfessionDistribution = () => {
+  const professions = ['Hemşirelik', 'Öğretmen', 'Mühendis', 'Doktor', 'Avukat', 'Diğer'];
+
+  return professions.map(profession => {
+    const candidatesInProfession = mockCandidates.filter(c => c.profession === profession);
+    const under42 = candidatesInProfession.filter(c => c.age < 42).length;
+    const over42 = candidatesInProfession.filter(c => c.age >= 42).length;
+
+    return {
+      name: profession,
+      count: candidatesInProfession.length,
+      under42,
+      over42,
+    };
+  });
+};
+
+export const getAgeDistribution = () => {
+  return [
+    { name: '42 yaş altı', value: mockCandidates.filter(c => c.age < 42).length },
+    { name: '42 yaş ve üstü', value: mockCandidates.filter(c => c.age >= 42).length },
+  ];
+};
+
+// Updated getExamStatistics to consider the new exam generation logic
+export const getExamStatistics = () => {
+  const a1Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A1')).length;
+  const a1Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A1' && e.passed)).length;
+  const a1Failed = a1Total - a1Passed;
+  
+  const a2Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A2')).length;
+  const a2Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'A2' && e.passed)).length;
+  const a2Failed = a2Total - a2Passed;
+  
+  const b1Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B1')).length;
+  const b1Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B1' && e.passed)).length;
+  const b1Failed = b1Total - b1Passed;
+  
+  const b2Total = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B2')).length;
+  const b2Passed = mockCandidates.filter(c => c.examResults?.some(e => e.level === 'B2' && e.passed)).length;
+  const b2Failed = b2Total - b2Passed;
+  
+  return {
+    a1: { passed: a1Passed, failed: a1Failed, total: a1Total },
+    a2: { passed: a2Passed, failed: a2Failed, total: a2Total },
+    b1: { passed: b1Passed, failed: b1Failed, total: b1Total },
+    b2: { passed: b2Passed, failed: b2Failed, total: b2Total }
+  };
+};
+
+// Helper functions for date formatting and calculations
+export const formatDate = (date?: string | Date): string => {
+  if (!date) return '-';
+  const d = new Date(date);
+  return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+export const calculateDurationInDays = (startDate: Date | string, endDate: Date | string): number => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const differenceInTime = end.getTime() - start.getTime();
-  return Math.ceil(differenceInTime / (1000 * 3600 * 24));
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays;
 };
 
 export const formatDuration = (days: number): string => {
-  if (days === 0) return "Bugün";
-  if (days === 1) return "1 gün";
+  if (days === 0) return 'Bugün';
+  if (days === 1) return '1 gün';
   return `${days} gün`;
 };
 
-export const getDaysRemaining = (dateString: string | Date): number => {
-  const targetDate = new Date(dateString);
+export const getDaysRemaining = (returnDate?: Date | string): number => {
+  if (!returnDate) return 0;
+  
   const today = new Date();
-  const differenceInTime = targetDate.getTime() - today.getTime();
-  return Math.ceil(differenceInTime / (1000 * 3600 * 24));
+  today.setHours(0, 0, 0, 0);
+  
+  const endDate = new Date(returnDate);
+  endDate.setHours(0, 0, 0, 0);
+  
+  const diffTime = endDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+export const getStatusLabel = (status: CandidateStatus): string => {
+  switch (status) {
+    case 'pending':
+      return 'Beklemede';
+    case 'inProgress':
+      return 'İşlemde';
+    case 'completed':
+      return 'Tamamlandı';
+    case 'rejected':
+      return 'Reddedildi';
+    case 'waiting':
+      return 'Bekleme Modu';
+    default:
+      return 'Bilinmiyor';
+  }
+};
+
+// Add new function to calculate average experience
+export const getAverageExperience = () => {
+  if (mockCandidates.length === 0) return 0;
+  
+  const totalExperience = mockCandidates.reduce((sum, candidate) => sum + candidate.experienceYears, 0);
+  return (totalExperience / mockCandidates.length).toFixed(1);
 };
