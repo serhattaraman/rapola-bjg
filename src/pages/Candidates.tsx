@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Filter, SlidersHorizontal, CalendarRange, FileSpreadsheet } from 'lucide-react';
 import { mockCandidates, CandidateStatus } from '@/lib/mock-data';
@@ -55,6 +56,7 @@ const Candidates = () => {
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<string | 'all'>('all');
   const [groupFilter, setGroupFilter] = useState<string | 'all'>('all');
+  const [professionFilter, setProfessionFilter] = useState<string | 'all'>('all');
   const [classConfirmationFilter, setClassConfirmationFilter] = useState<ClassConfirmationFilter>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,6 +81,17 @@ const Candidates = () => {
       }
     });
     return Array.from(groups);
+  }, []);
+
+  // Get unique professions from candidates
+  const uniqueProfessions = useMemo(() => {
+    const professions = new Set<string>();
+    mockCandidates.forEach(candidate => {
+      if (candidate.profession) {
+        professions.add(candidate.profession);
+      }
+    });
+    return Array.from(professions).sort();
   }, []);
 
   // Combine predefined stages with any unique stages from the data
@@ -112,6 +125,9 @@ const Candidates = () => {
       // Filter by group
       const matchesGroup = groupFilter === 'all' || candidate.group === groupFilter;
       
+      // Filter by profession
+      const matchesProfession = professionFilter === 'all' || candidate.profession === professionFilter;
+      
       // Filter by class confirmation (only for "Sınıf Yerleştirme" stage)
       let matchesClassConfirmation = true;
       if (stageFilter === "Sınıf Yerleştirme" && classConfirmationFilter !== 'all') {
@@ -132,9 +148,9 @@ const Candidates = () => {
         });
       }
       
-      return matchesSearch && matchesStatus && matchesStage && matchesGroup && matchesClassConfirmation && matchesDateRange;
+      return matchesSearch && matchesStatus && matchesStage && matchesGroup && matchesProfession && matchesClassConfirmation && matchesDateRange;
     });
-  }, [searchQuery, statusFilter, stageFilter, groupFilter, classConfirmationFilter, startDate, endDate]);
+  }, [searchQuery, statusFilter, stageFilter, groupFilter, professionFilter, classConfirmationFilter, startDate, endDate]);
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredCandidates.length / CANDIDATES_PER_PAGE);
@@ -410,6 +426,37 @@ const Candidates = () => {
                       }`}
                     >
                       {group}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Profession Filters */}
+                <div className="flex flex-wrap items-center gap-2 pb-2">
+                  <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                    <Filter className="w-4 h-4 inline-block mr-1" />
+                    Meslek:
+                  </span>
+                  <button
+                    onClick={() => setProfessionFilter('all')}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                      professionFilter === 'all' 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Tüm Meslekler
+                  </button>
+                  {uniqueProfessions.map((profession) => (
+                    <button
+                      key={profession}
+                      onClick={() => setProfessionFilter(profession)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center ${
+                        professionFilter === profession 
+                          ? 'bg-primary text-white' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {profession}
                     </button>
                   ))}
                 </div>
