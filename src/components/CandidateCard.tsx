@@ -291,21 +291,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                     {stageDuration > 0 && (
                       <div><strong>Süre:</strong> {formatDuration(stageDuration)}</div>
                     )}
-                    {hasSubProcesses && (
-                      <div className="mt-2">
-                        <strong>Alt Görevler:</strong>
-                        <ul className="text-xs mt-1">
-                          {subProcesses.map((subProcess, subIndex) => (
-                            <li key={subIndex} className="flex items-center">
-                              <span className={`w-2 h-2 rounded-full mr-2 ${
-                                isCompleted ? 'bg-green-500' : isCurrent && subIndex === 0 ? 'bg-yellow-500' : 'bg-gray-300'
-                              }`}></span>
-                              {subProcess}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
                 ) : null;
                 
@@ -352,6 +337,33 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                 );
               })}
             </div>
+            
+            {/* Sub-processes for current stage */}
+            {candidate.stage && stageSubProcesses[candidate.stage] && (
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center mb-2">
+                  <div className="w-0.5 h-4 bg-primary mr-2"></div>
+                  <span className="text-xs font-medium text-gray-700">{candidate.stage} Alt Süreçleri</span>
+                </div>
+                <div className="space-y-2">
+                  {stageSubProcesses[candidate.stage].map((subProcess, subIndex) => (
+                    <div key={subIndex} className="flex items-center">
+                      <div className="w-px h-4 bg-gray-300 mr-2 ml-1"></div>
+                      <div className="flex items-center">
+                        <span className={`w-2 h-2 rounded-full mr-2 ${
+                          subIndex === 0 ? 'bg-primary' : 'bg-gray-300'
+                        }`}></span>
+                        <span className={`text-xs ${
+                          subIndex === 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
+                        }`}>
+                          {subProcess}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
