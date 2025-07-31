@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Candidate, formatDate, calculateDurationInDays, formatDuration } from '@/lib/mock-data';
 import StatusBadge from './StatusBadge';
-import { Phone, User, Calendar, CheckCircle, AlertCircle, Clock, XCircle, Users } from 'lucide-react';
+import { Phone, User, Calendar, CheckCircle, AlertCircle, Clock, XCircle, Users, ArrowDown, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import ProcessStageIcon from './ProcessStageIcon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -320,14 +320,43 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                           
                           {/* Sub-processes for this stage */}
                           {stageSubProcesses[stage] && (
-                            <div className="mt-1 space-y-0.5">
-                              {stageSubProcesses[stage].map((subProcess, subIndex) => (
-                                <div key={subIndex} className={`text-[7px] text-center leading-tight ${
-                                  isCurrent ? 'text-primary/70' : isCompleted ? 'text-gray-500' : 'text-gray-300'
-                                }`}>
-                                  {subProcess}
-                                </div>
-                              ))}
+                            <div className="mt-1 space-y-0.5 relative">
+                              {stageSubProcesses[stage].map((subProcess, subIndex) => {
+                                const isSubProcessCompleted = isCompleted || (isCurrent && subIndex === 0);
+                                const isLastSubProcess = subIndex === stageSubProcesses[stage].length - 1;
+                                
+                                return (
+                                  <div key={subIndex} className="relative flex items-center justify-center">
+                                    {/* Vertical line */}
+                                    {!isLastSubProcess && (
+                                      <div className={`absolute left-1/2 top-2 w-px h-4 transform -translate-x-1/2 ${
+                                        isSubProcessCompleted ? 'bg-primary' : 'bg-gray-300'
+                                      }`}></div>
+                                    )}
+                                    
+                                    {/* Sub-process text with indicator */}
+                                    <div className="flex items-center">
+                                      {/* Status indicator */}
+                                      <div className={`w-2 h-2 rounded-full mr-1 ${
+                                        isSubProcessCompleted ? 'bg-primary' : 'bg-gray-300'
+                                      }`}></div>
+                                      
+                                      <div className={`text-[7px] text-center leading-tight ${
+                                        isCurrent ? 'text-primary/70' : isCompleted ? 'text-gray-500' : 'text-gray-300'
+                                      }`}>
+                                        {subProcess}
+                                      </div>
+                                      
+                                      {/* Arrow or check indicator */}
+                                      {isSubProcessCompleted ? (
+                                        <Check className="w-2 h-2 ml-1 text-primary" />
+                                      ) : isCurrent && subIndex === 0 ? (
+                                        <ArrowDown className="w-2 h-2 ml-1 text-yellow-500" />
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                           {stageInfo && (
