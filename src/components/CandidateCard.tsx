@@ -281,6 +281,12 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                 const subProcesses = stageSubProcesses[stage] || [];
                 const hasSubProcesses = subProcesses.length > 0;
                 
+                // Check if all sub-processes are completed (for main logo coloring)
+                const allSubProcessesCompleted = hasSubProcesses ? isCompleted : true;
+                
+                // Main stage icon should be blue if stage is completed AND all sub-processes are completed
+                const mainStageCompleted = isCompleted && allSubProcessesCompleted;
+                
                 // Tooltip content for stage date and duration info
                 const tooltipContent = stageInfo ? (
                   <div className="text-xs">
@@ -303,6 +309,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                         }`}>
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 stage-icon relative
                             ${isCurrent ? 'bg-primary text-white current' : 
+                              mainStageCompleted ? 'bg-primary text-white completed' : 
                               isCompleted ? 'bg-primary/20 text-primary completed' : 'bg-gray-100 text-gray-400 pending'}`}>
                             <ProcessStageIcon stage={progressStages[index]} size={14} />
                             {hasSubProcesses && (
