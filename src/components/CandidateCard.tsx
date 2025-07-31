@@ -338,30 +338,20 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               })}
             </div>
             
-            {/* Sub-processes for current stage */}
+            {/* Sub-processes displayed below current stage with arrows */}
             {candidate.stage && stageSubProcesses[candidate.stage] && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center mb-2">
-                  <div className="w-0.5 h-4 bg-primary mr-2"></div>
-                  <span className="text-xs font-medium text-gray-700">{candidate.stage} Alt Süreçleri</span>
-                </div>
-                <div className="space-y-2">
-                  {stageSubProcesses[candidate.stage].map((subProcess, subIndex) => (
-                    <div key={subIndex} className="flex items-center">
-                      <div className="w-px h-4 bg-gray-300 mr-2 ml-1"></div>
-                      <div className="flex items-center">
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          subIndex === 0 ? 'bg-primary' : 'bg-gray-300'
-                        }`}></span>
-                        <span className={`text-xs ${
-                          subIndex === 0 ? 'text-gray-900 font-medium' : 'text-gray-500'
-                        }`}>
-                          {subProcess}
-                        </span>
-                      </div>
+              <div className="mt-3 text-center">
+                <div className="text-xs font-medium text-gray-700 mb-1">{candidate.stage}</div>
+                {stageSubProcesses[candidate.stage].map((subProcess, subIndex) => (
+                  <div key={subIndex} className="flex flex-col items-center mb-1">
+                    <div className="text-gray-400 text-xs">↓</div>
+                    <div className={`text-xs px-2 py-1 rounded ${
+                      subIndex === 0 ? "bg-primary/10 text-primary font-medium" : "bg-gray-100 text-gray-600"
+                    }`}>
+                      {subProcess}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
