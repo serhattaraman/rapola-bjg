@@ -28,10 +28,12 @@ interface CandidateCardProps {
   };
 }
 
-// Progress stages - Moved out to make it easier to use in .NET MVC
+// Progress stages with sub-processes
 export const progressStages = [
   "Başvuru Alındı", 
   "Telefon Görüşmesi", 
+  "Zoom Daveti",
+  "Zooma Katıldı",
   "İK Görüşmesi", 
   "Evrak Toplama", 
   "Sisteme Evrak Girişi", 
@@ -238,10 +240,13 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               </div>
             </div>
             
-            {/* React version of the progress bar */}
-            <Progress value={progressPercentage} className="h-2 mb-2 candidate-progress-bar" />
+            {/* Progress percentage display */}
+            <div className="text-center mb-3">
+              <span className="text-lg font-semibold text-primary">%{progressPercentage}</span>
+              <span className="text-sm text-gray-500 ml-1">tamamlandı</span>
+            </div>
             
-            <div className="grid grid-cols-9 gap-1 mt-3 progress-stages">
+            <div className="grid grid-cols-11 gap-1 mt-3 progress-stages">
               {progressStages.map((stage, index) => {
                 // A stage is completed if its index is less than or equal to the current stage index
                 const isCompleted = index <= currentStageIndex;

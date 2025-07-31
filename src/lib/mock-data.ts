@@ -28,6 +28,8 @@ export interface Candidate {
   profession: string;
   age: number;
   experienceYears: number;
+  birthDate?: string;
+  birthPlace?: string;
   appliedAt: Date | string;
   status: CandidateStatus;
   stage: string;
