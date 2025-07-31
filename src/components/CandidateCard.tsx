@@ -232,19 +232,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
         {/* Only show progress if we have stage information */}
         {candidate.stage && (
           <div className="mt-5 candidate-progress">
-            {/* Ana Süreç ve Ara Süreç */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="text-sm font-medium text-gray-700 mb-1">Ana Süreç</div>
-              <div className="text-base font-semibold text-primary mb-2">{candidate.stage}</div>
-              
-              {stageSubProcesses[candidate.stage] && (
-                <>
-                  <div className="text-sm font-medium text-gray-700 mb-1">Ara Süreç</div>
-                  <div className="text-sm text-gray-600">{stageSubProcesses[candidate.stage][0]}</div>
-                </>
-              )}
-            </div>
-            
             <div className="flex justify-between items-center mb-2 progress-header">
               <div className="text-sm font-medium responsible-person">Sorumlu: <span className="text-primary">{candidate.responsiblePerson || 'İK Uzmanı'}</span></div>
               <div className="text-sm text-primary flex items-center current-stage">
@@ -330,6 +317,19 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                             isCompleted ? 'text-gray-700 completed' : 'text-gray-400 pending'}`}>
                             {stage}
                           </span>
+                          
+                          {/* Sub-processes for this stage */}
+                          {stageSubProcesses[stage] && (
+                            <div className="mt-1 space-y-0.5">
+                              {stageSubProcesses[stage].map((subProcess, subIndex) => (
+                                <div key={subIndex} className={`text-[7px] text-center leading-tight ${
+                                  isCurrent ? 'text-primary/70' : isCompleted ? 'text-gray-500' : 'text-gray-300'
+                                }`}>
+                                  {subProcess}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                           {stageInfo && (
                             <span className={`text-[7px] mt-1 flex items-center ${
                               isCurrent ? 'text-primary' : isCompleted ? 'text-gray-600' : 'text-gray-400'
