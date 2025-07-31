@@ -327,8 +327,8 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                                 
                                 return (
                                   <div key={subIndex} className="relative flex items-center justify-center">
-                                    {/* Vertical line */}
-                                    {!isLastSubProcess && (
+                                    {/* Vertical line - show for all except last if completed, or show for current process */}
+                                    {(!isLastSubProcess || isSubProcessCompleted) && (
                                       <div className={`absolute left-1/2 top-2 w-px h-4 transform -translate-x-1/2 ${
                                         isSubProcessCompleted ? 'bg-primary' : 'bg-gray-300'
                                       }`}></div>
