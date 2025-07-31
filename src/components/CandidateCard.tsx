@@ -232,6 +232,19 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
         {/* Only show progress if we have stage information */}
         {candidate.stage && (
           <div className="mt-5 candidate-progress">
+            {/* Ana Süreç ve Ara Süreç */}
+            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="text-sm font-medium text-gray-700 mb-1">Ana Süreç</div>
+              <div className="text-base font-semibold text-primary mb-2">{candidate.stage}</div>
+              
+              {stageSubProcesses[candidate.stage] && (
+                <>
+                  <div className="text-sm font-medium text-gray-700 mb-1">Ara Süreç</div>
+                  <div className="text-sm text-gray-600">{stageSubProcesses[candidate.stage][0]}</div>
+                </>
+              )}
+            </div>
+            
             <div className="flex justify-between items-center mb-2 progress-header">
               <div className="text-sm font-medium responsible-person">Sorumlu: <span className="text-primary">{candidate.responsiblePerson || 'İK Uzmanı'}</span></div>
               <div className="text-sm text-primary flex items-center current-stage">
@@ -337,23 +350,6 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                 );
               })}
             </div>
-            
-            {/* Sub-processes displayed below current stage with arrows */}
-            {candidate.stage && stageSubProcesses[candidate.stage] && (
-              <div className="mt-3 text-center">
-                <div className="text-xs font-medium text-gray-700 mb-1">{candidate.stage}</div>
-                {stageSubProcesses[candidate.stage].map((subProcess, subIndex) => (
-                  <div key={subIndex} className="flex flex-col items-center mb-1">
-                    <div className="text-gray-400 text-xs">↓</div>
-                    <div className={`text-xs px-2 py-1 rounded ${
-                      subIndex === 0 ? "bg-primary/10 text-primary font-medium" : "bg-gray-100 text-gray-600"
-                    }`}>
-                      {subProcess}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>
