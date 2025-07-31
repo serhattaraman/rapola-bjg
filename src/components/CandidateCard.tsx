@@ -33,7 +33,6 @@ export const progressStages = [
   "Başvuru Alındı", 
   "Telefon Görüşmesi", 
   "Zoom Daveti",
-  "Zooma Katıldı",
   "İK Görüşmesi", 
   "Evrak Toplama", 
   "Sisteme Evrak Girişi", 
@@ -42,6 +41,14 @@ export const progressStages = [
   "Vize Süreci", 
   "Sertifika Süreci"
 ];
+
+// Sub-processes for each main stage
+export const stageSubProcesses: { [key: string]: string[] } = {
+  "Zoom Daveti": ["Zooma Katıldı", "Zoom Sonucu Değerlendirme"],
+  "İK Görüşmesi": ["Mülakat Tamamlandı", "Değerlendirme"],
+  "Evrak Toplama": ["Belgeler Toplandı", "Kontrol Edildi"],
+  "Vize Süreci": ["Başvuru Yapıldı", "Sonuç Bekleniyor"]
+};
 
 // Calculate progress - Helper function made standalone for easier portability
 export const calculateProgress = (currentStage: string): number => {
@@ -240,13 +247,16 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
               </div>
             </div>
             
-            {/* Progress percentage display */}
-            <div className="text-center mb-3">
-              <span className="text-lg font-semibold text-primary">%{progressPercentage}</span>
-              <span className="text-sm text-gray-500 ml-1">tamamlandı</span>
+            {/* Progress bar with percentage */}
+            <div className="mb-2">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-gray-500">İlerleme</span>
+                <span className="text-sm font-semibold text-primary">%{progressPercentage}</span>
+              </div>
+              <Progress value={progressPercentage} className="h-2 candidate-progress-bar" />
             </div>
             
-            <div className="grid grid-cols-11 gap-1 mt-3 progress-stages">
+            <div className="grid grid-cols-10 gap-1 mt-3 progress-stages">
               {progressStages.map((stage, index) => {
                 // A stage is completed if its index is less than or equal to the current stage index
                 const isCompleted = index <= currentStageIndex;
@@ -267,6 +277,10 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                   stageDuration = calculateDurationInDays(stageDate, new Date());
                 }
                 
+                // Check if this stage has sub-processes
+                const subProcesses = stageSubProcesses[stage] || [];
+                const hasSubProcesses = subProcesses.length > 0;
+                
                 // Tooltip content for stage date and duration info
                 const tooltipContent = stageInfo ? (
                   <div className="text-xs">
@@ -277,6 +291,21 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                     {stageDuration > 0 && (
                       <div><strong>Süre:</strong> {formatDuration(stageDuration)}</div>
                     )}
+                    {hasSubProcesses && (
+                      <div className="mt-2">
+                        <strong>Alt Görevler:</strong>
+                        <ul className="text-xs mt-1">
+                          {subProcesses.map((subProcess, subIndex) => (
+                            <li key={subIndex} className="flex items-center">
+                              <span className={`w-2 h-2 rounded-full mr-2 ${
+                                isCompleted ? 'bg-green-500' : isCurrent && subIndex === 0 ? 'bg-yellow-500' : 'bg-gray-300'
+                              }`}></span>
+                              {subProcess}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 ) : null;
                 
@@ -284,13 +313,20 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                   <TooltipProvider key={index}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className={`flex flex-col items-center stage-item stage-${index + 1} ${
+                        <div className={`flex flex-col items-center relative stage-item stage-${index + 1} ${
                           isCurrent ? 'current' : isCompleted ? 'completed' : 'pending'
                         }`}>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 stage-icon
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs mb-1 stage-icon relative
                             ${isCurrent ? 'bg-primary text-white current' : 
                               isCompleted ? 'bg-primary/20 text-primary completed' : 'bg-gray-100 text-gray-400 pending'}`}>
                             <ProcessStageIcon stage={progressStages[index]} size={14} />
+                            {hasSubProcesses && (
+                              <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full text-[8px] flex items-center justify-center ${
+                                isCompleted ? 'bg-green-500 text-white' : isCurrent ? 'bg-yellow-500 text-white' : 'bg-gray-300 text-gray-600'
+                              }`}>
+                                {subProcesses.length}
+                              </div>
+                            )}
                           </div>
                           <span className={`text-[9px] text-center leading-tight stage-label ${isCurrent ? 'text-primary font-medium current' : 
                             isCompleted ? 'text-gray-700 completed' : 'text-gray-400 pending'}`}>
