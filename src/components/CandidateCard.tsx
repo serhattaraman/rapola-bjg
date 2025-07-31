@@ -333,21 +333,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
                                 const isLastSubProcess = subIndex === stageSubProcesses[stage].length - 1;
                                 
                                 return (
-                                  <div key={subIndex} className="relative flex items-center justify-center">
-                                    {/* Vertical line - show for all except last if completed, or show for current process */}
-                                    {(!isLastSubProcess || isSubProcessCompleted) && (
-                                      <div className={`absolute left-1/2 top-2 w-px h-4 transform -translate-x-1/2 ${
-                                        isSubProcessCompleted ? 'bg-primary' : 'bg-gray-300'
-                                      }`}></div>
-                                    )}
-                                    
+                                  <div key={subIndex} className="flex items-center justify-center">
                                     {/* Sub-process text with indicator */}
                                     <div className="flex items-center">
-                                      {/* Status indicator */}
-                                      <div className={`w-2 h-2 rounded-full mr-1 ${
-                                        isSubProcessCompleted ? 'bg-primary' : 'bg-gray-300'
-                                      }`}></div>
-                                      
                                       <div className={`text-[7px] text-center leading-tight ${
                                         isCurrent ? 'text-primary/70' : isCompleted ? 'text-gray-500' : 'text-gray-300'
                                       }`}>
