@@ -748,28 +748,6 @@ const CandidateDetails = () => {
                     <Briefcase className="h-5 w-5 text-primary" />
                     <h3 className="text-md font-semibold">İşe Yerleştirme ve Mülakatlar</h3>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setIsAddInterviewDialogOpen(true)}
-                      className="text-blue-600 hover:text-blue-700"
-                      disabled={candidate.status === 'rejected'}
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Mülakat
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                      className="text-green-600 hover:text-green-700"
-                      disabled={candidate.status === 'rejected'}
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      İş Yerleştirme
-                    </Button>
-                  </div>
                 </div>
                 
                 <div className="space-y-3">
@@ -839,6 +817,30 @@ const CandidateDetails = () => {
                       <p className="text-gray-500 text-sm mb-3">Henüz mülakat veya iş yerleştirme kaydı bulunmuyor</p>
                     </div>
                   )}
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="mt-4 flex gap-2 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddInterviewDialogOpen(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                    disabled={candidate.status === 'rejected'}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Mülakat Ekle
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                    className="text-green-600 hover:text-green-700"
+                    disabled={candidate.status === 'rejected'}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    İş Yerleştirme Ekle
+                  </Button>
                 </div>
               </div>
             </div>
