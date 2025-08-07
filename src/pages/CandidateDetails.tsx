@@ -21,6 +21,7 @@ import ExamStatsBadge from '@/components/ExamStatsBadge';
 import AddJobPlacementDialog from '@/components/AddJobPlacementDialog';
 import AddInterviewDialog from '@/components/AddInterviewDialog';
 import SubProcessCompletionDialog from '@/components/SubProcessCompletionDialog';
+import { AssignProcessDialog } from '@/components/AssignProcessDialog';
 import { getProcessStagesFromStorage } from '@/lib/process-data';
 
 const CandidateDetails = () => {
@@ -51,6 +52,7 @@ const CandidateDetails = () => {
   const [isAddJobPlacementDialogOpen, setIsAddJobPlacementDialogOpen] = useState(false);
   const [isAddInterviewDialogOpen, setIsAddInterviewDialogOpen] = useState(false);
   const [isSubProcessCompletionDialogOpen, setIsSubProcessCompletionDialogOpen] = useState(false);
+  const [isAssignProcessDialogOpen, setIsAssignProcessDialogOpen] = useState(false);
   const processStages = getProcessStagesFromStorage();
   
   if (!candidate) {
@@ -152,10 +154,37 @@ const CandidateDetails = () => {
   };
 
   const handleAssignProcess = () => {
-    // Placeholder for process assignment functionality
-    toast({
-      title: "Süreç Atama",
-      description: "Süreç atama özelliği yakında eklenecek.",
+    setIsAssignProcessDialogOpen(true);
+  };
+
+  const handleProcessAssignment = (stageId: string) => {
+    const processStages = getProcessStagesFromStorage();
+    const selectedStage = processStages.find(stage => stage.id === stageId);
+    
+    if (!selectedStage) return;
+
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      // Add a new timeline entry for the process assignment
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Süreç Atandı',
+        description: `Yeni aşama atandı: ${selectedStage.name}`,
+        staff: 'Mevcut Kullanıcı'
+      };
+      
+      toast({
+        title: "Süreç atandı",
+        description: `Aday ${selectedStage.name} aşamasına atandı.`,
+      });
+      
+      return {
+        ...prev,
+        stage: selectedStage.name,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
     });
   };
 
@@ -1125,6 +1154,14 @@ const CandidateDetails = () => {
         open={isAddInterviewDialogOpen}
         onOpenChange={setIsAddInterviewDialogOpen}
         onSuccess={handleAddJobPlacement}
+      />
+
+      {/* Assign Process Dialog */}
+      <AssignProcessDialog
+        isOpen={isAssignProcessDialogOpen}
+        onClose={() => setIsAssignProcessDialogOpen(false)}
+        onAssign={handleProcessAssignment}
+        currentStage={candidate.stage}
       />
     </div>
   );
