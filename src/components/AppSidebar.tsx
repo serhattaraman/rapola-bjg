@@ -99,18 +99,12 @@ export function AppSidebar() {
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
       <SidebarHeader className="border-b p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center">
           <img 
             src="/lovable-uploads/c2b41ad4-b7ad-4952-8bab-44ecea70c96e.png" 
             alt="Rapola Logo" 
             className={collapsed ? "h-8 w-8" : "h-12 w-12"}
           />
-          {!collapsed && (
-            <div>
-              <h2 className="font-semibold text-lg">Rapola</h2>
-              <p className="text-xs text-muted-foreground">Aday Takip Sistemi</p>
-            </div>
-          )}
         </div>
       </SidebarHeader>
 
