@@ -70,14 +70,13 @@ export function AppSidebar() {
 
   const isActive = (path: string) => location.pathname === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50";
+    isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted/50 text-foreground";
 
   // Navigation items
   const mainItems = [
     { title: "Anasayfa", url: "/", icon: Home },
     { title: "Adaylar", url: "/candidates", icon: Users },
     { title: "Gruplar", url: "/groups", icon: BookOpen },
-    { title: "Form", url: "/form", icon: FileText },
   ];
 
   const adminManagerItems = [
