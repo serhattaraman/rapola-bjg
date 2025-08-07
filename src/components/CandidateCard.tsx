@@ -73,8 +73,10 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
       stageId: stage.id,
       status,
       completedSubProcesses,
+      subProcessProgress: [], // Add empty array for sub-process progress
       startDate: isCurrentStage || isCompletedStage ? new Date() : undefined,
       completedDate: isCompletedStage ? new Date() : undefined,
+      canStart: true
     };
   });
 

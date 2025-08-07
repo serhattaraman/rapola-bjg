@@ -17,6 +17,7 @@ interface AddProcessDialogProps {
 const AddProcessDialog = ({ open, onOpenChange, onSuccess }: AddProcessDialogProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [logo, setLogo] = useState('');
   const [subProcesses, setSubProcesses] = useState<{name: string; description: string}[]>([
     { name: '', description: '' }
   ]);
@@ -62,6 +63,7 @@ const AddProcessDialog = ({ open, onOpenChange, onSuccess }: AddProcessDialogPro
     addProcessStage({
       name: name.trim(),
       description: description.trim(),
+      logo: logo.trim() || undefined,
       subProcesses: validSubProcesses.map((sp, index) => ({
         id: `temp-${Date.now()}-${index}`,
         name: sp.name,
@@ -79,6 +81,7 @@ const AddProcessDialog = ({ open, onOpenChange, onSuccess }: AddProcessDialogPro
     // Reset form
     setName('');
     setDescription('');
+    setLogo('');
     setSubProcesses([{ name: '', description: '' }]);
     
     onSuccess();
@@ -115,6 +118,16 @@ const AddProcessDialog = ({ open, onOpenChange, onSuccess }: AddProcessDialogPro
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Süreç hakkında kısa açıklama"
               rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="logo">Logo (İkon Adı)</Label>
+            <Input
+              id="logo"
+              value={logo}
+              onChange={(e) => setLogo(e.target.value)}
+              placeholder="Örn: phone, mail, user-check"
             />
           </div>
 

@@ -66,6 +66,9 @@ const ProcessManagement = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="flex items-center gap-2">
+                    {stage.logo && (
+                      <span className="text-lg">{stage.logo}</span>
+                    )}
                     <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
                       Paralel
                     </span>

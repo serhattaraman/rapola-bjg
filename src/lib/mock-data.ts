@@ -10,6 +10,7 @@ export interface ProcessStage {
   description?: string;
   order: number;
   subProcesses: SubProcess[];
+  logo?: string; // Logo URL or icon name for main processes
 }
 
 export interface SubProcess {
@@ -20,10 +21,19 @@ export interface SubProcess {
   stageId: string;
 }
 
+export interface SubProcessProgress {
+  id: string;
+  subProcessId: string;
+  completedDate?: Date | string;
+  completedBy?: string;
+  notes?: string;
+}
+
 export interface CandidateProcessProgress {
   stageId: string;
   status: ProcessStatus;
   completedSubProcesses: string[]; // Array of sub-process IDs
+  subProcessProgress: SubProcessProgress[]; // Detailed sub-process tracking
   startDate?: Date | string;
   completedDate?: Date | string;
   canStart?: boolean; // Always true now that processes can run in parallel
@@ -274,6 +284,19 @@ const generateCandidate = (): Candidate => {
   candidate.timeline = generateRandomTimeline(candidate);
   // Add stage timeline
   candidate.stageTimeline = generateStageTimeline(candidate);
+  
+  // Add process progress with sub-process tracking
+  candidate.processProgress = [
+    {
+      stageId: "1",
+      status: faker.helpers.arrayElement(['notStarted', 'inProgress', 'completed']),
+      completedSubProcesses: [],
+      subProcessProgress: [],
+      startDate: faker.date.past(),
+      completedDate: faker.date.past(),
+      canStart: true
+    }
+  ];
   
   // Add waiting mode data if applicable
   if (status === 'waiting') {

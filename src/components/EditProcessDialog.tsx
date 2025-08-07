@@ -17,12 +17,14 @@ interface EditProcessDialogProps {
 const EditProcessDialog = ({ stage, open, onOpenChange, onSuccess }: EditProcessDialogProps) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [logo, setLogo] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     if (stage) {
       setName(stage.name);
       setDescription(stage.description || '');
+      setLogo(stage.logo || '');
     }
   }, [stage]);
 
@@ -41,6 +43,7 @@ const EditProcessDialog = ({ stage, open, onOpenChange, onSuccess }: EditProcess
     updateProcessStage(stage.id, {
       name: name.trim(),
       description: description.trim(),
+      logo: logo.trim() || undefined,
     });
 
     toast({
@@ -82,6 +85,16 @@ const EditProcessDialog = ({ stage, open, onOpenChange, onSuccess }: EditProcess
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Süreç hakkında kısa açıklama"
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="logo">Logo (İkon Adı)</Label>
+            <Input
+              id="logo"
+              value={logo}
+              onChange={(e) => setLogo(e.target.value)}
+              placeholder="Örn: phone, mail, user-check"
             />
           </div>
 

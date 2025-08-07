@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
 import AddJobPlacementDialog from '@/components/AddJobPlacementDialog';
+import { getProcessStagesFromStorage } from '@/lib/process-data';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -47,6 +48,7 @@ const CandidateDetails = () => {
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [rejectionNote, setRejectionNote] = useState<string>('');
   const [isAddJobPlacementDialogOpen, setIsAddJobPlacementDialogOpen] = useState(false);
+  const processStages = getProcessStagesFromStorage();
   
   if (!candidate) {
     return (
@@ -690,44 +692,65 @@ const CandidateDetails = () => {
                 {/* Sub-processes */}
                 <div className="mt-4 space-y-2">
                   <h4 className="text-sm font-medium text-gray-700">Ara Süreçler:</h4>
-                  <div className="space-y-1">
-                    {/* Example sub-processes - in real app these would come from process data */}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Form Doldurma
-                      </span>
-                      <span className="text-green-600">Tamamlandı</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Başvuru Onayı
-                      </span>
-                      <span className="text-green-600">Tamamlandı</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        Belge Kontrolü
-                      </span>
-                      <span className="text-green-600">Tamamlandı</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                        Ön Değerlendirme
-                      </span>
-                      <span className="text-amber-600">Beklemede</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-gray-400" />
-                        Nihai Onay
-                      </span>
-                      <span className="text-gray-500">Henüz Başlamadı</span>
-                    </div>
+                  <div className="space-y-2">
+                    {(() => {
+                      const currentStage = processStages.find(stage => stage.name === candidate.stage);
+                      if (!currentStage?.subProcesses) return null;
+                      
+                      return currentStage.subProcesses.map((subProcess) => {
+                        const isCompleted = Math.random() > 0.5; // Mock completion status
+                        const completedDate = isCompleted ? new Date() : null;
+                        const completedBy = isCompleted ? 'Ahmet Yılmaz' : null;
+                        
+                        return (
+                          <div key={subProcess.id} className="bg-gray-50 p-3 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-2">
+                                {isCompleted ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Clock className="h-4 w-4 text-amber-500" />
+                                )}
+                                <span className="font-medium">{subProcess.name}</span>
+                              </span>
+                              <span className={`text-sm px-2 py-1 rounded ${
+                                isCompleted ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {isCompleted ? 'Tamamlandı' : 'Beklemede'}
+                              </span>
+                            </div>
+                            {subProcess.description && (
+                              <p className="text-sm text-gray-600 mt-1">{subProcess.description}</p>
+                            )}
+                            {isCompleted && completedDate && completedBy && (
+                              <div className="mt-2 text-xs text-gray-500 flex gap-4">
+                                <span>📅 {formatDate(completedDate)}</span>
+                                <span>👤 {completedBy}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
+                </div>
+                
+                {/* Action buttons for process management */}
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
+                  >
+                    Süreç Tamamla
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
+                  >
+                    Süreç Ata
+                  </Button>
                 </div>
               </div>
               
