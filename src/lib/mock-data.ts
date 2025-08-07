@@ -63,7 +63,7 @@ export interface JobPlacement {
   startDate: Date | string;
   salary?: number;
   currency?: string;
-  contractType: 'fullTime' | 'partTime' | 'contract' | 'internship';
+  contractType: 'fullTime' | 'partTime' | 'contract' | 'internship' | 'interview';
   interviewDetails?: {
     interviewDate: Date | string;
     interviewers: string[];

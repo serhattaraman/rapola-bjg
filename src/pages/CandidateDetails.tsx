@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
 import AddJobPlacementDialog from '@/components/AddJobPlacementDialog';
+import AddInterviewDialog from '@/components/AddInterviewDialog';
 import { getProcessStagesFromStorage } from '@/lib/process-data';
 
 const CandidateDetails = () => {
@@ -48,6 +49,7 @@ const CandidateDetails = () => {
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [rejectionNote, setRejectionNote] = useState<string>('');
   const [isAddJobPlacementDialogOpen, setIsAddJobPlacementDialogOpen] = useState(false);
+  const [isAddInterviewDialogOpen, setIsAddInterviewDialogOpen] = useState(false);
   const processStages = getProcessStagesFromStorage();
   
   if (!candidate) {
@@ -833,33 +835,66 @@ const CandidateDetails = () => {
                   <Briefcase className="h-5 w-5 text-primary" />
                   <h2 className="text-lg font-semibold">İşe Yerleştirme ve Mülakatlar</h2>
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                  className="text-primary hover:text-primary/80 h-8 w-8"
-                  disabled={candidate.status === 'rejected'}
-                >
-                  <PlusCircle className="h-5 w-5" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddInterviewDialogOpen(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                    disabled={candidate.status === 'rejected'}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Mülakat Ekle
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                    className="text-green-600 hover:text-green-700"
+                    disabled={candidate.status === 'rejected'}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    İş Yerleştirme Ekle
+                  </Button>
+                </div>
               </div>
               
               <div className="space-y-4">
                 {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
-                    candidate.jobPlacements.map((job, index) => (
-                      <div key={job.id} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  candidate.jobPlacements.map((job, index) => {
+                    const isInterview = job.contractType === 'interview';
+                    const cardColor = isInterview 
+                      ? (job.interviewDetails?.interviewResult === 'passed' ? 'bg-green-50 border-green-200' : 
+                         job.interviewDetails?.interviewResult === 'failed' ? 'bg-red-50 border-red-200' : 
+                         'bg-yellow-50 border-yellow-200')
+                      : 'bg-blue-50 border-blue-200';
+                    const iconColor = isInterview 
+                      ? (job.interviewDetails?.interviewResult === 'passed' ? 'text-green-600' : 
+                         job.interviewDetails?.interviewResult === 'failed' ? 'text-red-600' : 
+                         'text-yellow-600')
+                      : 'text-blue-600';
+                    
+                    return (
+                      <div key={job.id} className={`p-4 rounded-lg border ${cardColor}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <Building2 className="h-5 w-5 text-green-600" />
-                              <h3 className="font-medium text-green-900">{job.companyName}</h3>
-                              {job.isActive && (
+                              <Building2 className={`h-5 w-5 ${iconColor}`} />
+                              <h3 className={`font-medium ${iconColor.replace('text-', 'text-').replace('-600', '-900')}`}>
+                                {job.companyName}
+                              </h3>
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                isInterview ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {isInterview ? 'Mülakat' : 'İş Yerleştirme'}
+                              </span>
+                              {job.isActive && !isInterview && (
                                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                                   Aktif
                                 </span>
                               )}
                             </div>
-                            <div className="space-y-1 text-sm text-green-800">
+                            <div className={`space-y-1 text-sm ${iconColor.replace('text-', 'text-').replace('-600', '-800')}`}>
                               <div className="flex items-center gap-2">
                                 <span className="font-medium">Pozisyon:</span>
                                 <span>{job.position}</span>
@@ -874,25 +909,29 @@ const CandidateDetails = () => {
                                 <MapPin className="h-4 w-4" />
                                 <span>{job.companyAddress}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                <span>Başlangıç: {formatDate(job.startDate)}</span>
-                                <span>•</span>
-                                <span>{getContractTypeLabel(job.contractType)}</span>
-                              </div>
-                              {job.salary && (
-                                <div className="flex items-center gap-2">
-                                  <span>Maaş: {job.salary} {job.currency}</span>
-                                </div>
+                              {!isInterview && (
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <Calendar className="h-4 w-4" />
+                                    <span>Başlangıç: {formatDate(job.startDate)}</span>
+                                    <span>•</span>
+                                    <span>{getContractTypeLabel(job.contractType)}</span>
+                                  </div>
+                                  {job.salary && (
+                                    <div className="flex items-center gap-2">
+                                      <span>Maaş: {job.salary} {job.currency}</span>
+                                    </div>
+                                  )}
+                                </>
                               )}
-                              <div className="text-xs text-green-600 mt-2">
-                                Yerleştiren: {job.placedBy} • {formatDate(job.placementDate)}
+                              <div className={`text-xs mt-2 ${iconColor.replace('-600', '-600')}`}>
+                                {isInterview ? 'Mülakat kaydı: ' : 'Yerleştiren: '}{job.placedBy} • {formatDate(job.placementDate)}
                               </div>
                             </div>
                             
                             {/* Interview Details */}
                             {job.interviewDetails && (
-                              <div className="mt-3 p-3 bg-white rounded border border-green-200">
+                              <div className="mt-3 p-3 bg-white rounded border border-gray-200">
                                 <h4 className="text-sm font-medium text-gray-900 mb-2">Mülakat Bilgileri</h4>
                                 <div className="space-y-1 text-xs text-gray-600">
                                   <div>Tarih: {formatDate(job.interviewDetails.interviewDate)}</div>
@@ -905,9 +944,12 @@ const CandidateDetails = () => {
                                       "px-1 py-0.5 rounded text-xs",
                                       job.interviewDetails.interviewResult === 'passed' 
                                         ? "bg-green-100 text-green-800" 
-                                        : "bg-red-100 text-red-800"
+                                        : job.interviewDetails.interviewResult === 'failed'
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-yellow-100 text-yellow-800"
                                     )}>
-                                      {job.interviewDetails.interviewResult === 'passed' ? 'Başarılı' : 'Başarısız'}
+                                      {job.interviewDetails.interviewResult === 'passed' ? 'Olumlu' : 
+                                       job.interviewDetails.interviewResult === 'failed' ? 'Olumsuz' : 'Beklemede'}
                                     </span>
                                   </div>
                                   {job.interviewDetails.interviewNotes && (
@@ -922,20 +964,32 @@ const CandidateDetails = () => {
                           </div>
                         </div>
                       </div>
-                     ))
+                    )
+                  })
                    ) : (
                      <div className="text-center py-8">
                        <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                       <p className="text-gray-500 mb-4">Henüz iş yerleştirme kaydı bulunmuyor</p>
-                       <Button 
-                         variant="outline" 
-                         onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                         className="text-primary hover:text-primary/80"
-                         disabled={candidate.status === 'rejected'}
-                       >
-                         <PlusCircle className="mr-2 h-4 w-4" />
-                         İş Yerleştirme/Mülakat Ekle
-                       </Button>
+                       <p className="text-gray-500 mb-4">Henüz mülakat veya iş yerleştirme kaydı bulunmuyor</p>
+                       <div className="flex gap-2 justify-center">
+                         <Button 
+                           variant="outline" 
+                           onClick={() => setIsAddInterviewDialogOpen(true)}
+                           className="text-blue-600 hover:text-blue-700"
+                           disabled={candidate.status === 'rejected'}
+                         >
+                           <PlusCircle className="mr-2 h-4 w-4" />
+                           İlk Mülakat Ekle
+                         </Button>
+                         <Button 
+                           variant="outline" 
+                           onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                           className="text-green-600 hover:text-green-700"
+                           disabled={candidate.status === 'rejected'}
+                         >
+                           <PlusCircle className="mr-2 h-4 w-4" />
+                           İlk İş Yerleştirme Ekle
+                         </Button>
+                       </div>
                      </div>
                    )}
                  </div>
@@ -1131,6 +1185,13 @@ const CandidateDetails = () => {
       <AddJobPlacementDialog
         open={isAddJobPlacementDialogOpen}
         onOpenChange={setIsAddJobPlacementDialogOpen}
+        onSuccess={handleAddJobPlacement}
+      />
+
+      {/* Add Interview Dialog */}
+      <AddInterviewDialog
+        open={isAddInterviewDialogOpen}
+        onOpenChange={setIsAddInterviewDialogOpen}
         onSuccess={handleAddJobPlacement}
       />
     </div>

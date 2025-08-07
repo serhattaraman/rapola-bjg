@@ -13,10 +13,10 @@ import { cn } from "@/lib/utils";
 import { JobPlacement } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 
-interface AddJobPlacementDialogProps {
+interface AddInterviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (jobPlacement: JobPlacement) => void;
+  onSuccess: (interview: JobPlacement) => void;
 }
 
 // Turkish cities data
@@ -38,7 +38,7 @@ const sampleDistricts: { [key: string]: string[] } = {
   "İzmir": ["Konak", "Bornova", "Karşıyaka", "Buca", "Çiğli", "Gaziemir", "Balçova", "Narlıdere", "Bayraklı", "Karabağlar"]
 };
 
-const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
+const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
   open,
   onOpenChange,
   onSuccess
@@ -47,17 +47,13 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
   const [city, setCity] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
-  const [detailAddress, setDetailAddress] = useState('');
-  const [companyAddress, setCompanyAddress] = useState('');
+  const [address, setAddress] = useState('');
   const [position, setPosition] = useState('');
   const [department, setDepartment] = useState('');
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [salary, setSalary] = useState('');
-  const [currency, setCurrency] = useState('EUR');
-  const [contractType, setContractType] = useState<string>('');
   const [interviewDate, setInterviewDate] = useState<Date | undefined>(undefined);
   const [interviewers, setInterviewers] = useState('');
   const [interviewNotes, setInterviewNotes] = useState('');
+  const [interviewResult, setInterviewResult] = useState<'passed' | 'failed' | 'pending'>('pending');
   const { toast } = useToast();
 
   const resetForm = () => {
@@ -65,21 +61,17 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
     setCity('');
     setDistrict('');
     setNeighborhood('');
-    setDetailAddress('');
-    setCompanyAddress('');
+    setAddress('');
     setPosition('');
     setDepartment('');
-    setStartDate(undefined);
-    setSalary('');
-    setCurrency('EUR');
-    setContractType('');
     setInterviewDate(undefined);
     setInterviewers('');
     setInterviewNotes('');
+    setInterviewResult('pending');
   };
 
   const handleSubmit = () => {
-    if (!companyName.trim() || !city || !district || !position.trim() || !contractType || !startDate) {
+    if (!companyName.trim() || !city || !district || !position.trim() || !interviewDate) {
       toast({
         title: "Eksik bilgi",
         description: "Lütfen zorunlu alanları doldurun",
@@ -88,46 +80,43 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
       return;
     }
 
-    const fullAddress = `${neighborhood ? neighborhood + ', ' : ''}${district}, ${city}${detailAddress ? ', ' + detailAddress : ''}`;
+    const fullAddress = `${neighborhood ? neighborhood + ', ' : ''}${district}, ${city}${address ? ', ' + address : ''}`;
 
-    const newJobPlacement: JobPlacement = {
+    const newInterview: JobPlacement = {
       id: Date.now().toString(),
       companyName: companyName.trim(),
       companyAddress: fullAddress,
       position: position.trim(),
       department: department.trim() || undefined,
-      startDate,
-      salary: salary ? parseFloat(salary) : undefined,
-      currency,
-      contractType: contractType as JobPlacement['contractType'],
-      interviewDetails: interviewDate ? {
+      startDate: new Date(), // For interview records, this represents the record date
+      contractType: 'interview' as any, // Special type for interview records
+      interviewDetails: {
         interviewDate,
         interviewers: interviewers.split(',').map(name => name.trim()).filter(name => name),
         interviewNotes: interviewNotes.trim() || undefined,
-        interviewResult: 'passed'
-      } : undefined,
+        interviewResult
+      },
       placementDate: new Date(),
-      placedBy: 'Mevcut Kullanıcı', // In real app, this would be current user
-      isActive: true
+      placedBy: 'Mevcut Kullanıcı',
+      isActive: interviewResult === 'passed'
     };
 
-    onSuccess(newJobPlacement);
+    onSuccess(newInterview);
     resetForm();
     onOpenChange(false);
     
     toast({
-      title: "İş yerleştirme eklendi",
-      description: `${companyName} şirketine yerleştirme başarıyla eklendi`,
+      title: "Mülakat kaydı eklendi",
+      description: `${companyName} şirketi için mülakat kaydı başarıyla eklendi`,
     });
   };
 
-  const getContractTypeLabel = (type: string) => {
-    switch (type) {
-      case 'fullTime': return 'Tam Zamanlı';
-      case 'partTime': return 'Yarı Zamanlı';
-      case 'contract': return 'Sözleşmeli';
-      case 'internship': return 'Staj';
-      default: return type;
+  const getInterviewResultLabel = (result: string) => {
+    switch (result) {
+      case 'passed': return 'Olumlu';
+      case 'failed': return 'Olumsuz';
+      case 'pending': return 'Beklemede';
+      default: return result;
     }
   };
 
@@ -137,7 +126,7 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Yeni İş Yerleştirme Ekle</DialogTitle>
+          <DialogTitle>Mülakat Kaydı Ekle</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
@@ -203,11 +192,11 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="detailAddress">Detay Adres</Label>
+                  <Label htmlFor="address">Detay Adres</Label>
                   <Input
-                    id="detailAddress"
-                    value={detailAddress}
-                    onChange={(e) => setDetailAddress(e.target.value)}
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
                     placeholder="Cadde, sokak, bina no"
                   />
                 </div>
@@ -237,77 +226,6 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
                   placeholder="Departman bilgisini girin"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Çalışma Türü *</Label>
-                  <Select value={contractType} onValueChange={setContractType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Çalışma türünü seçin" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fullTime">Tam Zamanlı</SelectItem>
-                      <SelectItem value="partTime">Yarı Zamanlı</SelectItem>
-                      <SelectItem value="contract">Sözleşmeli</SelectItem>
-                      <SelectItem value="internship">Staj</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>İşe Başlama Tarihi *</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !startDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, "dd/MM/yyyy") : "Tarih seçin"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <CalendarComponent
-                        mode="single"
-                        selected={startDate}
-                        onSelect={setStartDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Salary Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Maaş Bilgileri</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="salary">Maaş</Label>
-                <Input
-                  id="salary"
-                  type="number"
-                  value={salary}
-                  onChange={(e) => setSalary(e.target.value)}
-                  placeholder="Maaş miktarını girin"
-                />
-              </div>
-              <div>
-                <Label>Para Birimi</Label>
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="TRY">TRY</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
 
@@ -316,7 +234,7 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
             <h3 className="text-lg font-medium">Mülakat Bilgileri</h3>
             <div className="grid gap-4">
               <div>
-                <Label>Mülakat Tarihi</Label>
+                <Label>Mülakat Tarihi *</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -350,6 +268,19 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
                 />
               </div>
               <div>
+                <Label>Mülakat Sonucu</Label>
+                <Select value={interviewResult} onValueChange={(value: 'passed' | 'failed' | 'pending') => setInterviewResult(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Beklemede</SelectItem>
+                    <SelectItem value="passed">Olumlu</SelectItem>
+                    <SelectItem value="failed">Olumsuz</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label htmlFor="interviewNotes">Mülakat Notları</Label>
                 <Textarea
                   id="interviewNotes"
@@ -368,7 +299,7 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
             İptal
           </Button>
           <Button onClick={handleSubmit}>
-            İş Yerleştirme Ekle
+            Mülakat Kaydı Ekle
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -376,4 +307,4 @@ const AddJobPlacementDialog: React.FC<AddJobPlacementDialogProps> = ({
   );
 };
 
-export default AddJobPlacementDialog;
+export default AddInterviewDialog;
