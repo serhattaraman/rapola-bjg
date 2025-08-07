@@ -19,24 +19,7 @@ interface AddInterviewDialogProps {
   onSuccess: (interview: JobPlacement) => void;
 }
 
-// Turkish cities data
-const turkishCities = [
-  "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
-  "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli",
-  "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
-  "Hatay", "Isparta", "İçel", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
-  "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
-  "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
-  "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
-  "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce"
-];
-
-// Sample districts for major cities (in a real app, this would be fetched based on selected city)
-const sampleDistricts: { [key: string]: string[] } = {
-  "İstanbul": ["Kadıköy", "Beşiktaş", "Şişli", "Beyoğlu", "Fatih", "Üsküdar", "Bakırköy", "Zeytinburnu", "Maltepe", "Ataşehir"],
-  "Ankara": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Sincan", "Etimesgut", "Altındağ", "Pursaklar", "Gölbaşı", "Polatlı"],
-  "İzmir": ["Konak", "Bornova", "Karşıyaka", "Buca", "Çiğli", "Gaziemir", "Balçova", "Narlıdere", "Bayraklı", "Karabağlar"]
-};
+import { germanStates, getCitiesByState, getDistrictsByCity, getNeighborhoodsByDistrict } from '@/data/german-locations';
 
 const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
   open,
@@ -44,9 +27,11 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
   onSuccess
 }) => {
   const [companyName, setCompanyName] = useState('');
+  const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
+  const [village, setVillage] = useState('');
   const [address, setAddress] = useState('');
   const [position, setPosition] = useState('');
   const [department, setDepartment] = useState('');
@@ -58,9 +43,11 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
 
   const resetForm = () => {
     setCompanyName('');
+    setState('');
     setCity('');
     setDistrict('');
     setNeighborhood('');
+    setVillage('');
     setAddress('');
     setPosition('');
     setDepartment('');
@@ -71,7 +58,7 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!companyName.trim() || !city || !district || !position.trim() || !interviewDate) {
+    if (!companyName.trim() || !state || !city || !position.trim() || !interviewDate) {
       toast({
         title: "Eksik bilgi",
         description: "Lütfen zorunlu alanları doldurun",
@@ -80,7 +67,7 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
       return;
     }
 
-    const fullAddress = `${neighborhood ? neighborhood + ', ' : ''}${district}, ${city}${address ? ', ' + address : ''}`;
+    const fullAddress = `${village ? village + ', ' : ''}${neighborhood ? neighborhood + ', ' : ''}${district ? district + ', ' : ''}${city}, ${state}${address ? ', ' + address : ''}`;
 
     const newInterview: JobPlacement = {
       id: Date.now().toString(),
@@ -120,7 +107,9 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
     }
   };
 
-  const availableDistricts = city ? (sampleDistricts[city] || []) : [];
+  const availableCities = state ? getCitiesByState(state) : [];
+  const availableDistricts = city ? getDistrictsByCity(city) : [];
+  const availableNeighborhoods = district ? getNeighborhoodsByDistrict(district) : [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,16 +136,37 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
               {/* Address Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>İl *</Label>
-                  <Select value={city} onValueChange={(value) => {
-                    setCity(value);
-                    setDistrict(''); // Reset district when city changes
+                  <Label>Eyalet *</Label>
+                  <Select value={state} onValueChange={(value) => {
+                    setState(value);
+                    setCity('');
+                    setDistrict('');
+                    setNeighborhood('');
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="İl seçin" />
+                      <SelectValue placeholder="Eyalet seçin" />
                     </SelectTrigger>
                     <SelectContent>
-                      {turkishCities.map((cityName) => (
+                      {germanStates.map((stateName) => (
+                        <SelectItem key={stateName} value={stateName}>
+                          {stateName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Şehir *</Label>
+                  <Select value={city} onValueChange={(value) => {
+                    setCity(value);
+                    setDistrict('');
+                    setNeighborhood('');
+                  }} disabled={!state}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Şehir seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCities.map((cityName) => (
                         <SelectItem key={cityName} value={cityName}>
                           {cityName}
                         </SelectItem>
@@ -164,9 +174,15 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>İlçe *</Label>
-                  <Select value={district} onValueChange={setDistrict} disabled={!city}>
+                  <Label>İlçe/Bölge</Label>
+                  <Select value={district} onValueChange={(value) => {
+                    setDistrict(value);
+                    setNeighborhood('');
+                  }} disabled={!city}>
                     <SelectTrigger>
                       <SelectValue placeholder="İlçe seçin" />
                     </SelectTrigger>
@@ -179,16 +195,31 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label>Mahalle/Semt</Label>
+                  <Select value={neighborhood} onValueChange={setNeighborhood} disabled={!district}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Mahalle seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableNeighborhoods.map((neighborhoodName) => (
+                        <SelectItem key={neighborhoodName} value={neighborhoodName}>
+                          {neighborhoodName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="neighborhood">Mahalle</Label>
+                  <Label htmlFor="village">Köy/Kasaba</Label>
                   <Input
-                    id="neighborhood"
-                    value={neighborhood}
-                    onChange={(e) => setNeighborhood(e.target.value)}
-                    placeholder="Mahalle adını girin"
+                    id="village"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    placeholder="Köy veya kasaba adı"
                   />
                 </div>
                 <div>
@@ -197,7 +228,7 @@ const AddInterviewDialog: React.FC<AddInterviewDialogProps> = ({
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Cadde, sokak, bina no"
+                    placeholder="Sokak, cadde, bina no"
                   />
                 </div>
               </div>
