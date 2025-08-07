@@ -80,6 +80,40 @@ const CandidateDetails = () => {
     window.location.href = mailtoLink;
   };
 
+  const handleCompleteProcess = () => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      // Add timeline entry for process completion
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Süreç Tamamlandı',
+        description: `${prev.stage} aşaması tamamlandı.`,
+        staff: 'Mevcut Kullanıcı'
+      };
+      
+      toast({
+        title: "Süreç tamamlandı",
+        description: `${prev.stage} aşaması başarıyla tamamlandı.`,
+      });
+      
+      return {
+        ...prev,
+        status: 'completed',
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+  };
+
+  const handleAssignProcess = () => {
+    // Placeholder for process assignment functionality
+    toast({
+      title: "Süreç Atama",
+      description: "Süreç atama özelliği yakında eklenecek.",
+    });
+  };
+
   const handleUpdateStage = (newStage: string) => {
     setCandidate(prev => {
       if (!prev) return null;
@@ -688,6 +722,7 @@ const CandidateDetails = () => {
                   <Button 
                     size="sm" 
                     variant="outline" 
+                    onClick={handleCompleteProcess}
                     disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                   >
                     Süreç Tamamla
@@ -695,6 +730,7 @@ const CandidateDetails = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
+                    onClick={handleAssignProcess}
                     disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                   >
                     Süreç Ata
@@ -707,6 +743,7 @@ const CandidateDetails = () => {
                 <Button 
                   className="w-full" 
                   variant="default"
+                  onClick={handleCompleteProcess}
                   disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                 >
                   <Check className="mr-2 h-4 w-4" />
@@ -715,6 +752,7 @@ const CandidateDetails = () => {
                 <Button 
                   className="w-full" 
                   variant="outline"
+                  onClick={handleAssignProcess}
                   disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                 >
                   <User className="mr-2 h-4 w-4" />
