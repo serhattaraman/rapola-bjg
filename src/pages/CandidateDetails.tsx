@@ -638,22 +638,84 @@ const CandidateDetails = () => {
                 </div>
               )}
               
+              {/* Process Stage Display */}
               <div className={`bg-primary/5 p-4 rounded-lg border border-primary/20 ${candidate.status === 'waiting' || candidate.status === 'rejected' ? 'opacity-50' : ''}`}>
                 <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
                   <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
                   {candidate.stage}
+                  <span className="text-sm bg-amber-100 text-amber-800 px-2 py-1 rounded-full">3/5</span>
                 </div>
                 <div className="mt-2 text-sm text-gray-600">
                   <p>
                     Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
                   </p>
                 </div>
+                
+                {/* Sub-processes */}
+                <div className="mt-4 space-y-2">
+                  <h4 className="text-sm font-medium text-gray-700">Ara Süreçler:</h4>
+                  <div className="space-y-1">
+                    {/* Example sub-processes - in real app these would come from process data */}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Form Doldurma
+                      </span>
+                      <span className="text-green-600">Tamamlandı</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Başvuru Onayı
+                      </span>
+                      <span className="text-green-600">Tamamlandı</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Belge Kontrolü
+                      </span>
+                      <span className="text-green-600">Tamamlandı</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-amber-500" />
+                        Ön Değerlendirme
+                      </span>
+                      <span className="text-amber-600">Beklemede</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 text-gray-400" />
+                        Nihai Onay
+                      </span>
+                      <span className="text-gray-500">Henüz Başlamadı</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <div className="mt-4">
+              {/* Action Buttons */}
+              <div className="mt-4 space-y-2">
                 <Button 
                   className="w-full" 
                   variant="default"
+                  disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
+                >
+                  <Check className="mr-2 h-4 w-4" />
+                  Süreç Tamamla
+                </Button>
+                <Button 
+                  className="w-full" 
+                  variant="outline"
+                  disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Süreç Ata
+                </Button>
+                <Button 
+                  className="w-full" 
+                  variant="outline"
                   onClick={() => setIsUpdateStageDialogOpen(true)}
                   disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
                 >
@@ -662,12 +724,12 @@ const CandidateDetails = () => {
                 </Button>
                 {candidate.status === 'waiting' && (
                   <p className="mt-2 text-xs text-center text-gray-500">
-                    Aşama güncellemek için önce bekleme modundan çıkarın
+                    İşlem yapmak için önce bekleme modundan çıkarın
                   </p>
                 )}
                 {candidate.status === 'rejected' && (
                   <p className="mt-2 text-xs text-center text-gray-500">
-                    Reddedilmiş adayların aşaması güncellenemez
+                    Reddedilmiş adaylar için işlem yapılamaz
                   </p>
                 )}
               </div>
