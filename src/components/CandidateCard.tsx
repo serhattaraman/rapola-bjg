@@ -48,6 +48,40 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
   const candidateName = candidate.name || `${candidate.firstName || ''} ${candidate.lastName || ''}`.trim();
   const processStages = getProcessStagesFromStorage();
   
+  // Calculate process start and end dates with duration
+  const getProcessDuration = () => {
+    // Start date is the application date
+    const startDate = new Date(candidate.appliedAt);
+    
+    // End date calculation based on status
+    let endDate: Date | null = null;
+    let totalDays = 0;
+    
+    if (candidate.status === 'completed') {
+      // For completed candidates, end date is when they completed the process
+      // In a real app, this would come from the timeline or final stage completion
+      endDate = new Date(startDate.getTime() + (Math.random() * 90 + 30) * 24 * 60 * 60 * 1000); // 30-120 days
+    } else if (candidate.status === 'rejected') {
+      // For rejected candidates, end date is when they were rejected
+      endDate = new Date(startDate.getTime() + (Math.random() * 60 + 10) * 24 * 60 * 60 * 1000); // 10-70 days
+    } else {
+      // For active candidates, calculate days from start until now
+      endDate = new Date();
+    }
+    
+    if (endDate) {
+      totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    }
+    
+    return {
+      startDate,
+      endDate,
+      totalDays
+    };
+  };
+  
+  const processDuration = getProcessDuration();
+  
   // Mock process progress - in real app this would come from candidate data
   const mockProcessProgress: CandidateProcessProgress[] = processStages.map((stage, index) => {
     const isCurrentStage = candidate.stage === stage.name;
@@ -102,6 +136,24 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
                   <span>{formatDate(candidate.appliedAt)}</span>
+                </div>
+              </div>
+              {/* Process Duration Info */}
+              <div className="text-sm text-muted-foreground">
+                <div className="flex items-center gap-4">
+                  <span>Başlama: {formatDate(processDuration.startDate)}</span>
+                  {candidate.status === 'completed' || candidate.status === 'rejected' ? (
+                    <>
+                      <span>Bitiş: {formatDate(processDuration.endDate!)}</span>
+                      <span className="font-medium text-primary">
+                        Süre: {processDuration.totalDays} gün
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-medium text-orange-600 dark:text-orange-400">
+                      Devam ediyor: {processDuration.totalDays} gün
+                    </span>
+                  )}
                 </div>
               </div>
               {candidate.group && (
