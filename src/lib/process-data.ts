@@ -134,7 +134,7 @@ export const addProcessStage = (stage: Omit<ProcessStage, 'id' | 'order'>): Proc
   const newStage: ProcessStage = {
     ...stage,
     id: Date.now().toString(),
-    order: stages.length + 1,
+    order: 0, // Order no longer matters for sequencing
     subProcesses: stage.subProcesses.map((sp, index) => ({
       ...sp,
       id: `${Date.now()}-${index}`,
@@ -159,12 +159,8 @@ export const updateProcessStage = (id: string, updates: Partial<ProcessStage>): 
 export const deleteProcessStage = (id: string): void => {
   const stages = getProcessStagesFromStorage();
   const filteredStages = stages.filter(stage => stage.id !== id);
-  // Reorder remaining stages
-  const reorderedStages = filteredStages.map((stage, index) => ({
-    ...stage,
-    order: index + 1
-  }));
-  saveProcessStagesToStorage(reorderedStages);
+  // No need to reorder as processes can run in parallel
+  saveProcessStagesToStorage(filteredStages);
 };
 
 export const addSubProcess = (stageId: string, subProcess: Omit<SubProcess, 'id' | 'order' | 'stageId'>): void => {

@@ -51,7 +51,7 @@ const ProcessManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Süreç Yönetimi</h1>
-          <p className="text-muted-foreground">Ana süreçleri ve alt süreçleri yönetin</p>
+          <p className="text-muted-foreground">Ana süreçleri ve alt süreçleri yönetin - Süreçler paralel olarak çalışabilir</p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -66,8 +66,8 @@ const ProcessManagement = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">
-                      {stage.order}
+                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+                      Paralel
                     </span>
                     {stage.name}
                   </CardTitle>

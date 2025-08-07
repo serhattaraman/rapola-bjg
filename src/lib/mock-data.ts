@@ -26,6 +26,7 @@ export interface CandidateProcessProgress {
   completedSubProcesses: string[]; // Array of sub-process IDs
   startDate?: Date | string;
   completedDate?: Date | string;
+  canStart?: boolean; // Always true now that processes can run in parallel
 }
 
 export interface ExamResult {
