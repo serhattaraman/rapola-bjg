@@ -1,492 +1,895 @@
+
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, User, Clock, Calendar, CheckCircle, AlertCircle, XCircle, UserCheck, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  mockCandidates, 
-  formatDate, 
-  getStatusLabel,
-  CandidateProcessProgress,
-  ProcessStatus
-} from '@/lib/mock-data';
-import { getProcessStagesFromStorage } from '@/lib/process-data';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText } from 'lucide-react';
+import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
+import { QRCodeSVG } from 'qrcode.react';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import UpdateStageDialog from '@/components/UpdateStageDialog';
+import { toast } from '@/components/ui/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import ExamStatsBadge from '@/components/ExamStatsBadge';
 
 const CandidateDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
-  const [selectedStage, setSelectedStage] = useState<string>('');
-  const [selectedSubProcess, setSelectedSubProcess] = useState<string>('');
-  
-  const candidate = mockCandidates.find(c => c.id === id);
-  const processStages = getProcessStagesFromStorage();
-
-  const getProcessStatusColor = (status: ProcessStatus): string => {
-    switch (status) {
-      case 'notStarted':
-        return 'bg-gray-300 text-gray-700';
-      case 'inProgress':
-        return 'bg-yellow-500 text-white';
-      case 'blocked':
-        return 'bg-red-500 text-white';
-      case 'completed':
-        return 'bg-green-500 text-white';
-      default:
-        return 'bg-gray-300 text-gray-700';
-    }
-  };
-
-  // Mock process progress - in real app this would come from candidate data
-  const mockProcessProgress: CandidateProcessProgress[] = processStages.map((stage, index) => {
-    const isCurrentStage = candidate?.stage === stage.name;
-    const isCompletedStage = processStages.findIndex(s => s.name === candidate?.stage) > index;
-    
-    let status: ProcessStatus = 'notStarted';
-    let completedSubProcesses: string[] = [];
-    
-    if (isCompletedStage) {
-      status = 'completed';
-      completedSubProcesses = stage.subProcesses.map(sp => sp.id);
-    } else if (isCurrentStage) {
-      if (candidate?.status === 'rejected') {
-        status = 'blocked';
-      } else {
-        status = 'inProgress';
-        // Simulate some completed sub-processes
-        completedSubProcesses = stage.subProcesses.slice(0, Math.floor(stage.subProcesses.length / 2)).map(sp => sp.id);
-      }
-    }
-
-    return {
-      stageId: stage.id,
-      status,
-      completedSubProcesses,
-      startDate: isCurrentStage || isCompletedStage ? new Date() : undefined,
-      completedDate: isCompletedStage ? new Date() : undefined,
-    };
+  const [candidate, setCandidate] = useState(() => {
+    // Find the candidate with the matching ID
+    const foundCandidate = mockCandidates.find(c => c.id === id);
+    console.log(`Looking for candidate with ID: ${id}`);
+    console.log(`Found candidate:`, foundCandidate);
+    return foundCandidate || null;
   });
 
-  const handleAssignProcess = () => {
-    if (!selectedStage) {
-      toast({
-        title: "Hata",
-        description: "Lütfen bir süreç seçin.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "Süreç Atandı",
-      description: `${processStages.find(s => s.id === selectedStage)?.name} süreci adaya atandı.`,
-    });
-    setAssignDialogOpen(false);
-    setSelectedStage('');
-  };
-
-  const handleCompleteProcess = () => {
-    if (!selectedStage) {
-      toast({
-        title: "Hata", 
-        description: "Lütfen bir süreç seçin.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const stageName = processStages.find(s => s.id === selectedStage)?.name;
-    let message = `${stageName} süreci tamamlandı.`;
-    
-    if (selectedSubProcess) {
-      const subProcessName = processStages
-        .find(s => s.id === selectedStage)
-        ?.subProcesses.find(sp => sp.id === selectedSubProcess)?.name;
-      message = `${stageName} sürecinin ${subProcessName} alt süreci tamamlandı.`;
-    }
-
-    toast({
-      title: "Süreç Tamamlandı",
-      description: message,
-    });
-    setCompleteDialogOpen(false);
-    setSelectedStage('');
-    setSelectedSubProcess('');
-  };
-
+  const [isUpdateStageDialogOpen, setIsUpdateStageDialogOpen] = useState(false);
+  const [isAddNoteDialogOpen, setIsAddNoteDialogOpen] = useState(false);
+  const [isWaitingDialogOpen, setIsWaitingDialogOpen] = useState(false);
+  const [isClassConfirmDialogOpen, setIsClassConfirmDialogOpen] = useState(false);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [newNote, setNewNote] = useState('');
+  const [waitingDate, setWaitingDate] = useState<Date | undefined>(
+    candidate?.returnDate ? new Date(candidate.returnDate) : undefined
+  );
+  const [classConfirmation, setClassConfirmation] = useState<'pending' | 'confirmed'>(
+    candidate?.classConfirmation || 'pending'
+  );
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [rejectionNote, setRejectionNote] = useState<string>('');
+  
   if (!candidate) {
     return (
       <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Aday bulunamadı</h2>
           <p className="text-gray-500 mb-4">Aradığınız ID: {id}</p>
-          <Button onClick={() => navigate(-1)} variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Geri Dön
-          </Button>
+          <div className="space-y-4">
+            <Link to="/candidates" className="btn btn-primary block">
+              Tüm Adaylar Sayfasına Git
+            </Link>
+            <Button onClick={() => navigate(-1)} variant="outline" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Önceki Sayfaya Dön
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
+
+  const phoneNumber = candidate.phone || "05XXXXXXXXX";
+  const phoneUrl = `tel:${phoneNumber.replace(/\s/g, '')}`;
+
+  const handleEmailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const mailtoLink = `mailto:${candidate.email}?subject=Rapola%20-%20Başvurunuz%20Hakkında&body=Merhaba%20${candidate.firstName}%20${candidate.lastName},%0D%0A%0D%0A`;
+    window.location.href = mailtoLink;
+  };
+
+  const handleUpdateStage = (newStage: string) => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      // Add a new timeline entry for the stage change
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: newStage,
+        description: `Aşama "${prev.stage}" konumundan "${newStage}" konumuna güncellendi.`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
+      };
+      
+      // If new stage is "Sınıf Yerleştirme", set class confirmation to pending
+      const updatedClassConfirmation = newStage === "Sınıf Yerleştirme" ? 'pending' : prev.classConfirmation;
+      
+      return {
+        ...prev,
+        stage: newStage,
+        classConfirmation: updatedClassConfirmation,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+  };
+
+  const handleAddNote = () => {
+    if (!newNote.trim()) {
+      toast({
+        title: "Not eklenemedi",
+        description: "Lütfen bir not giriniz",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // In a real app, this would update the API
+    // For now, we'll update the local state
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      return {
+        ...prev,
+        notes: [newNote, ...prev.notes]
+      };
+    });
+
+    // Reset form and close dialog
+    setNewNote('');
+    setIsAddNoteDialogOpen(false);
+    
+    toast({
+      title: "Not eklendi",
+      description: "Not başarıyla eklendi",
+    });
+  };
+
+  const toggleWaitingMode = () => {
+    if (candidate.status !== 'waiting') {
+      // If not in waiting mode, open the dialog to set return date
+      setWaitingDate(new Date());
+      setIsWaitingDialogOpen(true);
+    } else {
+      // If already in waiting mode, remove from waiting
+      updateWaitingStatus(false, undefined);
+    }
+  };
+
+  const updateWaitingStatus = (isWaiting: boolean, returnDate?: Date) => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      const newStatus = isWaiting ? 'waiting' : 'inProgress';
+      
+      // Add a new timeline entry for the status change
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Durum Değişikliği',
+        description: `Durum "${getStatusLabel(prev.status)}" konumundan "${getStatusLabel(newStatus)}" konumuna güncellendi.${isWaiting ? ' Dönüş tarihi: ' + formatDate(returnDate) : ''}`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
+      };
+      
+      toast({
+        title: "Durum güncellendi",
+        description: `Aday durumu ${getStatusLabel(newStatus)} olarak güncellendi.${isWaiting ? ' Dönüş tarihi: ' + formatDate(returnDate) : ''}`,
+      });
+      
+      return {
+        ...prev,
+        status: newStatus,
+        returnDate: isWaiting ? returnDate : undefined,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+    
+    setIsWaitingDialogOpen(false);
+  };
+
+  const toggleClassConfirmation = () => {
+    setIsClassConfirmDialogOpen(true);
+  };
+
+  const updateClassConfirmation = (confirmed: boolean) => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      const newConfirmation = confirmed ? 'confirmed' : 'pending';
+      
+      // Add a new timeline entry for the confirmation change
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Sınıf Onayı',
+        description: `Sınıf yerleştirme ${confirmed ? 'onaylandı' : 'beklemede'}.`,
+        staff: 'Mevcut Kullanıcı' // In a real app, this would be the current user's name
+      };
+      
+      toast({
+        title: "Sınıf onayı güncellendi",
+        description: `Sınıf yerleştirme ${confirmed ? 'onaylandı' : 'beklemede'}.`,
+      });
+      
+      return {
+        ...prev,
+        classConfirmation: newConfirmation,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+    
+    setIsClassConfirmDialogOpen(false);
+  };
+
+  const openRejectDialog = () => {
+    setRejectionReason('');
+    setRejectionNote('');
+    setIsRejectDialogOpen(true);
+  };
+
+  const handleRejectCandidate = () => {
+    if (!rejectionReason) {
+      toast({
+        title: "Red işlemi gerçekleştirilemedi",
+        description: "Lütfen bir red nedeni seçiniz",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setCandidate(prev => {
+      if (!prev) return null;
+
+      // Add a new timeline entry for rejection
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'Aday Reddedildi',
+        description: `Red nedeni: ${rejectionReason}${rejectionNote ? ' - Not: ' + rejectionNote : ''}`,
+        staff: 'Mevcut Kullanıcı'
+      };
+      
+      toast({
+        title: "Aday reddedildi",
+        description: `Aday başarıyla reddedildi. Neden: ${rejectionReason}`,
+      });
+      
+      return {
+        ...prev,
+        status: 'rejected',
+        rejectionReason,
+        rejectionNote: rejectionNote || '',
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+    
+    setIsRejectDialogOpen(false);
+  };
+
+  const isInClassPlacementStage = candidate.stage === "Sınıf Yerleştirme";
+
+  const generateCertificate = (exam: any) => {
+    const certificateData = {
+      candidateName: `${candidate.firstName} ${candidate.lastName}`,
+      birthDate: candidate.birthDate || "___.___.______",
+      birthPlace: candidate.birthPlace || "________________",
+      listeningScore: exam.listeningScore || "0",
+      readingScore: exam.readingScore || "0",
+      writingScore: exam.writingScore || "0",
+      speakingScore: exam.speakingScore || "0",
+      totalScore: exam.score || "0",
+      grade: exam.grade || "Bestanden",
+      examDate: formatDate(exam.date),
+    };
+
+    // Read the template and replace placeholders
+    fetch('/src/components/GermanCertificateTemplate.html')
+      .then(response => response.text())
+      .then(template => {
+        let certificateHtml = template;
+        
+        // Replace all placeholders with actual data
+        Object.entries(certificateData).forEach(([key, value]) => {
+          certificateHtml = certificateHtml.replace(new RegExp(`{{${key}}}`, 'g'), value.toString());
+        });
+
+        // Create and download the file
+        const blob = new Blob([certificateHtml], { type: 'text/html' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${candidate.firstName}_${candidate.lastName}_A1_Zertifikat.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast({
+          title: "Sertifika oluşturuldu",
+          description: "Sertifika başarıyla indirildi.",
+        });
+      });
+  };
 
   return (
     <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <button 
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-4"
+            onClick={() => navigate(-1)} 
+            className="inline-flex items-center text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="mr-1 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Geri Dön
           </button>
+        </div>
+
+        {/* Candidate Header */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 animate-scale-in">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+              <h1 className="text-2xl font-bold mb-2">
+                {candidate.firstName} {candidate.lastName}
+              </h1>
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-gray-500">
+                <span>{candidate.position}</span>
+                <span className="hidden sm:inline">•</span>
+                <span>
+                  <a 
+                    href={`mailto:${candidate.email}`}
+                    className="hover:text-primary transition-colors"
+                    onClick={handleEmailClick}
+                  >
+                    {candidate.email}
+                  </a>
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <div className="flex items-center">
+                  <Phone className="h-4 w-4 mr-1" />
+                  <a href={phoneUrl} className="hover:text-primary transition-colors">{phoneNumber}</a>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 md:mt-0 flex items-center gap-4">
+              <div className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div className="text-xs text-center text-gray-500 mb-1">Aramak için tara</div>
+                <QRCodeSVG value={phoneUrl} size={80} />
+              </div>
+              <StatusBadge status={candidate.status} className="text-base px-4 py-1.5" />
+            </div>
+          </div>
           
-          {/* Action Buttons */}
-          <div className="flex gap-3 mb-6">
-            <Button 
-              onClick={() => setAssignDialogOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <UserCheck className="mr-2 h-4 w-4" />
-              Süreç Ata
+          {/* Add Exam Statistics */}
+          <div className="mt-4">
+            <ExamStatsBadge examResults={candidate.examResults} className="justify-start" />
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mt-6">
+            <Button variant="outline" className="inline-flex items-center">
+              <Edit className="mr-2 h-4 w-4" />
+              Düzenle
             </Button>
             <Button 
-              onClick={() => setCompleteDialogOpen(true)}
-              className="bg-green-600 hover:bg-green-700"
+              variant="outline" 
+              className={`inline-flex items-center ${candidate.status === 'waiting' ? 'text-amber-600 hover:text-amber-700' : 'text-blue-600 hover:text-blue-700'}`}
+              onClick={toggleWaitingMode}
             >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Süreç Tamamla
+              <Clock className="mr-2 h-4 w-4" />
+              {candidate.status === 'waiting' ? 'Bekleme Modundan Çıkar' : 'Bekleme Moduna Al'}
+            </Button>
+            {isInClassPlacementStage && (
+              <Button 
+                variant="outline" 
+                className={`inline-flex items-center ${candidate.classConfirmation === 'confirmed' ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                onClick={toggleClassConfirmation}
+              >
+                {candidate.classConfirmation === 'confirmed' ? (
+                  <>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Sınıf Onaylandı
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="mr-2 h-4 w-4" />
+                    Sınıf Onayı Bekliyor
+                  </>
+                )}
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              className="inline-flex items-center text-red-600 hover:text-red-700"
+              onClick={openRejectDialog}
+              disabled={candidate.status === 'rejected'}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              {candidate.status === 'rejected' ? 'Reddedildi' : 'Reddet'}
+            </Button>
+            <Button variant="outline" className="inline-flex items-center text-red-600 hover:text-red-700">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Sil
             </Button>
           </div>
-
-          {/* Candidate Header */}
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl">
-                    {candidate.firstName} {candidate.lastName}
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                      <span className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        {candidate.position}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-4 w-4" />
-                        {candidate.phone}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {formatDate(candidate.appliedAt)}
-                      </span>
-                    </div>
-                  </CardDescription>
-                </div>
-                <StatusBadge 
-                  status={candidate.status} 
-                  returnDate={candidate.returnDate}
-                  showRemainingDays={candidate.status === 'waiting'}
-                />
+          
+          {/* Rejection reason display */}
+          {candidate.status === 'rejected' && candidate.rejectionReason && (
+            <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center text-red-700 font-medium">
+                <XCircle className="h-4 w-4 mr-2" />
+                Red Nedeni: {candidate.rejectionReason}
               </div>
-            </CardHeader>
-            <CardContent>
-              {/* Process Progress Section */}
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold mb-4">Süreç Durumu</h3>
-                <TooltipProvider>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                    {processStages.map((stage) => {
-                      const progress = mockProcessProgress.find(p => p.stageId === stage.id);
-                      const completedCount = progress?.completedSubProcesses.length || 0;
-                      const totalCount = stage.subProcesses.length;
-                      
-                      return (
-                        <Tooltip key={stage.id}>
-                          <TooltipTrigger asChild>
-                            <div className="flex flex-col items-center gap-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                              {/* Stage Icon */}
-                              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-medium relative ${
-                                getProcessStatusColor(progress?.status || 'notStarted')
-                              }`}>
-                                <ProcessStageIcon stage={stage.name} size={20} />
-                                
-                                {/* Sub-process count badge */}
-                                {totalCount > 0 && (
-                                  <div className="absolute -top-1 -right-1 bg-white border border-gray-300 text-gray-700 text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                                    {completedCount}/{totalCount}
-                                  </div>
-                                )}
-                              </div>
-                              
-                              {/* Stage Name */}
-                              <div className="text-xs text-center font-medium">
-                                {stage.name}
-                              </div>
-                              
-                              {/* Status indicator */}
-                              <div className={`text-xs px-2 py-1 rounded-full ${
-                                progress?.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                progress?.status === 'inProgress' ? 'bg-yellow-100 text-yellow-800' :
-                                progress?.status === 'blocked' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-600'
-                              }`}>
-                                {progress?.status === 'completed' ? 'Tamamlandı' :
-                                 progress?.status === 'inProgress' ? 'Devam Ediyor' :
-                                 progress?.status === 'blocked' ? 'Engellendi' :
-                                 'Başlamadı'}
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="text-center">
-                              <div className="font-medium">{stage.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {completedCount}/{totalCount} alt süreç tamamlandı
-                              </div>
-                              {stage.description && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  {stage.description}
-                                </div>
-                              )}
-                              {/* Sub-processes list */}
-                              {stage.subProcesses.length > 0 && (
-                                <div className="mt-2 text-xs">
-                                  <div className="font-medium mb-1">Alt Süreçler:</div>
-                                  {stage.subProcesses.map((subProcess) => (
-                                    <div key={subProcess.id} className={`flex items-center gap-1 ${
-                                      progress?.completedSubProcesses.includes(subProcess.id) 
-                                        ? 'text-green-600' 
-                                        : 'text-gray-500'
-                                    }`}>
-                                      {progress?.completedSubProcesses.includes(subProcess.id) ? (
-                                        <CheckCircle className="w-3 h-3" />
-                                      ) : (
-                                        <Clock className="w-3 h-3" />
-                                      )}
-                                      <span>{subProcess.name}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                  </div>
-                </TooltipProvider>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Information */}
-          <Tabs defaultValue="details" className="w-full">
-            <TabsList>
-              <TabsTrigger value="details">Aday Detayları</TabsTrigger>
-              <TabsTrigger value="timeline">Süreç Geçmişi</TabsTrigger>
-              <TabsTrigger value="notes">Notlar</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="details" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Kişisel Bilgiler</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Ad Soyad</label>
-                    <p className="text-sm">{candidate.firstName} {candidate.lastName}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">E-posta</label>
-                    <p className="text-sm">{candidate.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Telefon</label>
-                    <p className="text-sm">{candidate.phone}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Pozisyon</label>
-                    <p className="text-sm">{candidate.position}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Yaş</label>
-                    <p className="text-sm">{candidate.age}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Deneyim</label>
-                    <p className="text-sm">{candidate.experienceYears} yıl</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="timeline" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Süreç Geçmişi</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {candidate.timeline?.map((event, index) => (
-                      <div key={event.id} className="flex gap-3 p-3 border rounded-lg">
-                        <ProcessStageIcon stage={event.title} size={16} className="mt-1" />
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-medium">{event.title}</h4>
-                            <span className="text-xs text-gray-500">{formatDate(event.date)}</span>
+              {candidate.rejectionNote && (
+                <div className="mt-1 text-sm text-red-600">{candidate.rejectionNote}</div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Language Proficiency Section */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <h2 className="text-lg font-semibold mb-4">Dil Bilgisi ve Sınav Bilgileri</h2>
+              
+              <div className="space-y-4">
+                {/* Language Level */}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Dil Seviyesi</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {candidate.examResults && candidate.examResults.length > 0 ? (
+                      candidate.examResults
+                        .sort((a, b) => {
+                          // Sort by level priority: A1, A2, B1, B2
+                          const levels = {A1: 1, A2: 2, B1: 3, B2: 4};
+                          return levels[a.level as keyof typeof levels] - levels[b.level as keyof typeof levels];
+                        })
+                        .map(exam => (
+                          <div 
+                            key={exam.level} 
+                            className={cn(
+                              "px-3 py-2 rounded-lg flex flex-col items-center", 
+                              exam.passed 
+                                ? "bg-green-50 border border-green-200 text-green-800" 
+                                : "bg-red-50 border border-red-200 text-red-800"
+                            )}
+                          >
+                            <span className="text-lg font-bold">{exam.level}</span>
+                            <span className="text-xs mt-1">
+                              {exam.score !== undefined && `${exam.score}%`}
+                            </span>
+                            <span className="text-xs mt-1">
+                              {exam.date && formatDate(exam.date)}
+                            </span>
+                            <span className="text-xs font-medium mt-1">
+                              {exam.passed ? 'Geçti' : 'Kaldı'}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
-                        </div>
-                      </div>
-                    )) || (
-                      <p className="text-gray-500 text-center py-4">Henüz süreç geçmişi bulunmuyor</p>
+                        ))
+                    ) : (
+                      <div className="text-sm text-gray-500">Henüz sınav kaydı bulunmuyor</div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+                
+                {/* Exam History */}
+                {candidate.examResults && candidate.examResults.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Sınav Geçmişi</h3>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seviye</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eğitmen</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {candidate.examResults.map((exam, index) => (
+                            <tr key={index}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{exam.level}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {exam.date ? formatDate(exam.date) : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {exam.score !== undefined ? `${exam.score}%` : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {(exam as any).instructor || 'İK Uzmanı'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={cn(
+                                  "px-2 py-1 text-xs rounded-full", 
+                                  exam.passed 
+                                    ? "bg-green-100 text-green-800" 
+                                    : "bg-red-100 text-red-800"
+                                )}>
+                                  {exam.passed ? 'Geçti' : 'Kaldı'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                {exam.passed && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-primary hover:text-primary/80"
+                                    onClick={() => generateCertificate(exam)}
+                                  >
+                                    <Award className="mr-2 h-4 w-4" />
+                                    Sertifika Hazırla
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             
-            <TabsContent value="notes" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Notlar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {candidate.notes?.map((note, index) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm">{note}</p>
-                      </div>
-                    )) || (
-                      <p className="text-gray-500 text-center py-4">Henüz not eklenmemiş</p>
-                    )}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold">Aday Süreci</h2>
+                <div className="text-sm text-gray-500">
+                  Başvuru: {formatDate(candidate.appliedAt)}
+                </div>
+              </div>
+              
+              {/* Timeline */}
+              <div className="mt-8">
+                <div className="flow-root">
+                  <ul className="-mb-8">
+                    {candidate.timeline.map((event, eventIdx) => (
+                      <li key={event.id}>
+                        <div className="relative pb-8">
+                          {eventIdx !== candidate.timeline.length - 1 ? (
+                            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
+                          ) : null}
+                          <div className="relative flex space-x-3">
+                            <div>
+                              <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                <ProcessStageIcon stage={event.title} className="h-4 w-4 text-primary" />
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1 pt-1.5">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-gray-900">{event.title}</p>
+                                <p className="text-xs text-gray-500">{formatDate(event.date)}</p>
+                              </div>
+                              <p className="mt-1 text-sm text-gray-600">{event.description}</p>
+                              {event.staff && (
+                                <div className="mt-1 flex items-center text-xs text-gray-500">
+                                  <User className="h-3 w-3 mr-1" />
+                                  <span>Sorumlu: {event.staff}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-4 flex justify-center">
+                  <Button variant="ghost" className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Yeni Adım Ekle
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Current Stage */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <div className="flex items-center gap-2 mb-4">
+                <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Mevcut Aşama</h2>
+              </div>
+              
+              {candidate.status === 'waiting' && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <Clock className="h-5 w-5" />
+                    <p className="text-sm font-medium">Bu aday şu anda bekleme modunda</p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  <p className="mt-1 text-xs text-amber-600">
+                    Bekleme modundaki adaylar aktif işleme tabi tutulmaz. İşleme devam etmek için bekleme modundan çıkarın.
+                  </p>
+                  {candidate.returnDate && (
+                    <div className="mt-2 flex items-center text-amber-700 text-sm">
+                      <Calendar className="h-4 w-4 mr-1" />
+                      <span>Dönüş tarihi: {formatDate(candidate.returnDate)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {candidate.status === 'rejected' && (
+                <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <XCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Bu aday reddedildi</p>
+                  </div>
+                  <p className="mt-1 text-xs text-red-600">
+                    Reddedilmiş adaylar için işlem yapılamaz. İşleme devam etmek için adayın durumunu değiştirin.
+                  </p>
+                </div>
+              )}
+              
+              {isInClassPlacementStage && candidate.classConfirmation === 'pending' && (
+                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <div className="flex items-center gap-2 text-amber-700">
+                    <AlertCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Sınıf yerleştirme onayı bekleniyor</p>
+                  </div>
+                  <p className="mt-1 text-xs text-amber-600">
+                    Adayın sınıf yerleştirmesi henüz onaylanmadı. İşleme devam etmek için sınıf onayını tamamlayın.
+                  </p>
+                </div>
+              )}
+              
+              {isInClassPlacementStage && candidate.classConfirmation === 'confirmed' && (
+                <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="h-5 w-5" />
+                    <p className="text-sm font-medium">Sınıf yerleştirme onaylandı</p>
+                  </div>
+                  <p className="mt-1 text-xs text-green-600">
+                    Adayın sınıf yerleştirmesi onaylandı ve bir sonraki aşamaya geçilebilir.
+                  </p>
+                </div>
+              )}
+              
+              <div className={`bg-primary/5 p-4 rounded-lg border border-primary/20 ${candidate.status === 'waiting' || candidate.status === 'rejected' ? 'opacity-50' : ''}`}>
+                <div className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
+                  {candidate.stage}
+                </div>
+                <div className="mt-2 text-sm text-gray-600">
+                  <p>
+                    Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => setIsUpdateStageDialogOpen(true)}
+                  disabled={candidate.status === 'waiting' || candidate.status === 'rejected'}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Aşama Güncelle
+                </Button>
+                {candidate.status === 'waiting' && (
+                  <p className="mt-2 text-xs text-center text-gray-500">
+                    Aşama güncellemek için önce bekleme modundan çıkarın
+                  </p>
+                )}
+                {candidate.status === 'rejected' && (
+                  <p className="mt-2 text-xs text-center text-gray-500">
+                    Reddedilmiş adayların aşaması güncellenemez
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Notes */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Notlar</h2>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsAddNoteDialogOpen(true)}
+                  className="text-primary hover:text-primary/80 h-8 w-8"
+                >
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {candidate.notes && candidate.notes.length > 0 ? (
+                  candidate.notes.map((note, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-start">
+                        <MessageSquare className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        <div className="text-sm">{note}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-sm p-3 text-center">Henüz not eklenmemiş</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Assign Process Dialog */}
-      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent>
+      {/* Update Stage Dialog */}
+      <UpdateStageDialog
+        isOpen={isUpdateStageDialogOpen}
+        onClose={() => setIsUpdateStageDialogOpen(false)}
+        currentStage={candidate.stage}
+        candidateId={candidate.id}
+        onUpdateStage={handleUpdateStage}
+      />
+
+      {/* Add Note Dialog */}
+      <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Süreç Ata</DialogTitle>
-            <DialogDescription>
-              Bu adaya hangi süreci atamak istiyorsunuz?
-            </DialogDescription>
+            <DialogTitle>Not Ekle</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Süreç Seçin</label>
-              <Select value={selectedStage} onValueChange={setSelectedStage}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Bir süreç seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {processStages.map((stage) => (
-                    <SelectItem key={stage.id} value={stage.id}>
-                      {stage.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-4 py-4">
+            <Textarea 
+              placeholder="Not yazın..." 
+              className="min-h-32"
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAddNoteDialogOpen(false)}>
               İptal
             </Button>
-            <Button onClick={handleAssignProcess}>Süreç Ata</Button>
+            <Button onClick={handleAddNote}>
+              Not Ekle
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Complete Process Dialog */}
-      <Dialog open={completeDialogOpen} onOpenChange={setCompleteDialogOpen}>
-        <DialogContent>
+      {/* Waiting Dialog */}
+      <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Süreç Tamamla</DialogTitle>
-            <DialogDescription>
-              Hangi süreci veya alt süreci tamamlamak istiyorsunuz?
-            </DialogDescription>
+            <DialogTitle>Bekleme Modu</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium">Ana Süreç</label>
-              <Select value={selectedStage} onValueChange={(value) => {
-                setSelectedStage(value);
-                setSelectedSubProcess(''); // Reset sub-process when stage changes
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Bir süreç seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {processStages.map((stage) => (
-                    <SelectItem key={stage.id} value={stage.id}>
-                      {stage.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="return-date" className="block text-sm font-medium mb-2">
+                Tahmini Dönüş Tarihi
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-left font-normal"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {waitingDate ? format(waitingDate, "dd MMM yyyy") : "Tarih seçin..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={waitingDate}
+                    onSelect={setWaitingDate}
+                    initialFocus
+                    disabled={(date) => date < new Date()}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="mt-1 text-xs text-gray-500">
+                Adayla ne zaman iletişime geçileceğini belirlemek için tahmini bir dönüş tarihi belirtin.
+              </p>
             </div>
-            
-            {selectedStage && (
-              <div>
-                <label className="text-sm font-medium">Alt Süreç (Opsiyonel)</label>
-                <Select value={selectedSubProcess} onValueChange={setSelectedSubProcess}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Alt süreç seçin (tümü için boş bırakın)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Tüm Süreç</SelectItem>
-                    {processStages
-                      .find(s => s.id === selectedStage)
-                      ?.subProcesses.map((subProcess) => (
-                        <SelectItem key={subProcess.id} value={subProcess.id}>
-                          {subProcess.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCompleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
               İptal
             </Button>
-            <Button onClick={handleCompleteProcess}>Tamamla</Button>
+            <Button onClick={() => updateWaitingStatus(true, waitingDate)}>
+              Bekleme Moduna Al
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Class Confirmation Dialog */}
+      <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-4">
+              <div>
+                <Label className="text-base font-medium">Sınıf Yerleştirme Durumu</Label>
+                <p className="text-sm text-gray-500 mt-1">
+                  Adayın sınıf yerleştirme durumunu güncelleyin.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-4 items-center justify-center mt-2">
+              <Button 
+                variant="outline" 
+                className="flex-1 border-amber-200 bg-amber-50 text-amber-700"
+                onClick={() => updateClassConfirmation(false)}
+              >
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Beklemede
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 border-green-200 bg-green-50 text-green-700"
+                onClick={() => updateClassConfirmation(true)}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Onaylandı
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Dialog */}
+      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aday Reddet</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bu aday reddedilecek. Bu işlem geri alınabilir, ancak tüm aday sürecini etkileyecektir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="text-sm font-medium">Red Nedeni</Label>
+              <RadioGroup value={rejectionReason} onValueChange={setRejectionReason} className="mt-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Uygun Pozisyon Yok" id="reason-no-position" />
+                  <Label htmlFor="reason-no-position">Uygun Pozisyon Yok</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Yetersiz Nitelikler" id="reason-qualifications" />
+                  <Label htmlFor="reason-qualifications">Yetersiz Nitelikler</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Dil Seviyesi Yetersiz" id="reason-language" />
+                  <Label htmlFor="reason-language">Dil Seviyesi Yetersiz</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Aday Vazgeçti" id="reason-candidate-withdrew" />
+                  <Label htmlFor="reason-candidate-withdrew">Aday Vazgeçti</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Diğer" id="reason-other" />
+                  <Label htmlFor="reason-other">Diğer</Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div>
+              <Label htmlFor="rejection-note" className="text-sm font-medium">Not (Opsiyonel)</Label>
+              <Textarea
+                id="rejection-note"
+                value={rejectionNote}
+                onChange={(e) => setRejectionNote(e.target.value)}
+                placeholder="Red nedeni hakkında ek bilgi..."
+                className="mt-1"
+              />
+            </div>
+          </div>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>İptal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={(e) => {
+                e.preventDefault();
+                handleRejectCandidate();
+              }}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              Reddet
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
