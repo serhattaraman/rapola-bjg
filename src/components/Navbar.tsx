@@ -86,10 +86,16 @@ const Navbar = () => {
               <span className="nav-text">Gruplar</span>
             </Link>
             {user?.role === 'admin' && (
-              <Link to="/users" className={`nav-item ${isActive('/users')}`}>
-                <User className="h-5 w-5" />
-                <span className="nav-text">Kullanıcılar</span>
-              </Link>
+              <>
+                <Link to="/users" className={`nav-item ${isActive('/users')}`}>
+                  <User className="h-5 w-5" />
+                  <span className="nav-text">Kullanıcılar</span>
+                </Link>
+                <Link to="/process-management" className={`nav-item ${isActive('/process-management')}`}>
+                  <Settings className="h-5 w-5" />
+                  <span className="nav-text">Süreç Yönetimi</span>
+                </Link>
+              </>
             )}
             {(user?.role === 'admin' || user?.role === 'manager') && (
               <Link to="/add-candidate" className={`nav-item ${isActive('/add-candidate')}`}>
@@ -217,10 +223,16 @@ const Navbar = () => {
               Gruplar
             </Link>
             {user?.role === 'admin' && (
-              <Link to="/users" className={`nav-item-mobile ${isActive('/users')}`}>
-                <User className="h-5 w-5 mr-2" />
-                Kullanıcılar
-              </Link>
+              <>
+                <Link to="/users" className={`nav-item-mobile ${isActive('/users')}`}>
+                  <User className="h-5 w-5 mr-2" />
+                  Kullanıcılar
+                </Link>
+                <Link to="/process-management" className={`nav-item-mobile ${isActive('/process-management')}`}>
+                  <Settings className="h-5 w-5 mr-2" />
+                  Süreç Yönetimi
+                </Link>
+              </>
             )}
             {(user?.role === 'admin' || user?.role === 'manager') && (
               <Link to="/add-candidate" className={`nav-item-mobile ${isActive('/add-candidate')}`}>

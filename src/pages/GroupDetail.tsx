@@ -67,7 +67,7 @@ const GroupDetail = () => {
   const groupStats = useMemo(() => {
     const level = id?.split('-')[0]; // e.g., A1, B2
     
-    let instructor = groupCandidates[0].responsiblePerson || 'Atanmamış';
+    let instructor = 'İK Uzmanı';
     
     // Exam stats
     const examStats = {

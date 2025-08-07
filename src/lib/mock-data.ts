@@ -2,6 +2,31 @@ import { faker } from '@faker-js/faker';
 
 export type CandidateStatus = 'pending' | 'inProgress' | 'completed' | 'rejected' | 'waiting';
 export type ClassConfirmation = 'pending' | 'confirmed';
+export type ProcessStatus = 'notStarted' | 'inProgress' | 'blocked' | 'completed';
+
+export interface ProcessStage {
+  id: string;
+  name: string;
+  description?: string;
+  order: number;
+  subProcesses: SubProcess[];
+}
+
+export interface SubProcess {
+  id: string;
+  name: string;
+  description?: string;
+  order: number;
+  stageId: string;
+}
+
+export interface CandidateProcessProgress {
+  stageId: string;
+  status: ProcessStatus;
+  completedSubProcesses: string[]; // Array of sub-process IDs
+  startDate?: Date | string;
+  completedDate?: Date | string;
+}
 
 export interface ExamResult {
   level: string;
@@ -36,7 +61,6 @@ export interface Candidate {
   processDays: number;
   startDate: Date | string;
   endDate: Date | string;
-  responsiblePerson?: string;
   classConfirmation?: ClassConfirmation;
   examResults?: ExamResult[];
   returnDate?: Date | string;
@@ -49,7 +73,8 @@ export interface Candidate {
     date: Date | string;
     completedOn?: Date | string;
   }[];
-  group?: string; // Add group field to Candidate interface
+  group?: string;
+  processProgress?: CandidateProcessProgress[]; // New field for process tracking
 }
 
 // Modified to ensure logical exam progression: You must pass previous level to take next exam
@@ -212,7 +237,7 @@ const generateCandidate = (): Candidate => {
     processDays,
     startDate,
     endDate,
-    responsiblePerson: faker.person.fullName(),
+    
     classConfirmation: faker.helpers.arrayElement<ClassConfirmation>(['pending', 'confirmed']),
     examResults: generateRandomExamResults(),
     notes: faker.helpers.maybe(() => [

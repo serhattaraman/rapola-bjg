@@ -487,7 +487,7 @@ const CandidateDetails = () => {
                                 {exam.score !== undefined ? `${exam.score}%` : '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {(exam as any).instructor || candidate.responsiblePerson || '-'}
+                                {(exam as any).instructor || 'İK Uzmanı'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={cn(
@@ -646,10 +646,6 @@ const CandidateDetails = () => {
                 <div className="mt-2 text-sm text-gray-600">
                   <p>
                     Aday şu anda <strong>{candidate.stage}</strong> aşamasında ve durumu <strong>{getStatusLabel(candidate.status)}</strong>.
-                  </p>
-                  <p className="mt-2 flex items-center gap-1">
-                    <User className="h-4 w-4 text-gray-400" />
-                    <span>Sorumlu: <strong className="text-primary">{candidate.responsiblePerson || 'İK Uzmanı'}</strong></span>
                   </p>
                 </div>
               </div>

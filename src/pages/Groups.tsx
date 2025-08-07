@@ -47,7 +47,7 @@ const Groups = () => {
           name: groupId,
           level,
           candidateCount: 1,
-          instructor: candidate.responsiblePerson || 'Atanmamış',
+          instructor: 'İK Uzmanı',
           examStats: {
             passed: 0,
             failed: 0,

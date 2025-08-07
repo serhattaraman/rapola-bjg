@@ -18,6 +18,7 @@ import RouteGuard from "./components/RouteGuard";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import AdvertisingReports from "./pages/AdvertisingReports";
+import ProcessManagement from "./pages/ProcessManagement";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => {
               {/* Admin only routes */}
               <Route element={<RouteGuard allowedRoles={['admin']} />}>
                 <Route path="/users" element={<UserManagement />} />
+                <Route path="/process-management" element={<ProcessManagement />} />
               </Route>
               
               {/* 404 page */}

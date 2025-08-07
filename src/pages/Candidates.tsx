@@ -214,7 +214,7 @@ const Candidates = () => {
         'A2 Sınavı': candidate.examResults?.find(e => e.level === 'A2')?.passed ? 'Geçti' : 'Kalmadı / Yok',
         'B1 Sınavı': candidate.examResults?.find(e => e.level === 'B1')?.passed ? 'Geçti' : 'Kalmadı / Yok',
         'B2 Sınavı': candidate.examResults?.find(e => e.level === 'B2')?.passed ? 'Geçti' : 'Kalmadı / Yok',
-        'Sorumlu Kişi': candidate.responsiblePerson || 'Belirtilmemiş'
+        
       }))
     );
 
