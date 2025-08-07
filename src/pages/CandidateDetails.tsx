@@ -20,6 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
 import AddJobPlacementDialog from '@/components/AddJobPlacementDialog';
 import AddInterviewDialog from '@/components/AddInterviewDialog';
+import SubProcessCompletionDialog from '@/components/SubProcessCompletionDialog';
 import { getProcessStagesFromStorage } from '@/lib/process-data';
 
 const CandidateDetails = () => {
@@ -49,6 +50,7 @@ const CandidateDetails = () => {
   const [rejectionNote, setRejectionNote] = useState<string>('');
   const [isAddJobPlacementDialogOpen, setIsAddJobPlacementDialogOpen] = useState(false);
   const [isAddInterviewDialogOpen, setIsAddInterviewDialogOpen] = useState(false);
+  const [isSubProcessCompletionDialogOpen, setIsSubProcessCompletionDialogOpen] = useState(false);
   const processStages = getProcessStagesFromStorage();
   
   if (!candidate) {
@@ -81,26 +83,69 @@ const CandidateDetails = () => {
   };
 
   const handleCompleteProcess = () => {
+    // Open sub-process completion dialog instead of completing entire process
+    setIsSubProcessCompletionDialogOpen(true);
+  };
+
+  const handleSubProcessComplete = (subProcessId: string, notes?: string) => {
     setCandidate(prev => {
       if (!prev) return null;
       
-      // Add timeline entry for process completion
+      // Find the sub-process name
+      const currentStage = processStages.find(stage => stage.name === prev.stage);
+      const subProcess = currentStage?.subProcesses.find(sp => sp.id === subProcessId);
+      const subProcessName = subProcess?.name || 'Bilinmeyen Ara Süreç';
+      
+      // Add timeline entry for sub-process completion
       const newTimelineEntry = {
         id: `timeline-${Date.now()}`,
         date: new Date(),
-        title: 'Süreç Tamamlandı',
-        description: `${prev.stage} aşaması tamamlandı.`,
+        title: 'Ara Süreç Tamamlandı',
+        description: `"${subProcessName}" ara süreci tamamlandı.${notes ? ' Not: ' + notes : ''}`,
         staff: 'Mevcut Kullanıcı'
       };
       
+      // Update completed sub-processes
+      const updatedProcessProgress = prev.processProgress ? [...prev.processProgress] : [];
+      const currentStageProgress = updatedProcessProgress.find(p => p.stageId === prev.stage);
+      
+      if (currentStageProgress) {
+        currentStageProgress.completedSubProcesses = [...currentStageProgress.completedSubProcesses, subProcessId];
+        currentStageProgress.subProcessProgress = [
+          ...currentStageProgress.subProcessProgress,
+          {
+            id: `progress-${Date.now()}`,
+            subProcessId,
+            completedDate: new Date(),
+            completedBy: 'Mevcut Kullanıcı',
+            notes
+          }
+        ];
+      } else {
+        updatedProcessProgress.push({
+          stageId: prev.stage,
+          status: 'inProgress',
+          completedSubProcesses: [subProcessId],
+          subProcessProgress: [{
+            id: `progress-${Date.now()}`,
+            subProcessId,
+            completedDate: new Date(),
+            completedBy: 'Mevcut Kullanıcı',
+            notes
+          }],
+          startDate: new Date(),
+          canStart: true
+        });
+      }
+      
       toast({
-        title: "Süreç tamamlandı",
-        description: `${prev.stage} aşaması başarıyla tamamlandı.`,
+        title: "Ara süreç tamamlandı",
+        description: `"${subProcessName}" ara süreci başarıyla tamamlandı.`,
       });
       
       return {
         ...prev,
-        status: 'completed',
+        processProgress: updatedProcessProgress,
         timeline: [newTimelineEntry, ...prev.timeline]
       };
     });
@@ -680,9 +725,12 @@ const CandidateDetails = () => {
                       if (!currentStage?.subProcesses) return null;
                       
                       return currentStage.subProcesses.map((subProcess) => {
-                        const isCompleted = Math.random() > 0.5; // Mock completion status
-                        const completedDate = isCompleted ? new Date() : null;
-                        const completedBy = isCompleted ? 'Ahmet Yılmaz' : null;
+                      const currentStageProgress = candidate.processProgress?.find(p => p.stageId === candidate.stage);
+                      const completedSubProcesses = currentStageProgress?.completedSubProcesses || [];
+                      const isCompleted = completedSubProcesses.includes(subProcess.id);
+                      const progressData = currentStageProgress?.subProcessProgress.find(p => p.subProcessId === subProcess.id);
+                      const completedDate = progressData?.completedDate ? new Date(progressData.completedDate) : null;
+                      const completedBy = progressData?.completedBy;
                         
                         return (
                           <div key={subProcess.id} className="bg-gray-50 p-3 rounded-lg">
@@ -1052,6 +1100,18 @@ const CandidateDetails = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Sub Process Completion Dialog */}
+      {candidate && (
+        <SubProcessCompletionDialog
+          open={isSubProcessCompletionDialogOpen}
+          onOpenChange={setIsSubProcessCompletionDialogOpen}
+          currentStage={candidate.stage}
+          subProcesses={processStages.find(stage => stage.name === candidate.stage)?.subProcesses || []}
+          completedSubProcesses={candidate.processProgress?.find(p => p.stageId === candidate.stage)?.completedSubProcesses || []}
+          onSubProcessComplete={handleSubProcessComplete}
+        />
+      )}
 
       {/* Add Job Placement Dialog */}
       <AddJobPlacementDialog
