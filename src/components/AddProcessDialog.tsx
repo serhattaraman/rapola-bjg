@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addProcessStage, SubProcess } from '@/lib/process-data';
+import LogoPicker from './LogoPicker';
 
 interface AddProcessDialogProps {
   open: boolean;
@@ -121,15 +122,11 @@ const AddProcessDialog = ({ open, onOpenChange, onSuccess }: AddProcessDialogPro
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="logo">Logo (İkon Adı)</Label>
-            <Input
-              id="logo"
-              value={logo}
-              onChange={(e) => setLogo(e.target.value)}
-              placeholder="Örn: phone, mail, user-check"
-            />
-          </div>
+          <LogoPicker
+            value={logo}
+            onChange={setLogo}
+            label="Logo"
+          />
 
           <div className="space-y-4">
             <div className="flex justify-between items-center">

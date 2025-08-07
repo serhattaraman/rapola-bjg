@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { updateProcessStage, ProcessStage } from '@/lib/process-data';
+import LogoPicker from './LogoPicker';
 
 interface EditProcessDialogProps {
   stage: ProcessStage;
@@ -88,15 +89,11 @@ const EditProcessDialog = ({ stage, open, onOpenChange, onSuccess }: EditProcess
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="logo">Logo (İkon Adı)</Label>
-            <Input
-              id="logo"
-              value={logo}
-              onChange={(e) => setLogo(e.target.value)}
-              placeholder="Örn: phone, mail, user-check"
-            />
-          </div>
+          <LogoPicker
+            value={logo}
+            onChange={setLogo}
+            label="Logo"
+          />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
