@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText, Building2, MapPin, Briefcase } from 'lucide-react';
@@ -458,195 +457,142 @@ const CandidateDetails = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Language Proficiency Section */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-              <h2 className="text-lg font-semibold mb-4">Dil Bilgisi ve Sınav Bilgileri</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <Award className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Dil Yeterlilik Seviyesi</h2>
+              </div>
               
-              <div className="space-y-4">
-                {/* Language Level */}
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Dil Seviyesi</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {candidate.examResults && candidate.examResults.length > 0 ? (
-                      candidate.examResults
-                        .sort((a, b) => {
-                          // Sort by level priority: A1, A2, B1, B2
-                          const levels = {A1: 1, A2: 2, B1: 3, B2: 4};
-                          return levels[a.level as keyof typeof levels] - levels[b.level as keyof typeof levels];
-                        })
-                        .map(exam => (
-                          <div 
-                            key={exam.level} 
-                            className={cn(
-                              "px-3 py-2 rounded-lg flex flex-col items-center", 
-                              exam.passed 
-                                ? "bg-green-50 border border-green-200 text-green-800" 
-                                : "bg-red-50 border border-red-200 text-red-800"
-                            )}
+              {candidate.examResults && candidate.examResults.length > 0 ? (
+                <div className="space-y-4">
+                  {candidate.examResults.map((exam, index) => (
+                    <div key={index} className={`p-4 rounded-lg border ${exam.passed ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className={`font-medium ${exam.passed ? 'text-green-900' : 'text-red-900'}`}>
+                            {exam.level} Seviyesi
+                          </h3>
+                          <span className={`px-2 py-1 rounded-full text-xs ${exam.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {exam.passed ? 'Geçti' : 'Kaldı'}
+                          </span>
+                        </div>
+                        <span className={`font-bold ${exam.passed ? 'text-green-700' : 'text-red-700'}`}>
+                          {exam.score}/100
+                        </span>
+                      </div>
+                      
+                      {exam.date && (
+                        <div className={`text-sm ${exam.passed ? 'text-green-600' : 'text-red-600'}`}>
+                          Sınav Tarihi: {formatDate(exam.date)}
+                        </div>
+                      )}
+                      
+                      {exam.passed && exam.level === 'A1' && (
+                        <div className="mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => generateCertificate(exam)}
+                            className="text-green-600 hover:text-green-700 border-green-300"
                           >
-                            <span className="text-lg font-bold">{exam.level}</span>
-                            <span className="text-xs mt-1">
-                              {exam.score !== undefined && `${exam.score}%`}
-                            </span>
-                            <span className="text-xs mt-1">
-                              {exam.date && formatDate(exam.date)}
-                            </span>
-                            <span className="text-xs font-medium mt-1">
-                              {exam.passed ? 'Geçti' : 'Kaldı'}
-                            </span>
-                          </div>
-                        ))
-                    ) : (
-                      <div className="text-sm text-gray-500">Henüz sınav kaydı bulunmuyor</div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Exam History */}
-                {candidate.examResults && candidate.examResults.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Sınav Geçmişi</h3>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seviye</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Eğitmen</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {candidate.examResults.map((exam, index) => (
-                            <tr key={index}>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{exam.level}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {exam.date ? formatDate(exam.date) : '-'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {exam.score !== undefined ? `${exam.score}%` : '-'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {(exam as any).instructor || 'İK Uzmanı'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={cn(
-                                  "px-2 py-1 text-xs rounded-full", 
-                                  exam.passed 
-                                    ? "bg-green-100 text-green-800" 
-                                    : "bg-red-100 text-red-800"
-                                )}>
-                                  {exam.passed ? 'Geçti' : 'Kaldı'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                {exam.passed && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-primary hover:text-primary/80"
-                                    onClick={() => generateCertificate(exam)}
-                                  >
-                                    <Award className="mr-2 h-4 w-4" />
-                                    Sertifika Hazırla
-                                  </Button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Sertifika İndir
+                          </Button>
+                        </div>
+                      )}
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-8">
+                  <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p>Henüz sınav sonucu kaydedilmemiş</p>
+                </div>
+              )}
+            </div>
+
+            {/* Timeline */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="h-5 w-5 text-primary" />
+                <h2 className="text-lg font-semibold">Zaman Çizelgesi</h2>
+              </div>
+              <div className="space-y-4">
+                {candidate.timeline && candidate.timeline.length > 0 ? (
+                  candidate.timeline.map((event, index) => (
+                    <div key={event.id} className="border-l-2 border-gray-200 pl-4 pb-4 last:pb-0">
+                      <div className="flex items-start">
+                        <div className="-ml-6 mt-1.5 w-3 h-3 bg-primary rounded-full border-2 border-white"></div>
+                        <div className="ml-4 flex-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium text-gray-900">{event.title}</h3>
+                            <span className="text-sm text-gray-500">{formatDate(event.date)}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                          {event.staff && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              👤 {event.staff}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-center py-8">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p>Henüz zaman çizelgesi kaydı bulunmuyor</p>
                   </div>
                 )}
               </div>
             </div>
-            
+
+            {/* Notes */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Aday Süreci</h2>
-                <div className="text-sm text-gray-500">
-                  Başvuru: {formatDate(candidate.appliedAt)}
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">Notlar</h2>
                 </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsAddNoteDialogOpen(true)}
+                  className="text-primary hover:text-primary/80 h-8 w-8"
+                >
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
               </div>
-              
-              {/* Timeline */}
-              <div className="mt-8">
-                <div className="flow-root">
-                  <ul className="-mb-8">
-                    {candidate.timeline.map((event, eventIdx) => (
-                      <li key={event.id}>
-                        <div className="relative pb-8">
-                          {eventIdx !== candidate.timeline.length - 1 ? (
-                            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
-                          ) : null}
-                          <div className="relative flex space-x-3">
-                            <div>
-                              <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                <ProcessStageIcon stage={event.title} className="h-4 w-4 text-primary" />
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1 pt-1.5">
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-gray-900">{event.title}</p>
-                                <p className="text-xs text-gray-500">{formatDate(event.date)}</p>
-                              </div>
-                              <p className="mt-1 text-sm text-gray-600">{event.description}</p>
-                              {event.staff && (
-                                <div className="mt-1 flex items-center text-xs text-gray-500">
-                                  <User className="h-3 w-3 mr-1" />
-                                  <span>Sorumlu: {event.staff}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="mt-4 flex justify-center">
-                  <Button variant="ghost" className="inline-flex items-center text-primary hover:text-primary/80 text-sm font-medium">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Yeni Adım Ekle
-                  </Button>
-                </div>
+              <div className="space-y-3">
+                {candidate.notes && candidate.notes.length > 0 ? (
+                  candidate.notes.map((note, index) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-start">
+                        <MessageSquare className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+                        <div className="text-sm">{note}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 text-sm p-3 text-center">Henüz not eklenmemiş</div>
+                )}
               </div>
             </div>
           </div>
-          
+
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Current Stage */}
+            {/* Process Management */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
               <div className="flex items-center gap-2 mb-4">
                 <ProcessStageIcon stage={candidate.stage} className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">Mevcut Aşama</h2>
+                <h2 className="text-lg font-semibold">Aday Süreci</h2>
               </div>
-              
-              {candidate.status === 'waiting' && (
-                <div className="mb-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                  <div className="flex items-center gap-2 text-amber-700">
-                    <Clock className="h-5 w-5" />
-                    <p className="text-sm font-medium">Bu aday şu anda bekleme modunda</p>
-                  </div>
-                  <p className="mt-1 text-xs text-amber-600">
-                    Bekleme modundaki adaylar aktif işleme tabi tutulmaz. İşleme devam etmek için bekleme modundan çıkarın.
-                  </p>
-                  {candidate.returnDate && (
-                    <div className="mt-2 flex items-center text-amber-700 text-sm">
-                      <Calendar className="h-4 w-4 mr-1" />
-                      <span>Dönüş tarihi: {formatDate(candidate.returnDate)}</span>
-                    </div>
-                  )}
-                </div>
-              )}
               
               {candidate.status === 'rejected' && (
                 <div className="mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
                   <div className="flex items-center gap-2 text-red-700">
                     <XCircle className="h-5 w-5" />
-                    <p className="text-sm font-medium">Bu aday reddedildi</p>
+                    <p className="text-sm font-medium">Aday reddedildi</p>
                   </div>
                   <p className="mt-1 text-xs text-red-600">
                     Reddedilmiş adaylar için işlem yapılamaz. İşleme devam etmek için adayın durumunu değiştirin.
@@ -794,150 +740,78 @@ const CandidateDetails = () => {
                   </p>
                 )}
               </div>
-            </div>
-            
-            {/* Notes */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">Notlar</h2>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setIsAddNoteDialogOpen(true)}
-                  className="text-primary hover:text-primary/80 h-8 w-8"
-                >
-                  <PlusCircle className="h-5 w-5" />
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {candidate.notes && candidate.notes.length > 0 ? (
-                  candidate.notes.map((note, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-start">
-                        <MessageSquare className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
-                        <div className="text-sm">{note}</div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-sm p-3 text-center">Henüz not eklenmemiş</div>
-                )}
-              </div>
-            </div>
-            
-            {/* Job Placement Status */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">İşe Yerleştirme ve Mülakatlar</h2>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setIsAddInterviewDialogOpen(true)}
-                    className="text-blue-600 hover:text-blue-700"
-                    disabled={candidate.status === 'rejected'}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Mülakat Ekle
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                    className="text-green-600 hover:text-green-700"
-                    disabled={candidate.status === 'rejected'}
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    İş Yerleştirme Ekle
-                  </Button>
-                </div>
-              </div>
               
-              <div className="space-y-4">
-                {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
-                  candidate.jobPlacements.map((job, index) => {
-                    const isInterview = job.contractType === 'interview';
-                    const cardColor = isInterview 
-                      ? (job.interviewDetails?.interviewResult === 'passed' ? 'bg-green-50 border-green-200' : 
-                         job.interviewDetails?.interviewResult === 'failed' ? 'bg-red-50 border-red-200' : 
-                         'bg-yellow-50 border-yellow-200')
-                      : 'bg-blue-50 border-blue-200';
-                    const iconColor = isInterview 
-                      ? (job.interviewDetails?.interviewResult === 'passed' ? 'text-green-600' : 
-                         job.interviewDetails?.interviewResult === 'failed' ? 'text-red-600' : 
-                         'text-yellow-600')
-                      : 'text-blue-600';
-                    
-                    return (
-                      <div key={job.id} className={`p-4 rounded-lg border ${cardColor}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Building2 className={`h-5 w-5 ${iconColor}`} />
-                              <h3 className={`font-medium ${iconColor.replace('text-', 'text-').replace('-600', '-900')}`}>
-                                {job.companyName}
-                              </h3>
-                              <span className={`text-xs px-2 py-1 rounded-full ${
-                                isInterview ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {isInterview ? 'Mülakat' : 'İş Yerleştirme'}
-                              </span>
-                              {job.isActive && !isInterview && (
-                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                  Aktif
+              {/* Job Placement Section */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    <h3 className="text-md font-semibold">İşe Yerleştirme ve Mülakatlar</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsAddInterviewDialogOpen(true)}
+                      className="text-blue-600 hover:text-blue-700"
+                      disabled={candidate.status === 'rejected'}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Mülakat
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                      className="text-green-600 hover:text-green-700"
+                      disabled={candidate.status === 'rejected'}
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      İş Yerleştirme
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
+                    candidate.jobPlacements.map((job, index) => {
+                      const isInterview = job.contractType === 'interview';
+                      const cardColor = isInterview 
+                        ? (job.interviewDetails?.interviewResult === 'passed' ? 'bg-green-50 border-green-200' : 
+                           job.interviewDetails?.interviewResult === 'failed' ? 'bg-red-50 border-red-200' : 
+                           'bg-yellow-50 border-yellow-200')
+                        : 'bg-blue-50 border-blue-200';
+                      const iconColor = isInterview 
+                        ? (job.interviewDetails?.interviewResult === 'passed' ? 'text-green-600' : 
+                           job.interviewDetails?.interviewResult === 'failed' ? 'text-red-600' : 
+                           'text-yellow-600')
+                        : 'text-blue-600';
+                      
+                      return (
+                        <div key={job.id} className={`p-3 rounded-lg border ${cardColor}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Building2 className={`h-4 w-4 ${iconColor}`} />
+                                <h4 className={`font-medium text-sm ${iconColor.replace('text-', 'text-').replace('-600', '-900')}`}>
+                                  {job.companyName}
+                                </h4>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  isInterview ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {isInterview ? 'Mülakat' : 'İş Yerleştirme'}
                                 </span>
-                              )}
-                            </div>
-                            <div className={`space-y-1 text-sm ${iconColor.replace('text-', 'text-').replace('-600', '-800')}`}>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">Pozisyon:</span>
-                                <span>{job.position}</span>
-                                {job.department && (
-                                  <>
-                                    <span>•</span>
-                                    <span>{job.department}</span>
-                                  </>
-                                )}
                               </div>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                <span>{job.companyAddress}</span>
-                              </div>
-                              {!isInterview && (
-                                <>
-                                  <div className="flex items-center gap-2">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>Başlangıç: {formatDate(job.startDate)}</span>
-                                    <span>•</span>
-                                    <span>{getContractTypeLabel(job.contractType)}</span>
-                                  </div>
-                                  {job.salary && (
-                                    <div className="flex items-center gap-2">
-                                      <span>Maaş: {job.salary} {job.currency}</span>
-                                    </div>
-                                  )}
-                                </>
-                              )}
-                              <div className={`text-xs mt-2 ${iconColor.replace('-600', '-600')}`}>
-                                {isInterview ? 'Mülakat kaydı: ' : 'Yerleştiren: '}{job.placedBy} • {formatDate(job.placementDate)}
-                              </div>
-                            </div>
-                            
-                            {/* Interview Details */}
-                            {job.interviewDetails && (
-                              <div className="mt-3 p-3 bg-white rounded border border-gray-200">
-                                <h4 className="text-sm font-medium text-gray-900 mb-2">Mülakat Bilgileri</h4>
-                                <div className="space-y-1 text-xs text-gray-600">
-                                  <div>Tarih: {formatDate(job.interviewDetails.interviewDate)}</div>
-                                  {job.interviewDetails.interviewers.length > 0 && (
-                                    <div>Mülakatçılar: {job.interviewDetails.interviewers.join(', ')}</div>
-                                  )}
+                              <div className={`space-y-1 text-xs ${iconColor.replace('text-', 'text-').replace('-600', '-800')}`}>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">Pozisyon:</span>
+                                  <span>{job.position}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-3 w-3" />
+                                  <span className="truncate">{job.companyAddress}</span>
+                                </div>
+                                {job.interviewDetails && (
                                   <div className="flex items-center gap-1">
                                     <span>Sonuç:</span>
                                     <span className={cn(
@@ -952,48 +826,44 @@ const CandidateDetails = () => {
                                        job.interviewDetails.interviewResult === 'failed' ? 'Olumsuz' : 'Beklemede'}
                                     </span>
                                   </div>
-                                  {job.interviewDetails.interviewNotes && (
-                                    <div className="mt-1">
-                                      <div className="font-medium">Notlar:</div>
-                                      <div>{job.interviewDetails.interviewNotes}</div>
-                                    </div>
-                                  )}
-                                </div>
+                                )}
                               </div>
-                            )}
+                            </div>
                           </div>
                         </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-4">
+                      <Briefcase className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500 text-sm mb-3">Henüz mülakat veya iş yerleştirme kaydı bulunmuyor</p>
+                      <div className="flex gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setIsAddInterviewDialogOpen(true)}
+                          className="text-blue-600 hover:text-blue-700"
+                          disabled={candidate.status === 'rejected'}
+                        >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          İlk Mülakat
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                          className="text-green-600 hover:text-green-700"
+                          disabled={candidate.status === 'rejected'}
+                        >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          İlk İş Yerleştirme
+                        </Button>
                       </div>
-                    )
-                  })
-                   ) : (
-                     <div className="text-center py-8">
-                       <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                       <p className="text-gray-500 mb-4">Henüz mülakat veya iş yerleştirme kaydı bulunmuyor</p>
-                       <div className="flex gap-2 justify-center">
-                         <Button 
-                           variant="outline" 
-                           onClick={() => setIsAddInterviewDialogOpen(true)}
-                           className="text-blue-600 hover:text-blue-700"
-                           disabled={candidate.status === 'rejected'}
-                         >
-                           <PlusCircle className="mr-2 h-4 w-4" />
-                           İlk Mülakat Ekle
-                         </Button>
-                         <Button 
-                           variant="outline" 
-                           onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                           className="text-green-600 hover:text-green-700"
-                           disabled={candidate.status === 'rejected'}
-                         >
-                           <PlusCircle className="mr-2 h-4 w-4" />
-                           İlk İş Yerleştirme Ekle
-                         </Button>
-                       </div>
-                     </div>
-                   )}
-                 </div>
-             </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1009,16 +879,19 @@ const CandidateDetails = () => {
 
       {/* Add Note Dialog */}
       <Dialog open={isAddNoteDialogOpen} onOpenChange={setIsAddNoteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Not Ekle</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Textarea 
-              placeholder="Not yazın..." 
-              className="min-h-32"
+          <div className="py-4">
+            <Label htmlFor="note">Not</Label>
+            <Textarea
+              id="note"
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
+              placeholder="Adayla ilgili notunuzu buraya yazın..."
+              className="mt-2"
+              rows={4}
             />
           </div>
           <DialogFooter>
@@ -1034,40 +907,34 @@ const CandidateDetails = () => {
 
       {/* Waiting Dialog */}
       <Dialog open={isWaitingDialogOpen} onOpenChange={setIsWaitingDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bekleme Modu</DialogTitle>
+            <DialogTitle>Adayı Bekleme Moduna Al</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="return-date" className="block text-sm font-medium mb-2">
-                Tahmini Dönüş Tarihi
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {waitingDate ? format(waitingDate, "dd MMM yyyy") : "Tarih seçin..."}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={waitingDate}
-                    onSelect={setWaitingDate}
-                    initialFocus
-                    disabled={(date) => date < new Date()}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-              <p className="mt-1 text-xs text-gray-500">
-                Adayla ne zaman iletişime geçileceğini belirlemek için tahmini bir dönüş tarihi belirtin.
-              </p>
-            </div>
+          <div className="py-4">
+            <Label>Dönüş Tarihi</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal mt-2",
+                    !waitingDate && "text-muted-foreground"
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {waitingDate ? format(waitingDate, "dd/MM/yyyy") : "Dönüş tarihi seçin"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <CalendarComponent
+                  mode="single"
+                  selected={waitingDate}
+                  onSelect={setWaitingDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsWaitingDialogOpen(false)}>
@@ -1082,105 +949,94 @@ const CandidateDetails = () => {
 
       {/* Class Confirmation Dialog */}
       <Dialog open={isClassConfirmDialogOpen} onOpenChange={setIsClassConfirmDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Sınıf Yerleştirme Onayı</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex items-center gap-4">
-              <div>
-                <Label className="text-base font-medium">Sınıf Yerleştirme Durumu</Label>
-                <p className="text-sm text-gray-500 mt-1">
-                  Adayın sınıf yerleştirme durumunu güncelleyin.
-                </p>
+          <div className="py-4">
+            <Label>Sınıf yerleştirme durumu</Label>
+            <RadioGroup 
+              value={classConfirmation} 
+              onValueChange={(value: 'pending' | 'confirmed') => setClassConfirmation(value)}
+              className="mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="pending" id="pending" />
+                <Label htmlFor="pending">Beklemede</Label>
               </div>
-            </div>
-            <div className="flex gap-4 items-center justify-center mt-2">
-              <Button 
-                variant="outline" 
-                className="flex-1 border-amber-200 bg-amber-50 text-amber-700"
-                onClick={() => updateClassConfirmation(false)}
-              >
-                <AlertCircle className="mr-2 h-4 w-4" />
-                Beklemede
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1 border-green-200 bg-green-50 text-green-700"
-                onClick={() => updateClassConfirmation(true)}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Onaylandı
-              </Button>
-            </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="confirmed" id="confirmed" />
+                <Label htmlFor="confirmed">Onaylandı</Label>
+              </div>
+            </RadioGroup>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsClassConfirmDialogOpen(false)}>
+              İptal
+            </Button>
+            <Button onClick={() => updateClassConfirmation(classConfirmation === 'confirmed')}>
+              Güncelle
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Reject Dialog */}
+      {/* Rejection Dialog */}
       <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Aday Reddet</AlertDialogTitle>
+            <AlertDialogTitle>Adayı Reddet</AlertDialogTitle>
             <AlertDialogDescription>
-              Bu aday reddedilecek. Bu işlem geri alınabilir, ancak tüm aday sürecini etkileyecektir.
+              Bu adayı reddetmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div>
-              <Label className="text-sm font-medium">Red Nedeni</Label>
-              <RadioGroup value={rejectionReason} onValueChange={setRejectionReason} className="mt-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Uygun Pozisyon Yok" id="reason-no-position" />
-                  <Label htmlFor="reason-no-position">Uygun Pozisyon Yok</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Yetersiz Nitelikler" id="reason-qualifications" />
-                  <Label htmlFor="reason-qualifications">Yetersiz Nitelikler</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Dil Seviyesi Yetersiz" id="reason-language" />
-                  <Label htmlFor="reason-language">Dil Seviyesi Yetersiz</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Aday Vazgeçti" id="reason-candidate-withdrew" />
-                  <Label htmlFor="reason-candidate-withdrew">Aday Vazgeçti</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Diğer" id="reason-other" />
-                  <Label htmlFor="reason-other">Diğer</Label>
-                </div>
-              </RadioGroup>
-            </div>
+          <div className="py-4">
+            <Label>Red Nedeni *</Label>
+            <RadioGroup 
+              value={rejectionReason} 
+              onValueChange={setRejectionReason}
+              className="mt-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Gerekli Belgeler Eksik" id="documents" />
+                <Label htmlFor="documents">Gerekli Belgeler Eksik</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Dil Seviyesi Yetersiz" id="language" />
+                <Label htmlFor="language">Dil Seviyesi Yetersiz</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Yaş Sınırı" id="age" />
+                <Label htmlFor="age">Yaş Sınırı</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Sağlık Raporu Uygun Değil" id="health" />
+                <Label htmlFor="health">Sağlık Raporu Uygun Değil</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="Diğer" id="other" />
+                <Label htmlFor="other">Diğer</Label>
+              </div>
+            </RadioGroup>
             
-            <div>
-              <Label htmlFor="rejection-note" className="text-sm font-medium">Not (Opsiyonel)</Label>
-              <Textarea
-                id="rejection-note"
-                value={rejectionNote}
-                onChange={(e) => setRejectionNote(e.target.value)}
-                placeholder="Red nedeni hakkında ek bilgi..."
-                className="mt-1"
-              />
-            </div>
+            <Label className="mt-4 block">Ek Not</Label>
+            <Textarea
+              value={rejectionNote}
+              onChange={(e) => setRejectionNote(e.target.value)}
+              placeholder="Red nedeniyle ilgili ek açıklama..."
+              className="mt-2"
+              rows={3}
+            />
           </div>
-          
           <AlertDialogFooter>
             <AlertDialogCancel>İptal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault();
-                handleRejectCandidate();
-              }}
-              className="bg-red-500 text-white hover:bg-red-600"
-            >
-              Reddet
+            <AlertDialogAction onClick={handleRejectCandidate} className="bg-red-600 hover:bg-red-700">
+              Adayı Reddet
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Add Job Placement Dialog */}
       <AddJobPlacementDialog
         open={isAddJobPlacementDialogOpen}
