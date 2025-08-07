@@ -831,23 +831,21 @@ const CandidateDetails = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold">İşe Yerleştirme Durumu</h2>
+                  <h2 className="text-lg font-semibold">İşe Yerleştirme ve Mülakatlar</h2>
                 </div>
-                {candidate.status === 'completed' && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                    className="text-primary hover:text-primary/80 h-8 w-8"
-                  >
-                    <PlusCircle className="h-5 w-5" />
-                  </Button>
-                )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                  className="text-primary hover:text-primary/80 h-8 w-8"
+                  disabled={candidate.status === 'rejected'}
+                >
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
               </div>
               
-              {candidate.status === 'completed' ? (
-                <div className="space-y-4">
-                  {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
+              <div className="space-y-4">
+                {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
                     candidate.jobPlacements.map((job, index) => (
                       <div key={job.id} className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <div className="flex items-start justify-between">
@@ -924,33 +922,24 @@ const CandidateDetails = () => {
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500 mb-4">Henüz iş yerleştirme kaydı bulunmuyor</p>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setIsAddJobPlacementDialogOpen(true)}
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        İlk İş Yerleştirme Ekle
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-gray-500 mb-2">
-                    İş yerleştirme işlemleri sadece süreci tamamlanmış adaylar için yapılabilir.
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    Mevcut durum: <strong>{getStatusLabel(candidate.status)}</strong>
-                  </div>
-                </div>
-              )}
-            </div>
+                     ))
+                   ) : (
+                     <div className="text-center py-8">
+                       <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                       <p className="text-gray-500 mb-4">Henüz iş yerleştirme kaydı bulunmuyor</p>
+                       <Button 
+                         variant="outline" 
+                         onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                         className="text-primary hover:text-primary/80"
+                         disabled={candidate.status === 'rejected'}
+                       >
+                         <PlusCircle className="mr-2 h-4 w-4" />
+                         İş Yerleştirme/Mülakat Ekle
+                       </Button>
+                     </div>
+                   )}
+                 </div>
+             </div>
           </div>
         </div>
       </div>
