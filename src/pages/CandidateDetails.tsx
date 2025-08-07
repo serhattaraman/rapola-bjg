@@ -157,7 +157,7 @@ const CandidateDetails = () => {
     setIsAssignProcessDialogOpen(true);
   };
 
-  const handleProcessAssignment = (stageId: string) => {
+  const handleProcessAssignment = (stageId: string, assignedStaff: string) => {
     const processStages = getProcessStagesFromStorage();
     const selectedStage = processStages.find(stage => stage.id === stageId);
     
@@ -171,13 +171,13 @@ const CandidateDetails = () => {
         id: `timeline-${Date.now()}`,
         date: new Date(),
         title: 'Süreç Atandı',
-        description: `Yeni aşama atandı: ${selectedStage.name}`,
-        staff: 'Mevcut Kullanıcı'
+        description: `Yeni aşama atandı: ${selectedStage.name} - Atanan kişi: ${assignedStaff}`,
+        staff: assignedStaff
       };
       
       toast({
         title: "Süreç atandı",
-        description: `Aday ${selectedStage.name} aşamasına atandı.`,
+        description: `Aday ${selectedStage.name} aşamasına ${assignedStaff} tarafından atandı.`,
       });
       
       return {

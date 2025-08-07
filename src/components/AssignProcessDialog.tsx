@@ -8,25 +8,38 @@ import { getProcessStagesFromStorage } from "@/lib/process-data";
 interface AssignProcessDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onAssign: (stageId: string) => void;
+  onAssign: (stageId: string, assignedStaff: string) => void;
   currentStage?: string;
 }
 
 export function AssignProcessDialog({ isOpen, onClose, onAssign, currentStage }: AssignProcessDialogProps) {
   const [selectedStageId, setSelectedStageId] = useState<string>("");
+  const [assignedStaff, setAssignedStaff] = useState<string>("");
   const processStages = getProcessStagesFromStorage();
 
+  // Sample staff members - in a real app, this would come from a user management system
+  const staffMembers = [
+    "Ahmet Yılmaz",
+    "Ayşe Demir", 
+    "Mehmet Kaya",
+    "Fatma Özkan",
+    "Ali Şahin",
+    "Zeynep Arslan"
+  ];
+
   const handleAssign = () => {
-    if (!selectedStageId) return;
+    if (!selectedStageId || !assignedStaff) return;
     
-    onAssign(selectedStageId);
+    onAssign(selectedStageId, assignedStaff);
     onClose();
     setSelectedStageId("");
+    setAssignedStaff("");
   };
 
   const handleClose = () => {
     onClose();
     setSelectedStageId("");
+    setAssignedStaff("");
   };
 
   return (
@@ -56,12 +69,27 @@ export function AssignProcessDialog({ isOpen, onClose, onAssign, currentStage }:
               </SelectContent>
             </Select>
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="staff">Atanan Kişi</Label>
+            <Select value={assignedStaff} onValueChange={setAssignedStaff}>
+              <SelectTrigger>
+                <SelectValue placeholder="Bir kişi seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                {staffMembers.map((staff) => (
+                  <SelectItem key={staff} value={staff}>
+                    {staff}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex justify-end space-x-2">
           <Button variant="outline" onClick={handleClose}>
             İptal
           </Button>
-          <Button onClick={handleAssign} disabled={!selectedStageId}>
+          <Button onClick={handleAssign} disabled={!selectedStageId || !assignedStaff}>
             Ata
           </Button>
         </div>
