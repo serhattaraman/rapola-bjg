@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText } from 'lucide-react';
-import { mockCandidates, formatDate, getStatusLabel } from '@/lib/mock-data';
+import { ArrowLeft, Edit, Trash2, MessageSquare, PlusCircle, Phone, User, Clock, Calendar, Check, CheckCircle, AlertCircle, XCircle, Award, FileText, Building2, MapPin, Briefcase } from 'lucide-react';
+import { mockCandidates, formatDate, getStatusLabel, JobPlacement } from '@/lib/mock-data';
 import StatusBadge from '@/components/StatusBadge';
 import { QRCodeSVG } from 'qrcode.react';
 import ProcessStageIcon from '@/components/ProcessStageIcon';
@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import ExamStatsBadge from '@/components/ExamStatsBadge';
+import AddJobPlacementDialog from '@/components/AddJobPlacementDialog';
 
 const CandidateDetails = () => {
   const { id } = useParams();
@@ -45,6 +46,7 @@ const CandidateDetails = () => {
   );
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [rejectionNote, setRejectionNote] = useState<string>('');
+  const [isAddJobPlacementDialogOpen, setIsAddJobPlacementDialogOpen] = useState(false);
   
   if (!candidate) {
     return (
@@ -295,6 +297,40 @@ const CandidateDetails = () => {
           description: "Sertifika başarıyla indirildi.",
         });
       });
+  };
+
+  const handleAddJobPlacement = (jobPlacement: JobPlacement) => {
+    setCandidate(prev => {
+      if (!prev) return null;
+      
+      // Add new job placement to the candidate
+      const updatedJobPlacements = prev.jobPlacements ? [...prev.jobPlacements, jobPlacement] : [jobPlacement];
+      
+      // Add timeline entry for job placement
+      const newTimelineEntry = {
+        id: `timeline-${Date.now()}`,
+        date: new Date(),
+        title: 'İş Yerleştirme',
+        description: `${jobPlacement.companyName} şirketine ${jobPlacement.position} pozisyonunda yerleştirildi.`,
+        staff: jobPlacement.placedBy
+      };
+      
+      return {
+        ...prev,
+        jobPlacements: updatedJobPlacements,
+        timeline: [newTimelineEntry, ...prev.timeline]
+      };
+    });
+  };
+
+  const getContractTypeLabel = (type: string) => {
+    switch (type) {
+      case 'fullTime': return 'Tam Zamanlı';
+      case 'partTime': return 'Yarı Zamanlı';
+      case 'contract': return 'Sözleşmeli';
+      case 'internship': return 'Staj';
+      default: return type;
+    }
   };
 
   return (
@@ -766,6 +802,132 @@ const CandidateDetails = () => {
                 )}
               </div>
             </div>
+            
+            {/* Job Placement Status */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-scale-in">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold">İşe Yerleştirme Durumu</h2>
+                </div>
+                {candidate.status === 'completed' && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                    className="text-primary hover:text-primary/80 h-8 w-8"
+                  >
+                    <PlusCircle className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+              
+              {candidate.status === 'completed' ? (
+                <div className="space-y-4">
+                  {candidate.jobPlacements && candidate.jobPlacements.length > 0 ? (
+                    candidate.jobPlacements.map((job, index) => (
+                      <div key={job.id} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Building2 className="h-5 w-5 text-green-600" />
+                              <h3 className="font-medium text-green-900">{job.companyName}</h3>
+                              {job.isActive && (
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                  Aktif
+                                </span>
+                              )}
+                            </div>
+                            <div className="space-y-1 text-sm text-green-800">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">Pozisyon:</span>
+                                <span>{job.position}</span>
+                                {job.department && (
+                                  <>
+                                    <span>•</span>
+                                    <span>{job.department}</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{job.companyAddress}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span>Başlangıç: {formatDate(job.startDate)}</span>
+                                <span>•</span>
+                                <span>{getContractTypeLabel(job.contractType)}</span>
+                              </div>
+                              {job.salary && (
+                                <div className="flex items-center gap-2">
+                                  <span>Maaş: {job.salary} {job.currency}</span>
+                                </div>
+                              )}
+                              <div className="text-xs text-green-600 mt-2">
+                                Yerleştiren: {job.placedBy} • {formatDate(job.placementDate)}
+                              </div>
+                            </div>
+                            
+                            {/* Interview Details */}
+                            {job.interviewDetails && (
+                              <div className="mt-3 p-3 bg-white rounded border border-green-200">
+                                <h4 className="text-sm font-medium text-gray-900 mb-2">Mülakat Bilgileri</h4>
+                                <div className="space-y-1 text-xs text-gray-600">
+                                  <div>Tarih: {formatDate(job.interviewDetails.interviewDate)}</div>
+                                  {job.interviewDetails.interviewers.length > 0 && (
+                                    <div>Mülakatçılar: {job.interviewDetails.interviewers.join(', ')}</div>
+                                  )}
+                                  <div className="flex items-center gap-1">
+                                    <span>Sonuç:</span>
+                                    <span className={cn(
+                                      "px-1 py-0.5 rounded text-xs",
+                                      job.interviewDetails.interviewResult === 'passed' 
+                                        ? "bg-green-100 text-green-800" 
+                                        : "bg-red-100 text-red-800"
+                                    )}>
+                                      {job.interviewDetails.interviewResult === 'passed' ? 'Başarılı' : 'Başarısız'}
+                                    </span>
+                                  </div>
+                                  {job.interviewDetails.interviewNotes && (
+                                    <div className="mt-1">
+                                      <div className="font-medium">Notlar:</div>
+                                      <div>{job.interviewDetails.interviewNotes}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 mb-4">Henüz iş yerleştirme kaydı bulunmuyor</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsAddJobPlacementDialogOpen(true)}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        İlk İş Yerleştirme Ekle
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 mb-2">
+                    İş yerleştirme işlemleri sadece süreci tamamlanmış adaylar için yapılabilir.
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    Mevcut durum: <strong>{getStatusLabel(candidate.status)}</strong>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -952,6 +1114,13 @@ const CandidateDetails = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Add Job Placement Dialog */}
+      <AddJobPlacementDialog
+        open={isAddJobPlacementDialogOpen}
+        onOpenChange={setIsAddJobPlacementDialogOpen}
+        onSuccess={handleAddJobPlacement}
+      />
     </div>
   );
 };

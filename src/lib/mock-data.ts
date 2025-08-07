@@ -44,6 +44,27 @@ export interface TimelineEvent {
   staff?: string;
 }
 
+export interface JobPlacement {
+  id: string;
+  companyName: string;
+  companyAddress: string;
+  position: string;
+  department?: string;
+  startDate: Date | string;
+  salary?: number;
+  currency?: string;
+  contractType: 'fullTime' | 'partTime' | 'contract' | 'internship';
+  interviewDetails?: {
+    interviewDate: Date | string;
+    interviewers: string[];
+    interviewNotes?: string;
+    interviewResult: 'passed' | 'failed' | 'pending';
+  };
+  placementDate: Date | string;
+  placedBy: string; // Staff member who placed the candidate
+  isActive: boolean;
+}
+
 export interface Candidate {
   id: string;
   firstName: string;
@@ -76,6 +97,7 @@ export interface Candidate {
   }[];
   group?: string;
   processProgress?: CandidateProcessProgress[]; // New field for process tracking
+  jobPlacements?: JobPlacement[]; // Job placement history
 }
 
 // Modified to ensure logical exam progression: You must pass previous level to take next exam
@@ -268,6 +290,33 @@ const generateCandidate = (): Candidate => {
       'Sağlık Sorunları'
     ]);
     candidate.rejectionNote = faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.6 });
+  }
+
+  // Add job placements for completed candidates
+  if (status === 'completed') {
+    const hasJobPlacement = faker.datatype.boolean({ probability: 0.8 });
+    if (hasJobPlacement) {
+      candidate.jobPlacements = [{
+        id: faker.string.uuid(),
+        companyName: faker.company.name(),
+        companyAddress: `${faker.location.streetAddress()}, ${faker.location.city()}`,
+        position: faker.person.jobTitle(),
+        department: faker.helpers.arrayElement(['İnsan Kaynakları', 'Hemşirelik', 'Öğretmenlik', 'Mühendislik', 'Satış']),
+        startDate: faker.date.recent({ days: 30 }),
+        salary: faker.number.int({ min: 15000, max: 50000 }),
+        currency: 'EUR',
+        contractType: faker.helpers.arrayElement(['fullTime', 'partTime', 'contract']),
+        interviewDetails: {
+          interviewDate: faker.date.recent({ days: 45 }),
+          interviewers: [faker.person.fullName(), faker.person.fullName()],
+          interviewNotes: faker.lorem.paragraph(),
+          interviewResult: 'passed'
+        },
+        placementDate: faker.date.recent({ days: 15 }),
+        placedBy: faker.person.fullName(),
+        isActive: true
+      }];
+    }
   }
 
   return candidate;

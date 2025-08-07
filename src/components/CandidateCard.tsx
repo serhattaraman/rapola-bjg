@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Candidate, formatDate, CandidateProcessProgress, ProcessStatus } from '@/lib/mock-data';
+import { Candidate, formatDate, CandidateProcessProgress, ProcessStatus, JobPlacement } from '@/lib/mock-data';
 import { getProcessStagesFromStorage } from '@/lib/process-data';
 import StatusBadge from './StatusBadge';
-import { Phone, User, Calendar } from 'lucide-react';
+import { Phone, User, Calendar, Building2, MapPin } from 'lucide-react';
 import ProcessStageIcon from './ProcessStageIcon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -25,6 +25,7 @@ interface CandidateCardProps {
     stageTimeline?: any[];
     group?: string;
     processProgress?: CandidateProcessProgress[];
+    jobPlacements?: JobPlacement[];
   };
 }
 
@@ -187,6 +188,25 @@ const CandidateCard = ({ candidate }: CandidateCardProps) => {
               <p className="text-sm text-blue-700 dark:text-blue-300">
                 Sınıf Onayı: {candidate.classConfirmation === 'confirmed' ? 'Onaylandı' : 'Beklemede'}
               </p>
+            </div>
+          )}
+
+          {/* Job Placement Information */}
+          {candidate.status === 'completed' && candidate.jobPlacements && candidate.jobPlacements.length > 0 && (
+            <div className="mt-3 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+              {candidate.jobPlacements.filter(job => job.isActive).map((job) => (
+                <div key={job.id} className="text-sm text-green-700 dark:text-green-300">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Building2 className="h-4 w-4" />
+                    <span className="font-medium">{job.companyName}</span>
+                    <span>• {job.position}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <MapPin className="h-3 w-3" />
+                    <span>{job.companyAddress}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
