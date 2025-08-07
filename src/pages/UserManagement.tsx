@@ -112,7 +112,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Kullanıcı Yönetimi</h1>

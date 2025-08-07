@@ -403,7 +403,7 @@ const Index = () => {
   const averageExperience = getAverageExperience();
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in dashboard-page">
+    <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6 animate-fade-in dashboard-page">
       <div className="max-w-7xl mx-auto dashboard-container">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 dashboard-header">
           <div className="dashboard-title">

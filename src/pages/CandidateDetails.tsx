@@ -48,7 +48,7 @@ const CandidateDetails = () => {
   
   if (!candidate) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-4">Aday bulunamadı</h2>
           <p className="text-gray-500 mb-4">Aradığınız ID: {id}</p>
@@ -298,7 +298,7 @@ const CandidateDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6 animate-fade-in">
+    <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6 animate-fade-in">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <button 

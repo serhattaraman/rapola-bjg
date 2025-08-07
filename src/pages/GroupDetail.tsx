@@ -40,7 +40,7 @@ const GroupDetail = () => {
   // If no candidates in group, show error
   if (groupCandidates.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6">
+      <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <div className="mb-6">
             <Link to="/groups" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
@@ -99,7 +99,7 @@ const GroupDetail = () => {
   }, [groupCandidates, id]);
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pt-20 pb-10 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#f9fafb] pb-10 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <Link to="/groups" className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
