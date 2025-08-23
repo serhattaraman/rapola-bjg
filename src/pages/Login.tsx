@@ -79,7 +79,7 @@ const Login = () => {
               </p>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col space-y-3">
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -96,6 +96,18 @@ const Login = () => {
                 </span>
               )}
             </Button>
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-600 mb-2">İş başvurusu yapmak istiyorsanız</p>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/basvuru')}
+              >
+                Başvuru Formu
+              </Button>
+            </div>
           </CardFooter>
         </form>
       </Card>

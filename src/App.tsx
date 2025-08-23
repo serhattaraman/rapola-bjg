@@ -18,6 +18,7 @@ import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import AdvertisingReports from "./pages/AdvertisingReports";
 import ProcessManagement from "./pages/ProcessManagement";
+import PublicApplication from "./pages/PublicApplication";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 
@@ -32,8 +33,9 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public route - Login without sidebar */}
+              {/* Public routes - without sidebar */}
               <Route path="/login" element={<Login />} />
+              <Route path="/basvuru" element={<PublicApplication />} />
               
               {/* All authenticated routes with sidebar */}
               <Route element={<RouteGuard />}>
